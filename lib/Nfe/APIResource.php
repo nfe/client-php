@@ -50,7 +50,7 @@ class APIResource extends Nfe_Object
     }
 
     $ret = strtolower(Nfe::getBaseURI() . $uri_path . "/" . self::objectBaseURI() . $path);
-
+    print_r($ret);
     return $ret;
   }
 

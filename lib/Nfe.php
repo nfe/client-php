@@ -17,5 +17,6 @@ require( $baseDirectory . "/Nfe/Company.php" );
 require( $baseDirectory . "/Nfe/LegalPerson.php" );
 require( $baseDirectory . "/Nfe/NaturalPerson.php" );
 require( $baseDirectory . "/Nfe/Webhook.php" );
+require( $baseDirectory . "/Nfe/ServiceInvoice.php" );
 
 require( $baseDirectory . "/Nfe/Factory.php" );

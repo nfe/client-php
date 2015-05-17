@@ -14,9 +14,10 @@ if (!getenv('NFE_API_KEY')) {
 include_once(dirname(__FILE__)."/../lib/Nfe.php");
 
 include_once(dirname(__FILE__)."/Nfe/TestCase.php");
-include_once(dirname(__FILE__)."/Nfe/CompanyTest.php");
-include_once(dirname(__FILE__)."/Nfe/LegalPersonTest.php");
-include_once(dirname(__FILE__)."/Nfe/NaturalPersonTest.php");
-include_once(dirname(__FILE__)."/Nfe/WebhookTest.php");
+// include_once(dirname(__FILE__)."/Nfe/CompanyTest.php");
+// include_once(dirname(__FILE__)."/Nfe/LegalPersonTest.php");
+// include_once(dirname(__FILE__)."/Nfe/NaturalPersonTest.php");
+// include_once(dirname(__FILE__)."/Nfe/WebhookTest.php");
+include_once(dirname(__FILE__)."/Nfe/ServiceInvoiceTest.php");
 
 ?>
