@@ -6,13 +6,13 @@
 
 ## Instalação
 
-Faça o download da biblioteca:
+ - Faça o download da biblioteca
 
 ~~~
 git clone https://github.com/nfe/client-php
 ~~~
 
-Inclua a biblioteca em seu arquivo PHP:
+ - Inclua a biblioteca em seu arquivo PHP
 
 ~~~
 require_once(".../nfe-php/lib/Nfe.php");
@@ -58,3 +58,7 @@ Execute a comitiva de testes:
 ~~~
 php ./test/Nfe.php
 ~~~
+
+## Autor
+
+Originalmente criado pela equipe da [NFe.io](https://github.com/nfe)
