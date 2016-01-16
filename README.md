@@ -30,6 +30,8 @@ O autoload do composer irá cuidar do resto.
 
 ### Criar empresa
 ~~~
+require_once(".../nfe-php/lib/Nfe.php");
+
 Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
 
 Nfe_Company::create(
@@ -44,6 +46,10 @@ Nfe_Company::create(
 
 ### Emitir nota fiscal
 ~~~
+require_once(".../nfe-php/lib/Nfe.php");
+
+Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
+
 Nfe_ServiceInvoice::create(
   // ID da empresa, você deve copiar exatamente como está no painel
   "64555e0ee340420fdc94ad09",
@@ -92,9 +98,39 @@ Nfe_ServiceInvoice::create(
 );
 ~~~
 
+### Cancelar nota fiscal
+~~~
+require_once(".../nfe-php/lib/Nfe.php");
+
+Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
+
+$invoice = Nfe_ServiceInvoice::fetch(
+  "64555e0ee340420fdc94ad09", // ID da empresa, você deve copiar exatamente como está no painel
+  "wPi7i954QAcr6kmy17BtEKtN"  // ID da nota fiscal
+);
+
+if ($invoice->flowStatus == "Issued") {
+  $invoice.cancel();
+}
+~~~
+
+### Download do PDF da nota fiscal
+~~~
+require_once(".../nfe-php/lib/Nfe.php");
+
+Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
+
+$url = Nfe_ServiceInvoice::pdf(
+  "64555e0ee340420fdc94ad09", // ID da empresa, você deve copiar exatamente como está no painel
+  "wPi7i954QAcr6kmy17BtEKtN"  // ID da nota fiscal
+);
+
+file_put_contents('./invoice_file.pdf', file_get_contents($url));
+~~~
+
 ## Documentação
 
-Acesse [api.nfe.io/swagger](http://api.nfe.io/swagger) para referência
+Acesse [https://api.nfe.io](https://api.nfe.io) para mais referências da API
 
 ## Testes
 
