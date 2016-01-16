@@ -44,13 +44,16 @@ class APIResource extends Nfe_Object
     else if (is_array($object) && isset($object["company_id"])) {
       $uri_path = "/companies/" . $object["company_id"];
     }
+    else if (is_object($object) && isset($object->provider) && isset($object->provider->id)) {
+      $uri_path = "/companies/" . $object->provider->id;
+    }
 
     if (isset($object["id"])) {
       $path = "/" . $object["id"];
     }
 
     $ret = strtolower(Nfe::getBaseURI() . $uri_path . "/" . self::objectBaseURI() . $path);
-    print_r($ret);
+
     return $ret;
   }
 
@@ -66,22 +69,19 @@ class APIResource extends Nfe_Object
   }
 
   protected static function createAPI($attributes=Array()) {
-
-    $response = self::createFromResponse(
+    return self::createFromResponse(
       self::API()->request(
         "POST",
         self::endpointAPI( $attributes ),
         $attributes
       )
     );
-
-    $type = self::objectBaseURI();
-    return self::createFromResponse($response->$type);
   }
 
   protected function deleteAPI() {
     if ($this["id"] == null) return false;
 
+      var_dump(static::url($this));
     try {
       $response = self::API()->request(
         "DELETE",
@@ -90,9 +90,6 @@ class APIResource extends Nfe_Object
 
       if (isset($response->errors)) throw NfeException();
     } catch (Exception $e) {
-
-      print_r($e);
-
       return false;
     }
 
@@ -107,8 +104,7 @@ class APIResource extends Nfe_Object
         $options
       );
 
-      $type = self::objectBaseURI();
-      return self::createFromResponse($response->$type);
+      return self::createFromResponse($response);
     } catch (Exception $e) {}
 
     return Array();
@@ -116,13 +112,13 @@ class APIResource extends Nfe_Object
 
   protected static function fetchAPI($key) {
     try {
-      $response = static::API()->request(
+
+      $response = self::API()->request(
         "GET",
         static::url($key)
       );
 
-      $type = self::objectBaseURI();
-      return self::createFromResponse($response->$type);
+      return self::createFromResponse($response);
     } catch (NfeObjectNotFound $e) {
       throw new NfeObjectNotFound(self::convertClassToObjectType(get_called_class()) . ":" . " not found");
     }

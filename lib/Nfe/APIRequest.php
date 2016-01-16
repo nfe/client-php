@@ -50,7 +50,7 @@ class Nfe_APIRequest {
 
     $last_api_response_code = $response_code;
 
-    print_r("\n" . $response_code);
+    // print_r("\n" . $response_code);
 
     return $response;
   }
