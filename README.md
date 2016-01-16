@@ -14,9 +14,9 @@ git clone https://github.com/nfe/client-php
 
  - Inclua a biblioteca em seu arquivo PHP
 
-~~~
+```php
 require_once(".../nfe-php/lib/Nfe.php");
-~~~
+```
 
 ### Usando Composer
 
@@ -29,7 +29,7 @@ O autoload do composer irá cuidar do resto.
 ## Exemplo de Uso
 
 ### Criar empresa
-~~~
+```php
 require_once(".../nfe-php/lib/Nfe.php");
 
 Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
@@ -42,10 +42,10 @@ Nfe_Company::create(
     "email" => "exemplo@bb.com.br"
   )
 );
-~~~
+```
 
 ### Emitir nota fiscal
-~~~
+```php
 require_once(".../nfe-php/lib/Nfe.php");
 
 Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
@@ -96,10 +96,10 @@ Nfe_ServiceInvoice::create(
     )
   )
 );
-~~~
+```
 
 ### Cancelar nota fiscal
-~~~
+```php
 require_once(".../nfe-php/lib/Nfe.php");
 
 Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
@@ -112,10 +112,10 @@ $invoice = Nfe_ServiceInvoice::fetch(
 if ($invoice->flowStatus == "Issued") {
   $invoice.cancel();
 }
-~~~
+```
 
 ### Download do PDF da nota fiscal
-~~~
+```php
 require_once(".../nfe-php/lib/Nfe.php");
 
 Nfe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
@@ -126,7 +126,7 @@ $url = Nfe_ServiceInvoice::pdf(
 );
 
 file_put_contents('./invoice_file.pdf', file_get_contents($url));
-~~~
+```
 
 ## Documentação
 
