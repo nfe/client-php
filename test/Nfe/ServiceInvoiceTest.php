@@ -73,6 +73,26 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
     $this->assertEqual( $fetched_invoice->borrower->name, "BANCO DO BRASIL SA" );
   }
 
+  public function testDownloadPdfInvoice()
+  {
+    $url = Nfe_ServiceInvoice::pdf(
+      "54244e0ee340420fdc94ad09",
+      $this->invoice->id
+    );
+
+    $this->assertTrue( strpos($url, "pdf") );
+  }
+
+  public function testDownloadXmlInvoice()
+  {
+    $url = Nfe_ServiceInvoice::xml(
+      "54244e0ee340420fdc94ad09",
+      $this->invoice->id
+    );
+
+    $this->assertTrue( strpos($url, "xml") );
+  }
+
   public function testCancelInvoice()
   {
     $fetched_invoice = Nfe_ServiceInvoice::fetch(

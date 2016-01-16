@@ -81,7 +81,6 @@ class APIResource extends Nfe_Object
   protected function deleteAPI() {
     if ($this["id"] == null) return false;
 
-      var_dump(static::url($this));
     try {
       $response = self::API()->request(
         "DELETE",

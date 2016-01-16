@@ -28,8 +28,11 @@ class Nfe_APIRequest {
     $headers = $this->_defaultHeaders();
 
     list( $response_body, $response_code ) = $this->requestWithCURL( $method, $url, $headers, $data );
-
-    $response = json_decode($response_body);
+    if ($response_code == 302) {
+      $response = $response_body;
+    } else {
+      $response = json_decode($response_body);
+    }
 
     if (json_last_error() != JSON_ERROR_NONE) throw new NfeObjectNotFound($response_body);
     if ($response_code == 404) throw new NfeObjectNotFound($response_body);
@@ -77,10 +80,11 @@ class Nfe_APIRequest {
     }
 
     $opts[CURLOPT_URL] = $url;
-    $opts[CURLOPT_RETURNTRANSFER] = true;
+    $opts[CURLOPT_RETURNTRANSFER] = TRUE;
+    $opts[CURLOPT_FOLLOWLOCATION] = FALSE;
+    $opts[CURLOPT_HEADER] = TRUE;
     $opts[CURLOPT_CONNECTTIMEOUT] = 30;
     $opts[CURLOPT_TIMEOUT] = 80;
-    $opts[CURLOPT_RETURNTRANSFER] = true;
     $opts[CURLOPT_HTTPHEADER] = $headers;
 
     $opts[CURLOPT_SSL_VERIFYHOST] = 2;
@@ -89,8 +93,19 @@ class Nfe_APIRequest {
 
     curl_setopt_array($curl, $opts);
 
-    $response_body = curl_exec($curl);
+    $response = curl_exec($curl);
     $response_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+    $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+    $response_header = substr($response, 0, $header_size);
+    $response_body = substr($response, $header_size);
+
+    // if we have a redirect we need to get the location header
+    if ($response_code == 302)
+    {
+      preg_match_all('/^Location:\s?(.*)$/mi', $response, $matches);
+      return Array($matches[1][0], $response_code);
+    }
 
     curl_close($curl);
 
