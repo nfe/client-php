@@ -104,7 +104,7 @@ class Nfe_APIRequest {
     if ($response_code == 302)
     {
       preg_match_all('/^Location:\s?(.*)$/mi', $response, $matches);
-      return Array($matches[1][0], $response_code);
+      return Array(trim($matches[1][0]), $response_code);
     }
 
     curl_close($curl);

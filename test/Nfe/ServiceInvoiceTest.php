@@ -25,7 +25,7 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
           // Nome da pessoa física ou Razão Social da Empresa
           'name' => 'BANCO DO BRASIL SA',
           // Email para onde deverá ser enviado a nota fiscal
-          'email' => 'hackers@nfe.io',
+          // 'email' => 'hackers@nfe.io',
           // Endereço do tomador
           'address' => Array(
             // Código do pais com três letras
@@ -79,7 +79,7 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
-
+    
     $this->assertTrue( strpos($url, "pdf") );
   }
 
