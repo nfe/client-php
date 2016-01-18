@@ -13,10 +13,14 @@ abstract class Nfe {
 
   public static $api_key = null;
   public static $api_version = "v1";
-  public static $endpoint = "http://api.nfe.io";
+  public static $endpoint = "https://api.nfe.io";
 
   public static function getBaseURI() {
    return self::$endpoint . "/" . self::$api_version;
+  }
+
+  public static function setHost( $host ) {
+    self::$endpoint = $host;
   }
 
   public static function setApiKey( $_api_key ) {
