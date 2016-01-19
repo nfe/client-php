@@ -109,8 +109,8 @@ $invoice = Nfe_ServiceInvoice::fetch(
   "wPi7i954QAcr6kmy17BtEKtN"  // ID da nota fiscal
 );
 
-if ($invoice->flowStatus == "Issued") {
-  $invoice.cancel();
+if ($invoice->status == "Issued") {
+  $invoice->cancel();
 }
 ```
 
