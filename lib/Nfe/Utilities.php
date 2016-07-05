@@ -9,13 +9,11 @@ class Nfe_Utilities {
     }
   }
 
-  public static function utf8($value)
-  {
-    return (is_string($value) && mb_detect_encoding($value, "UTF-8", true) != "UTF-8")?utf8_encode($value):$value;
+  public static function utf8($value) {
+    return (is_string($value) && mb_detect_encoding($value, "UTF-8", true) != "UTF-8") ? utf8_encode($value) : $value;
   }
 
-  public static function convertDateFromISO( $datetime )
-  {
+  public static function convertDateFromISO( $datetime ) {
     return strtotime($datetime);
   }
 
@@ -23,19 +21,24 @@ class Nfe_Utilities {
     return date("c", $epoch);
   }
 
-  public static function arrayToParams($array,$prefix=null) {
-    if (!is_array($array)) return $array;
+  public static function arrayToParams($array, $prefix = null) {
+    if ( !is_array($array) ) {
+      return $array;
+    }
 
     return json_encode($array);
   }
 
-  public static function arrayToParamsUrl($array,$prefix=null) {
-    if (!is_array($array)) return $array;
+  public static function arrayToParamsUrl($array, $prefix = null) {
+    if ( !is_array($array) ) { 
+      return $array;
+    }
 
-    $params = Array();
-
+    $params = array();
     foreach ($array as $k => $v) {
-      if (is_null($v)) continue;
+      if ( is_null($v) ) {
+        continue;
+      }
 
       if ($prefix && $k && !is_int($k))
         $k = $prefix."[".$k."]";
@@ -49,16 +52,11 @@ class Nfe_Utilities {
       }
     }
 
-    print_r($params);
-
     $v = implode("&", $params);
 
-    //Encode the array into JSON.
+    // Encode the array into JSON.
     $jsonDataEncoded = json_encode($jsonData);
 
     return $v;
   }
-
-
-
 }

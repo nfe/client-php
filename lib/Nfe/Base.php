@@ -4,19 +4,17 @@ class NfeAuthenticationException extends Exception {}
 class NfeRequestException extends Exception {}
 class NfeObjectNotFound extends Exception {}
 class NfeException extends Exception {}
-
-abstract class NfeResource {
-}
+abstract class NfeResource {}
 
 abstract class Nfe {
-  const VERSION = "1.0.0";
+  const VERSION              = "1.0.0";
 
-  public static $api_key = null;
+  public static $api_key     = null;
   public static $api_version = "v1";
-  public static $endpoint = "https://api.nfe.io";
+  public static $endpoint    = "https://api.nfe.io";
 
   public static function getBaseURI() {
-   return self::$endpoint . "/" . self::$api_version;
+    return self::$endpoint . "/" . self::$api_version;
   }
 
   public static function setHost( $host ) {

@@ -1,7 +1,6 @@
 <?php
 
-class APIResource extends Nfe_Object
-{
+class APIResource extends Nfe_Object {
   private static $_apiRequester = null;
 
   public static function convertClassToObjectType() {
@@ -30,21 +29,23 @@ class APIResource extends Nfe_Object
   }
 
   public static function API() {
-    if (APIResource::$_apiRequester == null) APIResource::$_apiRequester = new Nfe_APIRequest();
+    if ( APIResource::$_apiRequester == null ) {
+      APIResource::$_apiRequester = new Nfe_APIRequest();
+    }
+
     return APIResource::$_apiRequester;
   }
 
-  public static function endpointAPI($object=NULL, $uri_path="") {
-
+  public static function endpointAPI( $object = null, $uri_path = "" ) {
     $path = "";
 
     if (is_string($object) || is_integer($object)) {
       $path = "/" . $object;
     }
-    else if (is_array($object) && isset($object["company_id"])) {
+    elseif (is_array($object) && isset($object["company_id"])) {
       $uri_path = "/companies/" . $object["company_id"];
     }
-    else if (is_object($object) && isset($object->provider) && isset($object->provider->id)) {
+    elseif (is_object($object) && isset($object->provider) && isset($object->provider->id)) {
       $uri_path = "/companies/" . $object->provider->id;
     }
 
@@ -57,37 +58,31 @@ class APIResource extends Nfe_Object
     return $ret;
   }
 
-  public static function url($object=NULL) {
+  public static function url( $object = null ) {
     return self::endpointAPI( $object );
   }
 
   protected static function createFromResponse($response) {
-    return Nfe_Factory::createFromResponse(
-      self::convertClassToObjectType(),
-      $response
-    );
+    return Nfe_Factory::createFromResponse( self::convertClassToObjectType(), $response );
   }
 
-  protected static function createAPI($attributes=Array()) {
+  protected static function createAPI( $attributes = array() ) {
     return self::createFromResponse(
-      self::API()->request(
-        "POST",
-        self::endpointAPI( $attributes ),
-        $attributes
-      )
-    );
+      self::API()->request( "POST", self::endpointAPI( $attributes ), $attributes ) );
   }
 
   protected function deleteAPI() {
-    if ($this["id"] == null) return false;
+    if ( $this["id"] == null ) {
+      return false;
+    }
 
     try {
-      $response = self::API()->request(
-        "DELETE",
-        static::url($this)
-      );
+      $response = self::API()->request( "DELETE", static::url($this) );
 
-      if (isset($response->errors)) throw NfeException();
+      if ( isset($response->errors) ) {
+        throw NfeException();
+      }
+
     } catch (Exception $e) {
       return false;
     }
@@ -95,44 +90,37 @@ class APIResource extends Nfe_Object
     return true;
   }
 
-  protected static function searchAPI($options=Array()) {
+  protected static function searchAPI( $options = array() ) {
     try {
-      $response = self::API()->request(
-        "GET",
-        static::url($options),
-        $options
-      );
+      $response = self::API()->request( "GET", static::url($options), $options );
 
       return self::createFromResponse($response);
     } catch (Exception $e) {}
 
-    return Array();
+    return array();
   }
 
   protected static function fetchAPI($key) {
     try {
-
-      $response = self::API()->request(
-        "GET",
-        static::url($key)
-      );
-
+      $response = self::API()->request( "GET", static::url($key) );      
       return self::createFromResponse($response);
+
     } catch (NfeObjectNotFound $e) {
-      throw new NfeObjectNotFound(self::convertClassToObjectType(get_called_class()) . ":" . " not found");
+      throw new NfeObjectNotFound( self::convertClassToObjectType( get_called_class() ) . ":" . " não encontrado.");
     }
   }
 
   protected function refreshAPI() {
-    if ($this->is_new()) return false;
+    if ( $this->is_new() ) {
+      return false;
+    }
 
     try {
-      $response = self::API()->request(
-        "GET",
-        static::url($this)
-      );
+      $response = self::API()->request( "GET", static::url($this) );
 
-      if (isset($response->errors)) throw NfeObjectNotFound();
+      if ( isset($response->errors) ) { 
+        throw NfeObjectNotFound();
+      }
 
       $type = self::objectBaseURI();
       $new_object = self::createFromResponse($response->$type);
@@ -159,7 +147,9 @@ class APIResource extends Nfe_Object
       $this->copy( $new_object );
       $this->resetStates();
 
-      if (isset($response->errors)) throw new NfeException();
+      if ( isset($response->errors) ) {
+        throw new NfeException();
+      }
 
     } catch (Exception $e) {
       return false;

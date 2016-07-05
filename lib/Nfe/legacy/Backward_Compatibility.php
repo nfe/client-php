@@ -1,18 +1,18 @@
 <?php
 
-if(!function_exists('get_called_class')) {
+if ( ! function_exists('get_called_class') ) {
   class class_tools {
     static $i = 0;
     static $fl = null;
 
     static function get_called_class() {
-        $bt = debug_backtrace();
+      $bt = debug_backtrace();
 
       if (self::$fl == $bt[2]['file'].$bt[2]['line']) {
-          self::$i++;
+        self::$i++;
       } else {
-          self::$i = 0;
-          self::$fl = $bt[2]['file'].$bt[2]['line'];
+        self::$i = 0;
+        self::$fl = $bt[2]['file'].$bt[2]['line'];
       }
 
       $lines = file($bt[2]['file']);
@@ -26,6 +26,6 @@ if(!function_exists('get_called_class')) {
   }
 
   function get_called_class() {
-      return class_tools::get_called_class();
+    return class_tools::get_called_class();
   }
 }

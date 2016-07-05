@@ -4,7 +4,7 @@ class APIChildResource {
   private $_parentKeys;
   private $_fabricator;
   
-  function __construct($parentKeys=Array(), $className) {
+  function __construct( $parentKeys = array(), $className ) {
     $this->_fabricator = $className;
     $this->_parentKeys = $parentKeys;
   }
@@ -20,16 +20,22 @@ class APIChildResource {
     return $object;
   }
 
-  public function create($attributes=Array()) {
-    $result = call_user_func_array($this->_fabricator . '::create', array( $this->mergeparams($attributes), $this->_parentKeys ));
-    if ($result) $this->configureParentKeys( $result );
+  public function create( $attributes = array() ) {
+    $result = call_user_func_array( $this->_fabricator . '::create', array( $this->mergeparams($attributes), $this->_parentKeys ) );
+    
+    if ($result) {
+      $this->configureParentKeys( $result );
+    }
+
     return $result;
   }
 
-  public function search($options=Array()) {
-    $results = call_user_func_array($this->_fabricator . '::search', Array( $this->mergeParams($options), $this->_parentKeys ));
+  public function search( $options = array() ) {
+    $results = call_user_func_array($this->_fabricator . '::search', array( $this->mergeParams($options), $this->_parentKeys ));
+
     if ($results && $results->total()) {
       $modifiedResults = $results->results();
+
       for ($i=0;$i<count($modifiedResults);$i++) {
         $modifiedResults[$i] = $this->configureParentKeys( $modifiedResults[$i] );
       }
@@ -38,13 +44,17 @@ class APIChildResource {
     return $results;
   }
 
-  public function fetch($key=Array()) {
-    if (is_string($key)) {
-      $key = Array( "id" => $key );
+  public function fetch( $key = array() ) {
+    if ( is_string($key) ) {
+      $key = array( "id" => $key );
     }
 
-    $result = call_user_func_array($this->_fabricator . '::fetch', Array( $this->mergeParams($key), $this->_parentKeys ));
-    if ($result) $this->configureParentKeys( $result );
+    $result = call_user_func_array($this->_fabricator . '::fetch', array( $this->mergeParams($key), $this->_parentKeys ));
+
+    if ( $result ) {
+      $this->configureParentKeys( $result );
+    }
+
     return $result;
   }
 }

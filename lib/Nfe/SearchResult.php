@@ -1,11 +1,10 @@
 <?php
 
-class Nfe_SearchResult
-{
+class Nfe_SearchResult {
   protected $_totalResults;
   protected $_results;
 
-  public function __construct($results,$totalResults) {
+  public function __construct( $results, $totalResults ) {
     $this->_totalResults = $totalResults;
     $this->_results = $results;
   }
@@ -18,7 +17,7 @@ class Nfe_SearchResult
    return $this->_results;
   }
 
-  public function set($results, $totalResults) {
+  public function set( $results, $totalResults ) {
     $this->_totalResults = $totalResults;
     $this->_results = $results;
   }
