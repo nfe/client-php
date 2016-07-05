@@ -10,8 +10,8 @@ require( $baseDirectory . "/Nfe/Object.php" );
 require( $baseDirectory . "/Nfe/Utilities.php" );
 
 require( $baseDirectory . "/Nfe/APIRequest.php" );
-require( $baseDirectory . "/Nfe/APIResource.php" );
-require( $baseDirectory . "/Nfe/APIChildResource.php" );
+require( $baseDirectory . "/Nfe/NFe_APIResource.php" );
+require( $baseDirectory . "/Nfe/NFe_APIChildResource.php" );
 
 require( $baseDirectory . "/Nfe/Company.php" );
 require( $baseDirectory . "/Nfe/LegalPerson.php" );
