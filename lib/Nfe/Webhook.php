@@ -1,6 +1,6 @@
 <?php
 
-class Nfe_Webhook extends APIResource {
+class Nfe_Webhook extends Nfe_APIResource {
 
   public static function create($attributes=Array()) {
     return self::createAPI($attributes);

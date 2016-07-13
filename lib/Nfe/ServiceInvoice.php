@@ -1,6 +1,7 @@
 <?php
 
-class Nfe_ServiceInvoice extends APIResource {
+class Nfe_ServiceInvoice extends Nfe_APIResource {
+  
   public static function create($companyId, $attributes=Array()) {
     $attributes["company_id"] = $companyId;
     return self::createAPI($attributes);
@@ -42,7 +43,7 @@ class Nfe_ServiceInvoice extends APIResource {
         "GET",
         $url
       );
-      
+
       return $response;
     } catch (Exception $e) {
       return false;

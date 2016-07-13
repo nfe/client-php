@@ -1,9 +1,9 @@
 <?php
 
-class APIChildResource {
+class Nfe_APIChildResource {
   private $_parentKeys;
   private $_fabricator;
-  
+
   function __construct($parentKeys=Array(), $className) {
     $this->_fabricator = $className;
     $this->_parentKeys = $parentKeys;
