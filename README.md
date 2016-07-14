@@ -5,8 +5,9 @@
 * PHP 5.3+
 
 ## Instalação
-
  - Faça o download da biblioteca
+
+### Instalação Manual
 
 ~~~
 git clone https://github.com/nfe/client-php
@@ -36,25 +37,25 @@ NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Pai
 
 NFe_Company::create(
   array(
-    "federalTaxNumber" => 191,
-    "name"             => "BANCO DO BRASIL SA",
-    "tradeName"        => "BANCO DO BRASIL",
-    "email"            => "exemplo@bb.com.br"
+    'federalTaxNumber' => 191,
+    'name'             => 'BANCO DO BRASIL SA',
+    'tradeName'        => 'BANCO DO BRASIL',
+    'email'            => 'exemplo@bb.com.br'
   )
 );
 ```
 
 ### Emitir nota fiscal
 ```php
-require_once(".../client-php/lib/init.php");
+require_once('.../client-php/lib/init.php');
 
-NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
+NFe::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no Painel
 
 NFe_ServiceInvoice::create(
   // ID da empresa, você deve copiar exatamente como está no painel
-  "64555e0ee340420fdc94ad09",
+  '64555e0ee340420fdc94ad09',
   // Dados da nota fiscal de serviço
-  array (
+  array(
     // Código do serviço de acordo com o a cidade
     'cityServiceCode' => '2690',
     // Descrição dos serviços prestados
@@ -100,37 +101,37 @@ NFe_ServiceInvoice::create(
 
 ### Cancelar nota fiscal
 ```php
-require_once(".../client-php/lib/init.php");
+require_once('.../client-php/lib/init.php');
 
 NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
 
 $invoice = NFe_ServiceInvoice::fetch(
-  "64555e0ee340420fdc94ad09", // ID da empresa, você deve copiar exatamente como está no painel
-  "wPi7i954QAcr6kmy17BtEKtN"  // ID da nota fiscal
+  '64555e0ee340420fdc94ad09', // ID da empresa, você deve copiar exatamente como está no painel
+  'wPi7i954QAcr6kmy17BtEKtN'  // ID da nota fiscal
 );
 
-if ( $invoice->status == "Issued" ) {
+if ( $invoice->status == 'Issued' ) {
   $invoice->cancel();
 }
 ```
 
 ### Download do PDF da nota fiscal
 ```php
-require_once(".../clienit-php/lib/init.php");
+require_once('.../clienit-php/lib/init.php');
 
-NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
+NFe::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no Painel
 
 $url = NFe_ServiceInvoice::pdf(
-  "64555e0ee340420fdc94ad09", // ID da empresa, você deve copiar exatamente como está no painel
-  "wPi7i954QAcr6kmy17BtEKtN"  // ID da nota fiscal
+  '64555e0ee340420fdc94ad09', // ID da empresa, você deve copiar exatamente como está no painel
+  'wPi7i954QAcr6kmy17BtEKtN'  // ID da nota fiscal
 );
 
-file_put_contents('./invoice_file.pdf', file_get_contents($url));
+file_put_contents( './invoice_file.pdf', file_get_contents($url) );
 ```
 
 ## Documentação
 
-Acesse [https://api.nfe.io](https://api.nfe.io) para mais referências da API
+Acesse [https://api.nfe.io](https://api.nfe.io) para mais referências da API.
 
 ## Testes
 
@@ -142,7 +143,7 @@ composer update --dev
 
 Execute a comitiva de testes:
 ~~~
-php ./test/Nfe.php
+php ./test/NFe.php
 ~~~
 
 ## Autor
