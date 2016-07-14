@@ -1,25 +1,23 @@
 <?php
 
-class Nfe_ServiceInvoiceTest extends Nfe_TestCase
-{
+class NFe_ServiceInvoiceTest extends NFe_TestCase {
 
-  public function testIssue()
-  {
-    $this->invoice = Nfe_ServiceInvoice::create(
+  public function testIssue() {
+    $this->invoice = NFe_ServiceInvoice::create(
       // ID da empresa, você deve copiar exatamente como está no painel
       "54244e0ee340420fdc94ad09",
 
       // Dados da nota fiscal de serviço
-      Array (
+      array(
         // Código do serviço de acordo com o a cidade
         'cityServiceCode' => '2690',
         // Descrição dos serviços prestados
-        'description' => 'TESTE EMISSAO',
+        'description'     => 'TESTE EMISSAO',
         // Valor total do serviços
-        'servicesAmount' => 0.01,
+        'servicesAmount'  => 0.01,
 
         // Dados do Tomador dos Serviços
-        'borrower' => Array(
+        'borrower' => array(
           // CNPJ ou CPF (opcional para tomadores no exterior)
           'federalTaxNumber' => 191,
           // Nome da pessoa física ou Razão Social da Empresa
@@ -27,21 +25,21 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
           // Email para onde deverá ser enviado a nota fiscal
           // 'email' => 'hackers@nfe.io',
           // Endereço do tomador
-          'address' => Array(
+          'address' => array(
             // Código do pais com três letras
-            'country' => 'BRA',
+            'country'               => 'BRA',
             // CEP do endereço (opcional para tomadores no exterior)
-            'postalCode' => '70073901',
+            'postalCode'            => '70073901',
             // Logradouro
-            'street' => 'Outros Quadra 1 Bloco G Lote 32',
+            'street'                => 'Outros Quadra 1 Bloco G Lote 32',
             // Número (opcional)
-            'number' => 'S/N',
+            'number'                => 'S/N',
             // Complemento (opcional)
             'additionalInformation' => 'QUADRA 01 BLOCO G',
             // Bairro
             'district' => 'Asa Sul',
             // Cidade é opcional para tomadores no exterior
-            'city' => Array(
+            'city' => array(
                 // Código do IBGE para a Cidade
                 'code' => '5300108',
                 // Nome da Cidade
@@ -60,9 +58,8 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
     $this->assertEqual($this->invoice->cityServiceCode, '2690');
   }
 
-  public function testFetchInvoice()
-  {
-    $fetched_invoice = Nfe_ServiceInvoice::fetch(
+  public function testFetchInvoice() {
+    $fetched_invoice = NFe_ServiceInvoice::fetch(
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
@@ -73,9 +70,8 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
     $this->assertEqual( $fetched_invoice->borrower->name, "BANCO DO BRASIL SA" );
   }
 
-  public function testDownloadPdfInvoice()
-  {
-    $url = Nfe_ServiceInvoice::pdf(
+  public function testDownloadPdfInvoice() {
+    $url = NFe_ServiceInvoice::pdf(
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
@@ -83,9 +79,8 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
     $this->assertTrue( strpos($url, "pdf") );
   }
 
-  public function testDownloadXmlInvoice()
-  {
-    $url = Nfe_ServiceInvoice::xml(
+  public function testDownloadXmlInvoice() {
+    $url = NFe_ServiceInvoice::xml(
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
@@ -93,9 +88,8 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
     $this->assertTrue( strpos($url, "xml") );
   }
 
-  public function testCancelInvoice()
-  {
-    $fetched_invoice = Nfe_ServiceInvoice::fetch(
+  public function testCancelInvoice() {
+    $fetched_invoice = NFe_ServiceInvoice::fetch(
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
@@ -108,23 +102,22 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
     $this->assertTrue($fetched_invoice->cancel());
   }
 
-  public function testIssue_country_bad_request()
-  {
-    $this->invoice = Nfe_ServiceInvoice::create(
+  public function testIssue_country_bad_request() {
+    $this->invoice = NFe_ServiceInvoice::create(
       // ID da empresa, você deve copiar exatamente como está no painel
       "568c0bceee083e5d453121bb",
 
       // Dados da nota fiscal de serviço
-      Array (
+      array(
         // Código do serviço de acordo com o a cidade
         'cityServiceCode' => '2690',
         // Descrição dos serviços prestados
-        'description' => 'TESTE EMISSAO',
+        'description'     => 'TESTE EMISSAO',
         // Valor total do serviços
-        'servicesAmount' => 0.01,
+        'servicesAmount'  => 0.01,
 
         // Dados do Tomador dos Serviços
-        'borrower' => Array(
+        'borrower' => array(
           // CNPJ ou CPF (opcional para tomadores no exterior)
           'federalTaxNumber' => 191,
           // Nome da pessoa física ou Razão Social da Empresa
@@ -132,21 +125,21 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
           // Email para onde deverá ser enviado a nota fiscal
           'email' => 'hackers@nfe.io',
           // Endereço do tomador
-          'address' => Array(
+          'address' => array(
             // Código do pais com três letras
-            'country' => 'BRASIL',
+            'country'               => 'BRASIL',
             // CEP do endereço (opcional para tomadores no exterior)
-            'postalCode' => '70073901',
+            'postalCode'            => '70073901',
             // Logradouro
-            'street' => 'Outros Quadra 1 Bloco G Lote 32',
+            'street'                => 'Outros Quadra 1 Bloco G Lote 32',
             // Número (opcional)
-            'number' => 'S/N',
+            'number'                => 'S/N',
             // Complemento (opcional)
             'additionalInformation' => 'QUADRA 01 BLOCO G',
             // Bairro
-            'district' => 'Asa Sul',
+            'district'              => 'Asa Sul',
             // Cidade é opcional para tomadores no exterior
-            'city' => Array(
+            'city' => array(
                 // Código do IBGE para a Cidade
                 'code' => '5300108',
                 // Nome da Cidade
@@ -161,7 +154,4 @@ class Nfe_ServiceInvoiceTest extends Nfe_TestCase
 
     $this->assertNull($this->invoice);
   }
-
 }
-
-?>

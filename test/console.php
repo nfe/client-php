@@ -3,7 +3,7 @@
 //o-------------------------------o
 //    Libraries
 //o-------------------------------o
-require( realpath(dirname(__FILE__) . "/../") . "/lib/Nfe.php" );
+require( realpath(dirname(__FILE__) . "/../") . "/lib/init.php" );
 
 //o-------------------------------o
 //    Configure time as GMT
@@ -40,10 +40,10 @@ class PHP_Shell_Commands {
   */
   public function registerCommand($regex, $obj, $method, $cmd, $help) {
     $this->commands[] = array(
-      'regex' => $regex,
-      'obj' => $obj,
-      'method' => $method,
-      'command' => $cmd,
+      'regex'       => $regex,
+      'obj'         => $obj,
+      'method'      => $method,
+      'command'     => $cmd,
       'description' => $help
     );
   }
@@ -1306,6 +1306,3 @@ while($__shell->input()) {
     unset($__shell_exception);
   }
 }
-
-
-?>
