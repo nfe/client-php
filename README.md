@@ -22,7 +22,7 @@ require_once(".../client-php/lib/init.php");
 ### Usando Composer
 
 ~~~
-$ composer require nfe/nfe
+$ composer require nfe/nfe-php
 ~~~
 
 O autoload do composer irá cuidar do resto.
