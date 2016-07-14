@@ -6,7 +6,7 @@ class NFe_SearchResult {
 
   public function __construct( $results, $totalResults ) {
     $this->_totalResults = $totalResults;
-    $this->_results = $results;
+    $this->_results      = $results;
   }
 
   public function total() {
@@ -19,6 +19,6 @@ class NFe_SearchResult {
 
   public function set( $results, $totalResults ) {
     $this->_totalResults = $totalResults;
-    $this->_results = $results;
+    $this->_results      = $results;
   }
 }

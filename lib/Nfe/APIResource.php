@@ -4,10 +4,10 @@ class NFe_APIResource extends NFe_Object {
   private static $_apiRequester = null;
 
   public static function convertClassToObjectType() {
-    $object_type = str_replace("NFe_", "", get_called_class());
+    $object_type = str_replace('NFe_', '', get_called_class());
     $object_type = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $object_type));
 
-    return mb_strtolower($object_type, "UTF-8");
+    return mb_strtolower($object_type, 'UTF-8');
   }
 
   public static function objectBaseURI() {
@@ -37,24 +37,24 @@ class NFe_APIResource extends NFe_Object {
     return NFe_APIResource::$_apiRequester;
   }
 
-  public static function endpointAPI( $object = null, $uri_path = "" ) {
-    $path = "";
+  public static function endpointAPI( $object = null, $uri_path = '' ) {
+    $path = '';
 
     if ( is_string($object) || is_integer($object) ) {
-      $path = "/" . $object;
+      $path = '/' . $object;
     }
-    elseif (is_array($object) && isset($object["company_id"])) {
-      $uri_path = "/companies/" . $object["company_id"];
+    elseif (is_array($object) && isset($object['company_id'])) {
+      $uri_path = '/companies/' . $object['company_id'];
     }
     elseif (is_object($object) && isset($object->provider) && isset($object->provider->id) ) {
-      $uri_path = "/companies/" . $object->provider->id;
+      $uri_path = '/companies/' . $object->provider->id;
     }
 
-    if (isset($object["id"])) {
-      $path = "/" . $object["id"];
+    if (isset($object['id'])) {
+      $path = '/' . $object['id'];
     }
 
-    return strtolower( NFe::getBaseURI() . $uri_path . "/" . self::objectBaseURI() . $path );
+    return strtolower( NFe::getBaseURI() . $uri_path . '/' . self::objectBaseURI() . $path );
   }
 
   public static function url( $object = null ) {
@@ -67,22 +67,22 @@ class NFe_APIResource extends NFe_Object {
 
   protected static function createAPI( $attributes = array() ) {
     return self::createFromResponse(
-      self::API()->request( "POST", self::endpointAPI( $attributes ), $attributes ) );
+      self::API()->request( 'POST', self::endpointAPI( $attributes ), $attributes ) );
   }
 
   protected function deleteAPI() {
-    if ( $this["id"] == null ) {
+    if ( $this['id'] == null ) {
       return false;
     }
 
     try {
-      $response = self::API()->request( "DELETE", static::url($this) );
+      $response = self::API()->request( 'DELETE', static::url($this) );
 
       if ( isset($response->errors) ) {
         throw NFeException();
       }
-
-    } catch (Exception $e) {
+    } 
+    catch (Exception $e) {
       return false;
     }
 
@@ -91,21 +91,22 @@ class NFe_APIResource extends NFe_Object {
 
   protected static function searchAPI( $options = array() ) {
     try {
-      $response = self::API()->request( "GET", static::url($options), $options );
+      $response = self::API()->request( 'GET', static::url($options), $options );
 
       return self::createFromResponse($response);
-    } catch (Exception $e) {}
+    } 
+    catch (Exception $e) {}
 
     return array();
   }
 
   protected static function fetchAPI($key) {
     try {
-      $response = self::API()->request( "GET", static::url($key) );      
+      $response = self::API()->request( 'GET', static::url($key) );      
       return self::createFromResponse($response);
-
-    } catch ( NFeObjectNotFound $e ) {
-      throw new NFeObjectNotFound( self::convertClassToObjectType( get_called_class() ) . ":" . " não encontrado.");
+    } 
+    catch ( NFeObjectNotFound $e ) {
+      throw new NFeObjectNotFound( self::convertClassToObjectType( get_called_class() ) . ':' . ' não encontrado.');
     }
   }
 
@@ -115,7 +116,7 @@ class NFe_APIResource extends NFe_Object {
     }
 
     try {
-      $response = self::API()->request( "GET", static::url($this) );
+      $response = self::API()->request( 'GET', static::url($this) );
 
       if ( isset($response->errors) ) { 
         throw NFeObjectNotFound();
@@ -125,8 +126,8 @@ class NFe_APIResource extends NFe_Object {
       $new_object = self::createFromResponse($response->$type);
       $this->copy( $new_object );
       $this->resetStates();
-
-    } catch (Exception $e) {
+    } 
+    catch (Exception $e) {
       return false;
     }
 
@@ -136,7 +137,7 @@ class NFe_APIResource extends NFe_Object {
   protected function saveAPI() {
     try {
       $response = self::API()->request(
-        $this->is_new() ? "POST" : "PUT",
+        $this->is_new() ? 'POST' : 'PUT',
         static::url($this),
         $this->getAttributes()
       );
@@ -150,7 +151,8 @@ class NFe_APIResource extends NFe_Object {
         throw new NFeException();
       }
 
-    } catch (Exception $e) {
+    } 
+    catch (Exception $e) {
       return false;
     }
 

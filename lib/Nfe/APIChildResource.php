@@ -1,7 +1,11 @@
 <?php
 
 class NFe_APIChildResource {
+
+  // @var string Parent Keys
   private $_parentKeys;
+
+  // @var string Fabricator
   private $_fabricator;
   
   function __construct( $parentKeys = array(), $className ) {

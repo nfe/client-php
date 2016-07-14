@@ -1,9 +1,5 @@
 <?php
 
-class NFeAuthenticationException extends Exception {}
-class NFeObjectNotFound extends Exception {}
-class NFeException extends Exception {}
-
 abstract class NFe {
   const VERSION = '2.0.0';
 
@@ -16,10 +12,20 @@ abstract class NFe {
   // @var string The base URL for the NFe API.
   public static $endpoint = 'https://api.nfe.io';
 
+  /**
+   * Sets the Base URI to be sued for requests
+   * 
+   * @return string
+   */
   public static function getBaseURI() {
     return self::$endpoint . '/' . self::$api_version;
   }
 
+  /**
+   * Sets the Host to be used for requests
+   * 
+   * @param string $host Base URI
+   */
   public static function setHost( $host ) {
     self::$endpoint = $host;
   }

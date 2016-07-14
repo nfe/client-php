@@ -68,7 +68,7 @@ class NFe_Object implements arrayAccess {
   }
 
   public function is_new() {
-    return ! isset($this->_attributes["id"]);
+    return ! isset($this->_attributes['id']);
   }
 
   public function copy($object) {
@@ -78,8 +78,8 @@ class NFe_Object implements arrayAccess {
   }
 
   public function __toString() {
-    if ( isset($this->_attributes["id"]) ) {
-      return $this->_attributes["id"];
+    if ( isset($this->_attributes['id']) ) {
+      return $this->_attributes['id'];
     }
 
     return get_called_class();
