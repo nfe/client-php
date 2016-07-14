@@ -1,6 +1,6 @@
 <?php
 
-class APIChildResource {
+class Nfe_APIChildResource {
   private $_parentKeys;
   private $_fabricator;
   

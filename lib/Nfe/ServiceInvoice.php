@@ -1,6 +1,6 @@
 <?php
 
-class Nfe_ServiceInvoice extends APIResource {
+class Nfe_ServiceInvoice extends Nfe_APIResource {
   public static function create( $companyId, $attributes = array() ) {
     $attributes["company_id"] = $companyId;
     

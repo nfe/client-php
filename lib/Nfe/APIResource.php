@@ -1,6 +1,7 @@
 <?php
 
-class APIResource extends Nfe_Object {
+class Nfe_APIResource extends Nfe_Object
+{
   private static $_apiRequester = null;
 
   public static function convertClassToObjectType() {
@@ -29,11 +30,8 @@ class APIResource extends Nfe_Object {
   }
 
   public static function API() {
-    if ( APIResource::$_apiRequester == null ) {
-      APIResource::$_apiRequester = new Nfe_APIRequest();
-    }
-
-    return APIResource::$_apiRequester;
+    if (Nfe_APIResource::$_apiRequester == null) Nfe_APIResource::$_apiRequester = new Nfe_APIRequest();
+    return Nfe_APIResource::$_apiRequester;
   }
 
   public static function endpointAPI( $object = null, $uri_path = "" ) {
