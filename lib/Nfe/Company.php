@@ -1,6 +1,6 @@
 <?php
 
-class Nfe_Company extends Nfe_APIResource {
+class NFe_Company extends NFe_APIResource {
 
   public static function create( $attributes = array() ) {
     return self::createAPI($attributes);

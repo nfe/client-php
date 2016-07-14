@@ -1,6 +1,6 @@
 <?php
 
-class Nfe_APIChildResource {
+class NFe_APIChildResource {
   private $_parentKeys;
   private $_fabricator;
   
@@ -33,10 +33,10 @@ class Nfe_APIChildResource {
   public function search( $options = array() ) {
     $results = call_user_func_array($this->_fabricator . '::search', array( $this->mergeParams($options), $this->_parentKeys ));
 
-    if ($results && $results->total()) {
+    if ( $results && $results->total() ) {
       $modifiedResults = $results->results();
 
-      for ($i=0;$i<count($modifiedResults);$i++) {
+      for ( $i = 0; $i < count($modifiedResults); $i++ ) {
         $modifiedResults[$i] = $this->configureParentKeys( $modifiedResults[$i] );
       }
       $results->set($modifiedResults, $results->total());

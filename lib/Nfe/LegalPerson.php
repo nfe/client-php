@@ -1,6 +1,6 @@
 <?php
 
-class Nfe_LegalPerson extends Nfe_APIResource {
+class NFe_LegalPerson extends NFe_APIResource {
 
   public static function fetch( $companyId, $id ) {
     return self::fetchAPI(

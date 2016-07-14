@@ -1,19 +1,19 @@
 <?php
 
-class Nfe_APIResource extends Nfe_Object
-{
+class NFe_APIResource extends NFe_Object {
   private static $_apiRequester = null;
 
   public static function convertClassToObjectType() {
-    $object_type = str_replace("Nfe_", "", get_called_class());
+    $object_type = str_replace("NFe_", "", get_called_class());
     $object_type = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $object_type));
+
     return mb_strtolower($object_type, "UTF-8");
   }
 
   public static function objectBaseURI() {
     $object_type = self::convertClassToObjectType();
-    switch($object_type) {
-      // Add Exceptions as needed
+
+    switch($object_type) { // Add Exceptions as needed
       case 'company':
         return 'companies';
       case 'legal_person':
@@ -30,20 +30,23 @@ class Nfe_APIResource extends Nfe_Object
   }
 
   public static function API() {
-    if (Nfe_APIResource::$_apiRequester == null) Nfe_APIResource::$_apiRequester = new Nfe_APIRequest();
-    return Nfe_APIResource::$_apiRequester;
+    if ( NFe_APIResource::$_apiRequester == null ) {
+      NFe_APIResource::$_apiRequester = new NFe_APIRequest();
+    }
+
+    return NFe_APIResource::$_apiRequester;
   }
 
   public static function endpointAPI( $object = null, $uri_path = "" ) {
     $path = "";
 
-    if (is_string($object) || is_integer($object)) {
+    if ( is_string($object) || is_integer($object) ) {
       $path = "/" . $object;
     }
     elseif (is_array($object) && isset($object["company_id"])) {
       $uri_path = "/companies/" . $object["company_id"];
     }
-    elseif (is_object($object) && isset($object->provider) && isset($object->provider->id)) {
+    elseif (is_object($object) && isset($object->provider) && isset($object->provider->id) ) {
       $uri_path = "/companies/" . $object->provider->id;
     }
 
@@ -51,9 +54,7 @@ class Nfe_APIResource extends Nfe_Object
       $path = "/" . $object["id"];
     }
 
-    $ret = strtolower(Nfe::getBaseURI() . $uri_path . "/" . self::objectBaseURI() . $path);
-
-    return $ret;
+    return strtolower( NFe::getBaseURI() . $uri_path . "/" . self::objectBaseURI() . $path );
   }
 
   public static function url( $object = null ) {
@@ -61,7 +62,7 @@ class Nfe_APIResource extends Nfe_Object
   }
 
   protected static function createFromResponse($response) {
-    return Nfe_Factory::createFromResponse( self::convertClassToObjectType(), $response );
+    return NFe_Utilities::createFromResponse( self::convertClassToObjectType(), $response );
   }
 
   protected static function createAPI( $attributes = array() ) {
@@ -78,7 +79,7 @@ class Nfe_APIResource extends Nfe_Object
       $response = self::API()->request( "DELETE", static::url($this) );
 
       if ( isset($response->errors) ) {
-        throw NfeException();
+        throw NFeException();
       }
 
     } catch (Exception $e) {
@@ -103,8 +104,8 @@ class Nfe_APIResource extends Nfe_Object
       $response = self::API()->request( "GET", static::url($key) );      
       return self::createFromResponse($response);
 
-    } catch (NfeObjectNotFound $e) {
-      throw new NfeObjectNotFound( self::convertClassToObjectType( get_called_class() ) . ":" . " não encontrado.");
+    } catch ( NFeObjectNotFound $e ) {
+      throw new NFeObjectNotFound( self::convertClassToObjectType( get_called_class() ) . ":" . " não encontrado.");
     }
   }
 
@@ -117,10 +118,10 @@ class Nfe_APIResource extends Nfe_Object
       $response = self::API()->request( "GET", static::url($this) );
 
       if ( isset($response->errors) ) { 
-        throw NfeObjectNotFound();
+        throw NFeObjectNotFound();
       }
 
-      $type = self::objectBaseURI();
+      $type       = self::objectBaseURI();
       $new_object = self::createFromResponse($response->$type);
       $this->copy( $new_object );
       $this->resetStates();
@@ -140,13 +141,13 @@ class Nfe_APIResource extends Nfe_Object
         $this->getAttributes()
       );
 
-      $type = self::objectBaseURI();
+      $type       = self::objectBaseURI();
       $new_object = self::createFromResponse($response->$type);
       $this->copy( $new_object );
       $this->resetStates();
 
       if ( isset($response->errors) ) {
-        throw new NfeException();
+        throw new NFeException();
       }
 
     } catch (Exception $e) {

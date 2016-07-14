@@ -1,13 +1,13 @@
 <?php
 
-class Nfe_APIRequest {
+class NFe_APIRequest {
   public function __construct() {}
 
   private function _defaultHeaders( $headers = array() ) {
-    $headers[] = "Authorization: Basic " . Nfe::getApiKey();
+    $headers[] = "Authorization: Basic " . NFe::getApiKey();
     $headers[] = "Content-Type: application/json";
     $headers[] = "Accept: application/json";
-    $headers[] = "Accept-Charset: utf-8";
+    $headers[] = "Accept-Charset: UTF-8";
     $headers[] = "User-Agent: NFe.io PHP Library";
     $headers[] = "Accept-Language: pt-br;q=0.9,pt-BR";
 
@@ -17,40 +17,41 @@ class Nfe_APIRequest {
   public function request( $method, $url, $data = array() ) {
     global $last_api_response_code;
 
-    if ( Nfe::getApiKey() == null ) {
-      Nfe_Utilities::authFromEnv();
+    if ( NFe::getApiKey() == null ) {
+      NFe_Utilities::authFromEnv();
     }
 
-    if ( Nfe::getApiKey() == null ) {
-      return new NfeAuthenticationException("Chave de API não configurada. Utilize Nfe::setApiKey(...) para configurar.");
+    if ( NFe::getApiKey() == null ) {
+      return new NFeAuthenticationException("Chave de API não configurada. Utilize NFe::setApiKey(...) para configurar.");
     }
 
     $headers = $this->_defaultHeaders();
 
     list( $response_body, $response_code ) = $this->requestWithCURL( $method, $url, $headers, $data );
-    if ($response_code == 302) {
+    if ( $response_code == 302 ) {
       $response = $response_body;
-    } else {
+    } 
+    else {
       $response = json_decode($response_body);
     }
 
     if ( json_last_error() != JSON_ERROR_NONE ) { 
-      throw new NfeObjectNotFound($response_body);
+      throw new NFeObjectNotFound($response_body);
     }
 
     if ( $response_code == 404 ) {
-      throw new NfeObjectNotFound($response_body);
+      throw new NFeObjectNotFound($response_body);
     }
 
     if ( isset($response->errors) ) {
-      if ( (gettype($response->errors) != "string") && count(get_object_vars($response->errors)) == 0) {
+      if ( ( gettype($response->errors) != "string") && count( get_object_vars($response->errors) ) == 0 ) {
         unset($response->errors);
       }
-      elseif ((gettype($response->errors) != "string") && count(get_object_vars($response->errors)) > 0) {
+      elseif ( ( gettype($response->errors) != "string") && count( get_object_vars($response->errors) ) > 0 ) {
         $response->errors = (array) $response->errors;
       }
 
-      if (isset($response->errors) && (gettype($response->errors) == "string")) {
+      if ( isset($response->errors) && ( gettype($response->errors) == "string") ) {
         $response->errors = $response->errors;
       }
     }
@@ -63,7 +64,7 @@ class Nfe_APIRequest {
   private function requestWithCURL( $method, $url, $headers, $data = array() ) {
     $curl   = curl_init();
     $opts   = array();
-    $data   = Nfe_Utilities::arrayToParams($data);
+    $data   = NFe_Utilities::arrayToParams($data);
     $method = strtolower($method);
 
     if ($method == "post") {
@@ -105,7 +106,7 @@ class Nfe_APIRequest {
     $response_body   = substr($response, $header_size);
 
     // if we have a redirect we need to get the location header
-    if ($response_code == 302) {
+    if ( $response_code == 302 ) {
       preg_match_all('/^Location:\s?(.*)$/mi', $response, $matches);
 
       return array(trim($matches[1][0]), $response_code);

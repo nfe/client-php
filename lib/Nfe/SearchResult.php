@@ -1,6 +1,6 @@
 <?php
 
-class Nfe_SearchResult {
+class NFe_SearchResult {
   protected $_totalResults;
   protected $_results;
 

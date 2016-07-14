@@ -1,10 +1,10 @@
 <?php
 
-//ooooooooooooooooooooooooooooooooooooooooooooo
-// Nfe_Object manages the Object State
-// Values that changed, values that need to be saved
-//ooooooooooooooooooooooooooooooooooooooooooooo
-class Nfe_Object implements arrayAccess {
+/**
+ * NFe_Object manages the Object State
+ * Values that changed, values that need to be saved
+ */
+class NFe_Object implements arrayAccess {
   protected $_attributes;
   protected $_unsavedAttributes;
 
@@ -64,11 +64,11 @@ class Nfe_Object implements arrayAccess {
   }
 
   public function resetStates() {
-    $this->_unsavedAttributes=array();
+    $this->_unsavedAttributes = array();
   }
 
   public function is_new() {
-    return !isset($this->_attributes["id"]);
+    return ! isset($this->_attributes["id"]);
   }
 
   public function copy($object) {
