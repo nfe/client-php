@@ -88,15 +88,14 @@ class NFe_APIRequest {
     $opts[CURLOPT_HTTPHEADER]     = $headers;
 
     $opts[CURLOPT_SSL_VERIFYHOST] = 2;
-    $opts[CURLOPT_SSL_VERIFYPEER] = false; // true
+    $opts[CURLOPT_SSL_VERIFYPEER] = true;
     $opts[CURLOPT_CAINFO]         = realpath( dirname(__FILE__) . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "data" ) . DIRECTORY_SEPARATOR . "ca-bundle.crt";
 
     curl_setopt_array($curl, $opts);
     
-    curl_setopt( $curl, CURLOPT_PROXY, "127.0.0.1:8888" );
+    // curl_setopt( $curl, CURLOPT_PROXY, "127.0.0.1:8888" );
     // curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, FALSE );
-    curl_setopt( $curl, CURLOPT_VERBOSE, 1 );
-
+    // curl_setopt( $curl, CURLOPT_VERBOSE, 1 );
 
     $response        = curl_exec($curl);
     $response_code   = curl_getinfo($curl, CURLINFO_HTTP_CODE);

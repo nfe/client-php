@@ -37,10 +37,34 @@ NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Pai
 
 NFe_Company::create(
   array(
-    'federalTaxNumber' => 191,
+    'federalTaxNumber' => 87502637000164, // Use esse gerador para testar: http://www.geradordecnpj.org/
     'name'             => 'BANCO DO BRASIL SA',
     'tradeName'        => 'BANCO DO BRASIL',
-    'email'            => 'exemplo@bb.com.br'
+    'email'            => 'nfe@mailinator.com', // Para visualizar os e-mails https://www.mailinator.com/inbox2.jsp?public_to=nfe
+     // Endereço da empresa
+    'address'          => array(
+      // Código do pais com três letras
+      'country'               => 'BRA',
+      // CEP do endereço (opcional para tomadores no exterior)
+      'postalCode'            => '70073901',
+      // Logradouro
+      'street'                => 'Outros Quadra 1 Bloco G Lote 32',
+      // Número (opcional)
+      'number'                => 'S/N',
+      // Complemento (opcional)
+      'additionalInformation' => 'QUADRA 01 BLOCO G',
+      // Bairro
+      'district'              => 'Asa Sul',
+      // Cidade é opcional para tomadores no exterior
+      'city' => array(
+          // Código do IBGE para a Cidade
+          'code' => '5300108',
+          // Nome da Cidade
+          'name' => 'Brasilia'
+      ),
+      // Sigla do estado (opcional para tomadores no exterior)
+      'state' => 'DF'
+    )
   )
 );
 ```

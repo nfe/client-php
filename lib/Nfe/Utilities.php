@@ -62,7 +62,7 @@ class NFe_Utilities {
 
   public static function createFromResponse( $object_type, $response ) {
     // Should i send fetch to here?
-    $object_type = str_replace(" ", "", ucwords(str_replace("_", " ", $object_type)));
+    $object_type = str_replace(" ", "", ucwords( str_replace("_", " ", $object_type) ) );
     $class_name = 'NFe_' . $object_type;
 
     // Bail if class doesn't exist
@@ -70,7 +70,7 @@ class NFe_Utilities {
       return null;
     }
 
-    if ( is_object($response) && isset($response->items) && isset($response->totalItems) ) {
+    if ( is_object($response) && ( isset($response->items) ) && ( isset($response->totalItems) ) ) {
       $results = array();
 
       foreach ($response->items as $item) {
@@ -78,7 +78,6 @@ class NFe_Utilities {
       }
 
       return new NFe_SearchResult( $results, $response->totalItems );
-
     }
     elseif ( is_array($response) ) {
       $results = array();
@@ -88,7 +87,6 @@ class NFe_Utilities {
       }
 
       return new NFe_SearchResult( $results, count($results) );
-
     }
     elseif ( is_object($response) ) {
       return new $class_name( (array) $response );

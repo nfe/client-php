@@ -1,3 +1,9 @@
+
+### 2.0.0 2016-07-15
+
+* Added .travis.yml to bring Travis-cli support
+* Updated tests
+
 ### 2.0.0 2016-07-14
 
 * Several improvements in the library organization

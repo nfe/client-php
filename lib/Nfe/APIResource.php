@@ -150,7 +150,6 @@ class NFe_APIResource extends NFe_Object {
       if ( isset($response->errors) ) {
         throw new NFeException();
       }
-
     } 
     catch (Exception $e) {
       return false;
