@@ -136,14 +136,10 @@ class NFe_APIResource extends NFe_Object {
 
   protected function saveAPI() {
     try {
-      $response = self::API()->request(
-        $this->is_new() ? 'POST' : 'PUT',
-        static::url($this),
-        $this->getAttributes()
-      );
-
+      $response   = self::API()->request( $this->is_new() ? 'POST' : 'PUT', static::url($this), $this->getAttributes() );
       $type       = self::objectBaseURI();
       $new_object = self::createFromResponse($response->$type);
+
       $this->copy( $new_object );
       $this->resetStates();
 
