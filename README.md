@@ -93,7 +93,7 @@ NFe_ServiceInvoice::create(
       // Nome da pessoa física ou Razão Social da Empresa
       'name'             => 'BANCO DO BRASIL SA',
       // Email para onde deverá ser enviado a nota fiscal
-      'email'            => 'hackers@nfe.io',
+      'email'            => 'nfe@mailinator.com', // Para visualizar os e-mails https://www.mailinator.com/
       // Endereço do tomador
       'address'          => array(
         // Código do pais com três letras
