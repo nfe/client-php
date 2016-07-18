@@ -18,13 +18,13 @@
     }
   ],
   "require": {
-    "php": ">=5.3",
+    "php": ">=5.4",
     "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*"
   },
   "require-dev": {
-    "simpletest/simpletest": "1.1.5"
+    "simpletest/simpletest": "^1.1"
   },
   "autoload": {
     "classmap": ["lib/NFe/"]

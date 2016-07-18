@@ -6,7 +6,7 @@
 
 ## Requisitos
 
-* PHP 5.3 em diante.
+* PHP 5.4 em diante.
 
 ## Instalação
  - Faça o download da biblioteca
@@ -153,7 +153,7 @@ Acesse [https://api.nfe.io](https://api.nfe.io) para mais referências da API.
 
 ## Testes
 
-Instale as dependências. O client-php do NFe utiliza SimpleTest.
+Instale as dependências. O client-php do NFe utiliza [SimpleTest](http://simpletest.org/).
 ``` bash
 composer update --dev
 ```
