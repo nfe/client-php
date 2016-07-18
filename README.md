@@ -1,4 +1,4 @@
-# Extensão do NFe.io em PHP
+# Cliente PHP da API do NFe.io
 
 [![Build Status](https://travis-ci.org/nfe/client-php.svg?branch=master)](https://travis-ci.org/nfe/client-php)
 [![Total Downloads](https://poser.pugx.org/nfe/nfe/downloads.svg)](https://packagist.org/packages/nfe/nfe)
@@ -15,6 +15,12 @@
 git clone https://github.com/nfe/client-php
 ~~~
 
+### Usando [Composer](http://getcomposer.org/)
+
+```bash
+composer require stripe/stripe-php
+```
+
 ### Instalação Manual
 
  - Inclua a biblioteca em seu arquivo PHP
@@ -22,14 +28,6 @@ git clone https://github.com/nfe/client-php
 ```php
 require_once(".../client-php/lib/init.php");
 ```
-
-### Usando Composer
-
-~~~
-$ composer require nfe/nfe-php
-~~~
-
-O autoload do composer irá cuidar do resto.
 
 ## Exemplos de Uso
 
@@ -156,15 +154,14 @@ Acesse [https://api.nfe.io](https://api.nfe.io) para mais referências da API.
 ## Testes
 
 Instale as dependências. O client-php do NFe utiliza SimpleTest.
-
-~~~
+``` bash
 composer update --dev
-~~~
+```
 
 Execute a comitiva de testes:
-~~~
+``` bash
 php ./test/NFe.php
-~~~
+```
 
 ## Autor
 
