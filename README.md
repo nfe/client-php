@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/nfe/client-php.svg?branch=master)](https://travis-ci.org/nfe/client-php)
 [![Total Downloads](https://poser.pugx.org/nfe/nfe/downloads.svg)](https://packagist.org/packages/nfe/nfe)
-[![License](https://poser.pugx.org/nfe/nfe/downloads.svg)](https://packagist.org/packages/nfe/nfe)
+[![License](https://poser.pugx.org/nfe/nfe/license.svg)](https://packagist.org/packages/nfe/nfe)
 
 ## Requisitos
 
