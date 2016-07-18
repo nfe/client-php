@@ -7,11 +7,11 @@
 ## Instalação
  - Faça o download da biblioteca
 
-### Instalação Manual
-
 ~~~
 git clone https://github.com/nfe/client-php
 ~~~
+
+### Instalação Manual
 
  - Inclua a biblioteca em seu arquivo PHP
 
@@ -31,8 +31,6 @@ O autoload do composer irá cuidar do resto.
 
 ### Criar empresa
 ```php
-require_once(".../client-php/lib/init.php");
-
 NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
 
 NFe_Company::create(
@@ -71,8 +69,6 @@ NFe_Company::create(
 
 ### Emitir nota fiscal
 ```php
-require_once('.../client-php/lib/init.php');
-
 NFe::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no Painel
 
 NFe_ServiceInvoice::create(
@@ -125,8 +121,6 @@ NFe_ServiceInvoice::create(
 
 ### Cancelar nota fiscal
 ```php
-require_once('.../client-php/lib/init.php');
-
 NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no Painel
 
 $invoice = NFe_ServiceInvoice::fetch(
@@ -141,8 +135,6 @@ if ( $invoice->status == 'Issued' ) {
 
 ### Download do PDF da nota fiscal
 ```php
-require_once('.../clienit-php/lib/init.php');
-
 NFe::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no Painel
 
 $url = NFe_ServiceInvoice::pdf(

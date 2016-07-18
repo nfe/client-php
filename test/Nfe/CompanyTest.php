@@ -5,7 +5,7 @@ class NFe_CompanyTest extends NFe_TestCase {
 
   public function testCreateAndDelete() {
     $attributes = array(
-      'federalTaxNumber' => 78385654000178, // Generate CNPJ here: http://www.geradordecnpj.org/
+      'federalTaxNumber' => 48527553000123, // Generate CNPJ here: http://www.geradordecnpj.org/
       'name'             => 'TEST Company Name',
       'tradeName'        => 'Company Name',
       'email'            => 'nfe@mailinator.com',
@@ -55,13 +55,11 @@ class NFe_CompanyTest extends NFe_TestCase {
     $this->assertEqual($object->companies->name, 'BB SA');
   }
 
-  public function atestDelete() {
+  public function testDelete() {
     $object = NFe_Company::fetch( self::$id );
 
     $this->assertNotNull($object);
     $this->assertNotNull($object->companies->name);
-    
-    // @todo it is returning false for some reason
-    $this->assertTrue($object->delete()); 
+    $this->assertTrue( $object->delete() );
   }
 }

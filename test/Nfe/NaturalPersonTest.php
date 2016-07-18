@@ -1,24 +1,26 @@
 <?php
 
-class Nfe_NaturalPersonTest extends Nfe_TestCase
-{
-  private static $companId = "53f0d6b690c14737349bd29c";
+class NFe_NaturalPersonTest extends NFe_TestCase {
+  private static $company_id = '53f0d6b690c14737349bd29c';
 
-  public function testFetch()
-  {
-    $this->expectException("NfeObjectNotFound");
+  public function testFetchPerson() {
+    $result = NFe_NaturalPerson::fetch( self::$company_id, '5581c760146dc70d384da4b5' );
 
-    $result = Nfe_NaturalPerson::fetch( self::$companId, self::$companId );
+    $this->assertNotNull($result);
+  }
+
+  public function testFetchFail() {
+    $this->expectException('NFeObjectNotFound');
+
+    $result = NFe_NaturalPerson::fetch( self::$company_id, self::$company_id );
 
     $this->assertNull($result);
   }
 
-  public function testSearch()
-  {
-    $searchResults = Nfe_NaturalPerson::search(self::$companId);
+  public function testSearch() {
+    $persons = NFe_NaturalPerson::search( self::$company_id );
 
-    $this->assertTrue( $searchResults->total() > 0 );
+    $this->assertTrue( count( $persons ) >= 1 );
   }
 }
 
-?>

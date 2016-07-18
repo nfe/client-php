@@ -1,7 +1,6 @@
 <?php
 
 class NFe_Company extends NFe_APIResource {
-
   public static function create( $attributes = array() ) {
     return self::createAPI($attributes);
   }
@@ -11,7 +10,7 @@ class NFe_Company extends NFe_APIResource {
   }
 
   public function save() { 
-  	return $this->saveAPI(); 
+  	return $this->saveAPI();
   }
 
   public function delete() { 

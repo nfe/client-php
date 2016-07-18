@@ -6,7 +6,9 @@
     "nfe",
     "nfse",
     "nfe.io",
-    "api"
+    "api",
+    "nota",
+    "nota fiscal"
   ],
   "license": "MIT",
   "authors": [

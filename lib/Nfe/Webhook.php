@@ -1,7 +1,6 @@
 <?php
 
 class NFe_Webhook extends NFe_APIResource {
-
   public static function create( $attributes = array() ) {
     return self::createAPI($attributes);
   }

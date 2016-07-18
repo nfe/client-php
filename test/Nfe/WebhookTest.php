@@ -1,58 +1,59 @@
 <?php
 
-class Nfe_WebhookTest extends Nfe_TestCase
-{
+class NFe_WebhookTest extends NFe_TestCase {
   private static $id = null;
 
-  public function testCreateAndDelete()
-  {
-    $attributes = Array(
-      "url" => "http://google.com/test",
-      "events" => Array(
-        "issue",
-        "cancel"
-      )
+  public function testCreateAndDelete() {
+    $attributes = array(
+      'url'    => 'http://google.com/test',
+      'events' => array(
+        'issue',
+        'cancel'
+      ),
+      'status' => 'active'
     );
 
-    $object = Nfe_Webhook::create( $attributes );
+    $object = NFe_Webhook::create( $attributes );
 
     $this->assertNotNull($object);
-    $this->assertNotNull($object["url"]);
-    $this->assertEqual($object["url"], $attributes["url"]);
+    $this->assertNotNull($object->hooks->url);
+    $this->assertEqual($object->hooks->url, $attributes['url']);
 
-    self::$id = $object["id"];
+    self::$id = $object->hooks->id;
   }
 
-  public function testGet()
-  {
-    $object = Nfe_Webhook::fetch( self::$id );
+  public function testGet() {
+    $object = NFe_Webhook::fetch( self::$id );
 
-    $this->assertNotNull($object);
-    $this->assertNotNull($object["url"]);
-    $this->assertEqual($object["url"], "http://google.com/test");
+    $this->assertNotNull( $object );
+    $this->assertNotNull( $object['hooks'][0]->url );
+    $this->assertEqual( $object['hooks'][0]->url, 'http://google.com/test' );
   }
 
-  public function testUpdate()
-  {
-    $object = Nfe_Webhook::fetch( self::$id );
+  public function testUpdate() {
+    $object = NFe_Webhook::fetch( self::$id );
 
-    $new_name = "http://google.com/test2";
-    $object["url"] = $new_name;
+    $new_url = 'http://google.com/test2';
+    $object->hooks->url = $new_url;
 
     $this->assertTrue($object->save());
     $this->assertNotNull($object);
-    $this->assertNotNull($object["url"]);
-    $this->assertEqual($object["url"], $new_name);
+    $this->assertNotNull($object->hooks->url);
+    $this->assertEqual($object->hooks->url, $new_url);
   }
 
-  public function testDelete()
-  {
-    $object = Nfe_Webhook::fetch( self::$id );
+  public function testDelete() {
+    $object = NFe_Webhook::fetch( self::$id );
 
     $this->assertNotNull($object);
-    $this->assertNotNull($object["url"]);
+    $this->assertNotNull( $object->hooks->url );
     $this->assertTrue($object->delete());
   }
-}
 
-?>
+  public function testSearch() {
+    $hooks = NFe_Webhook::search();
+
+    $this->assertNotNull( $hooks );
+    $this->assertNotNull( $hooks->hooks );
+  }
+}

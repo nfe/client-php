@@ -71,9 +71,9 @@ class NFe_APIResource extends NFe_Object {
   }
 
   protected function deleteAPI() {
-    if ( $this['id'] == null ) {
-      return false;
-    }
+    // if ( $this['id'] == null ) { // $this['id']
+      // return false;
+    // }
 
     try {
       $response = self::API()->request( 'DELETE', static::url($this) );
