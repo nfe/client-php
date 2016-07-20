@@ -18,7 +18,7 @@ git clone https://github.com/nfe/client-php
 ### Usando [Composer](http://getcomposer.org/)
 
 ```bash
-composer require stripe/stripe-php
+composer require nfe/client-php
 ```
 
 ### Instalação Manual
