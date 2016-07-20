@@ -18,7 +18,7 @@ git clone https://github.com/nfe/client-php
 ### Usando [Composer](http://getcomposer.org/)
 
 ```bash
-composer require nfe/client-php
+composer require nfe/nfe
 ```
 
 ### Instalação Manual

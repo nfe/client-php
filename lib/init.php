@@ -3,6 +3,9 @@
 // NFe Base
 require( dirname(__FILE__) . '/NFe/NFe.php' );
 
+// NFe Errors
+require( dirname(__FILE__) . '/NFe/Error.php' );
+
 // NFe Utilities
 require( dirname(__FILE__) . '/NFe/Backward_Compatibility.php' );
 require( dirname(__FILE__) . '/NFe/Utilities.php' );
@@ -12,9 +15,6 @@ require( dirname(__FILE__) . '/NFe/Object.php' );
 require( dirname(__FILE__) . '/NFe/APIRequest.php' );
 require( dirname(__FILE__) . '/NFe/APIResource.php' );
 require( dirname(__FILE__) . '/NFe/APIChildResource.php' );
-
-// NFe Errors
-require( dirname(__FILE__) . '/NFe/Error.php' );
 
 // NFe API Resources
 require( dirname(__FILE__) . '/NFe/Company.php' );
