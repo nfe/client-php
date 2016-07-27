@@ -1,6 +1,7 @@
 # Cliente PHP da API do NFe.io
 
 [![Build Status](https://travis-ci.org/nfe/client-php.svg?branch=master)](https://travis-ci.org/nfe/client-php)
+[![Latest Stable Version](https://poser.pugx.org/nfe/nfe/v/stable)](https://packagist.org/packages/nfe/nfe)
 [![Total Downloads](https://poser.pugx.org/nfe/nfe/downloads.svg)](https://packagist.org/packages/nfe/nfe)
 [![License](https://poser.pugx.org/nfe/nfe/license.svg)](https://packagist.org/packages/nfe/nfe)
 
@@ -9,25 +10,42 @@
 * PHP 5.4 em diante.
 
 ## Instalação
- - Faça o download da biblioteca
 
-~~~
-git clone https://github.com/nfe/client-php
-~~~
+### [Composer](http://getcomposer.org/) via [Packagist](packagist.org/packages/nfe/nfe)
 
-### Usando [Composer](http://getcomposer.org/)
+  - Você pode instalar via [Composer](http://getcomposer.org/), executando o comando a seguir:
 
-```bash
-composer require nfe/nfe
-```
+  ```bash
+  composer require nfe/nfe
+  ```
 
-### Instalação Manual
+  - Para usar a biblioteca, use o [Composer autoload](https://getcomposer.org/doc/00-intro.md#autoloading):
 
- - Inclua a biblioteca em seu arquivo PHP
+  ```php
+  require_once('vendor/autoload.php');
+  ```
 
-```php
-require_once(".../client-php/lib/init.php");
-```
+### Manual
+  - Se você não quer usar o Composer
+  - Faça o download de uma das últimas versões, usando o endereço abaixo
+
+  [`github.com/nfe/client-php/releases`](https://github.com/nfe/client-php/releases)
+
+  - Depois de baixar, inclua a biblioteca em seu arquivo PHP
+
+  ```php
+  require_once("caminho-para/client-php/lib/init.php");
+  ```
+
+## Dependencias
+
+  Esta biblioteca requer as seguintes extensões para funcionamento correto:
+
+  - [`curl`](https://secure.php.net/manual/en/book.curl.php)
+  - [`json`](https://secure.php.net/manual/en/book.json.php)
+  - [`mbstring`](https://secure.php.net/manual/en/book.mbstring.php) (Multibyte String)
+
+  Se você usa o Composer, essas dependencias são gerenciadas automaticamente. Caso teha feito a instalação manual, você precisa ter certeza que estas extensões estão instaladas e disponíveis.
 
 ## Exemplos de Uso
 
