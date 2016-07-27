@@ -6,6 +6,6 @@ php:
   - '7.0'
   - hhvm
 before_script:
-  composer update --dev
+  - composer update --dev
 script:
-  php ./test/NFe.php
+  - php test/NFe.php
