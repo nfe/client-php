@@ -21,7 +21,7 @@ abstract class NFe {
 
   /**
    * Sets the Base URI to be sued for requests
-   * 
+   *
    * @return string
    */
   public static function getBaseURI() {
@@ -30,7 +30,7 @@ abstract class NFe {
 
   /**
    * Sets the Host to be used for requests
-   * 
+   *
    * @param string $host Base URI
    */
   public static function setHost( $host ) {

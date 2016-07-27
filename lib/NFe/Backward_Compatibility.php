@@ -1,7 +1,7 @@
 <?php
 
 if ( ! function_exists('get_called_class') ) {
-  class class_tools {
+  class NFe_class_tools {
     static $i = 0;
     static $fl = null;
 
@@ -26,6 +26,6 @@ if ( ! function_exists('get_called_class') ) {
   }
 
   function get_called_class() {
-    return class_tools::get_called_class();
+    return NFe_class_tools::get_called_class();
   }
 }
