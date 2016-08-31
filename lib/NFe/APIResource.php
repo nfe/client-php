@@ -7,7 +7,7 @@ class NFe_APIResource extends NFe_Object {
     $object_type = str_replace('NFe_', '', get_called_class());
     $object_type = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $object_type));
 
-    return mb_strtolower($object_type, 'UTF-8');
+    return utf8_decode(strtolower($object_type));
   }
 
   public static function objectBaseURI() {
@@ -81,7 +81,7 @@ class NFe_APIResource extends NFe_Object {
       if ( isset($response->errors) ) {
         throw NFeException();
       }
-    } 
+    }
     catch (Exception $e) {
       return false;
     }
@@ -94,7 +94,7 @@ class NFe_APIResource extends NFe_Object {
       $response = self::API()->request( 'GET', static::url($options), $options );
 
       return self::createFromResponse($response);
-    } 
+    }
     catch (Exception $e) {}
 
     return array();
@@ -102,9 +102,9 @@ class NFe_APIResource extends NFe_Object {
 
   protected static function fetchAPI($key) {
     try {
-      $response = self::API()->request( 'GET', static::url($key) );      
+      $response = self::API()->request( 'GET', static::url($key) );
       return self::createFromResponse($response);
-    } 
+    }
     catch ( NFeObjectNotFound $e ) {
       throw new NFeObjectNotFound( self::convertClassToObjectType( get_called_class() ) . ':' . ' não encontrado.');
     }
@@ -118,7 +118,7 @@ class NFe_APIResource extends NFe_Object {
     try {
       $response = self::API()->request( 'GET', static::url($this) );
 
-      if ( isset($response->errors) ) { 
+      if ( isset($response->errors) ) {
         throw NFeObjectNotFound();
       }
 
@@ -126,7 +126,7 @@ class NFe_APIResource extends NFe_Object {
       $new_object = self::createFromResponse($response->$type);
       $this->copy( $new_object );
       $this->resetStates();
-    } 
+    }
     catch (Exception $e) {
       return false;
     }
@@ -146,7 +146,7 @@ class NFe_APIResource extends NFe_Object {
       if ( isset($response->errors) ) {
         throw new NFeException();
       }
-    } 
+    }
     catch (Exception $e) {
       return false;
     }

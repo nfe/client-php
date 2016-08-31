@@ -1,4 +1,19 @@
 
+### 2.3 2016-08-31
+* Removed dependency of mbstring php module
+* Removed unused files
+
+### 2.2 2016-07-27
+* Moved files to new structure
+
+### 2.1 2016-07-18
+
+* Updated readme.me with banners
+* Bumped PHP version into 5.4
+* Added more unit testing
+* Updated unit testing setup to easier testing
+* Added more examples, for documentation
+
 ### 2.0.0 2016-07-18
 
 * Updated readme.me with banners

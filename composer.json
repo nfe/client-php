@@ -2,6 +2,7 @@
   "name": "nfe/nfe",
   "description": "NFe.io PHP Library",
   "homepage": "https://nfe.io",
+  "version": "2.3",
   "keywords": [
     "nfe",
     "nfse",

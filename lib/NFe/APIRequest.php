@@ -30,12 +30,12 @@ class NFe_APIRequest {
     list( $response_body, $response_code ) = $this->requestWithCURL( $method, $url, $headers, $data );
     if ( $response_code == 302 ) {
       $response = $response_body;
-    } 
+    }
     else {
       $response = json_decode($response_body);
     }
 
-    if ( json_last_error() != JSON_ERROR_NONE ) { 
+    if ( json_last_error() != JSON_ERROR_NONE ) {
       throw new NFeObjectNotFound($response_body);
     }
 
@@ -105,7 +105,7 @@ class NFe_APIRequest {
     // @codingStandardsIgnoreEnd
 
     curl_setopt_array($curl, $opts);
-    
+
     // For debugging
     if ( NFe::$debug == true ) {
       curl_setopt( $curl, CURLOPT_PROXY, "127.0.0.1:8888" );

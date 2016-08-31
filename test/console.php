@@ -3,7 +3,11 @@
 //o-------------------------------o
 //    Libraries
 //o-------------------------------o
+<<<<<<< Updated upstream
 require( realpath(dirname(__FILE__) . "/../") . "/lib/init.php" );
+=======
+require( realpath(dirname(__FILE__) . "/../") . "/lib/NFe.php" );
+>>>>>>> Stashed changes
 
 //o-------------------------------o
 //    Configure time as GMT
