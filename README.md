@@ -43,7 +43,6 @@
 
   - [`curl`](https://secure.php.net/manual/en/book.curl.php)
   - [`json`](https://secure.php.net/manual/en/book.json.php)
-  - [`mbstring`](https://secure.php.net/manual/en/book.mbstring.php) (Multibyte String)
 
   Se você usa o Composer, essas dependencias são gerenciadas automaticamente. Caso teha feito a instalação manual, você precisa ter certeza que estas extensões estão instaladas e disponíveis.
 
