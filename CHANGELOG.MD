@@ -1,4 +1,7 @@
 
+### 2.4 2016-08-31
+* Fix strtolower on api resource
+
 ### 2.3 2016-08-31
 * Removed dependency of mbstring php module
 * Removed unused files
