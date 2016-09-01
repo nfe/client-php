@@ -7,7 +7,7 @@ class NFe_APIResource extends NFe_Object {
     $object_type = str_replace('NFe_', '', get_called_class());
     $object_type = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $object_type));
 
-    return utf8_decode(strtolower($object_type));
+    return strtolower($object_type);
   }
 
   public static function objectBaseURI() {
