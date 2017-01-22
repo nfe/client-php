@@ -1,25 +1,27 @@
 <?php
 
+$dir = dirname(__FILE__);
+
 // NFe Base
-require( dirname(__FILE__) . '/NFe/NFe.php' );
+require( $dir . '/NFe/NFe.php' );
 
 // NFe Errors
-require( dirname(__FILE__) . '/NFe/Error.php' );
+require( $dir . '/NFe/Error.php' );
 
 // NFe Utilities
-require( dirname(__FILE__) . '/NFe/Backward_Compatibility.php' );
-require( dirname(__FILE__) . '/NFe/Utilities.php' );
+require( $dir . '/NFe/Backward_Compatibility.php' );
+require( $dir . '/NFe/Utilities.php' );
 
 // NFe API Plumbing
-require( dirname(__FILE__) . '/NFe/Object.php' );
-require( dirname(__FILE__) . '/NFe/APIRequest.php' );
-require( dirname(__FILE__) . '/NFe/APIResource.php' );
-require( dirname(__FILE__) . '/NFe/APIChildResource.php' );
+require( $dir . '/NFe/Object.php' );
+require( $dir . '/NFe/APIRequest.php' );
+require( $dir . '/NFe/APIResource.php' );
+require( $dir . '/NFe/APIChildResource.php' );
 
 // NFe API Resources
-require( dirname(__FILE__) . '/NFe/Company.php' );
-require( dirname(__FILE__) . '/NFe/LegalPerson.php' );
-require( dirname(__FILE__) . '/NFe/NaturalPerson.php' );
-require( dirname(__FILE__) . '/NFe/ServiceInvoice.php' );
-require( dirname(__FILE__) . '/NFe/SearchResult.php' );
-require( dirname(__FILE__) . '/NFe/Webhook.php' );
+require( $dir . '/NFe/Company.php' );
+require( $dir . '/NFe/LegalPerson.php' );
+require( $dir . '/NFe/NaturalPerson.php' );
+require( $dir . '/NFe/ServiceInvoice.php' );
+require( $dir . '/NFe/SearchResult.php' );
+require( $dir . '/NFe/Webhook.php' );
