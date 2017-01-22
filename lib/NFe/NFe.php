@@ -1,6 +1,6 @@
 <?php
 
-abstract class NFe {
+abstract class NFe_io {
 
   // @var string The NFe API key to be used for requests.
   public static $api_key = null;

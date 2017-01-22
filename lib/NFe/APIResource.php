@@ -54,7 +54,7 @@ class NFe_APIResource extends NFe_Object {
       $path = '/' . $object['id'];
     }
 
-    return strtolower( NFe::getBaseURI() . $uri_path . '/' . self::objectBaseURI() . $path );
+    return strtolower( NFe_io::getBaseURI() . $uri_path . '/' . self::objectBaseURI() . $path );
   }
 
   public static function url( $object = null ) {

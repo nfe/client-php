@@ -5,7 +5,7 @@ class NFe_Utilities {
   public static function authFromEnv() {
     $apiKey = getenv('NFE_API_KEY');
     if ($apiKey) {
-      NFe::setApiKey($apiKey);
+      NFe_io::setApiKey($apiKey);
     }
   }
 
@@ -30,7 +30,7 @@ class NFe_Utilities {
   }
 
   public static function arrayToParamsUrl($array, $prefix = null) {
-    if ( !is_array($array) ) { 
+    if ( !is_array($array) ) {
       return $array;
     }
 

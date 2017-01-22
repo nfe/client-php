@@ -4,7 +4,7 @@ class NFe_APIRequest {
   public function __construct() {}
 
   private function _defaultHeaders( $headers = array() ) {
-    $headers[] = "Authorization: Basic " . NFe::getApiKey();
+    $headers[] = "Authorization: Basic " . NFe_io::getApiKey();
     $headers[] = "Content-Type: application/json";
     $headers[] = "Accept: application/json";
     $headers[] = "Accept-Charset: UTF-8";
@@ -17,12 +17,12 @@ class NFe_APIRequest {
   public function request( $method, $url, $data = array() ) {
     global $last_api_response_code;
 
-    if ( NFe::getApiKey() == null ) {
+    if ( NFe_io::getApiKey() == null ) {
       NFe_Utilities::authFromEnv();
     }
 
-    if ( NFe::getApiKey() == null ) {
-      return new NFeAuthenticationException("Chave de API não configurada. Utilize NFe::setApiKey(...) para configurar.");
+    if ( NFe_io::getApiKey() == null ) {
+      return new NFeAuthenticationException("Chave de API não configurada. Utilize NFe_io::setApiKey(...) para configurar.");
     }
 
     $headers = $this->_defaultHeaders();
@@ -86,7 +86,7 @@ class NFe_APIRequest {
     $opts[CURLOPT_TIMEOUT]        = 80;
     $opts[CURLOPT_CONNECTTIMEOUT] = 30;
     $opts[CURLOPT_HTTPHEADER]     = $headers;
-    if ( NFe::$verifySslCerts == false ) {
+    if ( NFe_io::$verifySslCerts == false ) {
       $opts[CURLOPT_SSL_VERIFYPEER] = false;
     }
     $opts[CURLOPT_SSL_VERIFYHOST] = 2;
@@ -107,7 +107,7 @@ class NFe_APIRequest {
     curl_setopt_array($curl, $opts);
 
     // For debugging
-    if ( NFe::$debug == true ) {
+    if ( NFe_io::$debug == true ) {
       curl_setopt( $curl, CURLOPT_PROXY, "127.0.0.1:8888" );
       curl_setopt( $curl, CURLOPT_VERBOSE, 1 );
     }
