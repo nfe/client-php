@@ -13,7 +13,6 @@ class NFe_LegalPersonTest extends NFe_TestCase {
     $this->expectException('NFeObjectNotFound');
 
     $result = NFe_LegalPerson::fetch( self::$company_id, self::$company_id );
-
     $this->assertNull($result);
   }
 

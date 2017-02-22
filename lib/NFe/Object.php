@@ -2,7 +2,7 @@
 
 /**
  * NFe_Object manages the Object State
- * 
+ *
  * Values that changed, values that need to be saved
  */
 class NFe_Object implements arrayAccess {

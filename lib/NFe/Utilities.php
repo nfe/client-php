@@ -30,7 +30,7 @@ class NFe_Utilities {
   }
 
   public static function arrayToParamsUrl($array, $prefix = null) {
-    if ( !is_array($array) ) { 
+    if ( !is_array($array) ) {
       return $array;
     }
 
@@ -89,9 +89,12 @@ class NFe_Utilities {
       return new NFe_SearchResult( $results, count($results) );
     }
     elseif ( is_object($response) ) {
-      return new $class_name( (array) $response );
+        $resource = $class_name::objectBaseURI();
+        if(isset($response->$resource)) {
+            return new $class_name( (array) $response->$resource );
+        }
+        return new $class_name( (array) $response );
     }
-
     return null;
   }
 }

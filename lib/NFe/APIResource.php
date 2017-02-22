@@ -39,22 +39,30 @@ class NFe_APIResource extends NFe_Object {
 
   public static function endpointAPI( $object = null, $uri_path = '' ) {
     $path = '';
+    $resource = self::objectBaseURI();
 
     if ( is_string($object) || is_integer($object) ) {
       $path = '/' . $object;
     }
     elseif (is_array($object) && isset($object['company_id'])) {
-      $uri_path = '/companies/' . $object['company_id'];
+        $uri_path = '/companies/' . $object['company_id'];
+
+        if (isset($object['id'])) {
+            $path = '/' . $object['id'];
+        }
     }
-    elseif (is_object($object) && isset($object->provider) && isset($object->provider->id) ) {
-      $uri_path = '/companies/' . $object->provider->id;
+    elseif (is_object($object)) {
+        if (isset($object->provider) && isset($object->provider->id)) {
+            $uri_path = '/companies/' . $object->provider->id;
+        }
+
+        if (!$object->is_new()) {
+            $path = '/' . $object->id;
+        }
     }
 
-    if (isset($object['id'])) {
-      $path = '/' . $object['id'];
-    }
 
-    return strtolower( NFe::getBaseURI() . $uri_path . '/' . self::objectBaseURI() . $path );
+    return strtolower( NFe::getBaseURI() . $uri_path . '/' .  $resource . $path );
   }
 
   public static function url( $object = null ) {
@@ -74,7 +82,6 @@ class NFe_APIResource extends NFe_Object {
     // if ( $this['id'] == null ) { // $this['id']
       // return false;
     // }
-
     try {
       $response = self::API()->request( 'DELETE', static::url($this) );
 
