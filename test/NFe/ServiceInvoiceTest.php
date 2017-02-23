@@ -7,7 +7,7 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
   public function testIssue() {
     $this->invoice = NFe_ServiceInvoice::create(
       // ID da empresa, você deve copiar exatamente como está no painel
-      "58ab266128718d082845e4be",
+      "54244e0ee340420fdc94ad09",
 
       // Dados da nota fiscal de serviço
       array(
@@ -63,7 +63,7 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
     public function testFetchInvoice() {
 
     $fetched_invoice = NFe_ServiceInvoice::fetch(
-      "58ab266128718d082845e4be",
+      "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
 
@@ -75,7 +75,7 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
 
   public function testDownloadPdfInvoice() {
     $url = NFe_ServiceInvoice::pdf(
-      "58ab266128718d082845e4be",
+      "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
 
@@ -84,7 +84,7 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
 
   public function testDownloadXmlInvoice() {
     $url = NFe_ServiceInvoice::xml(
-      "58ab266128718d082845e4be",
+      "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
 
@@ -93,7 +93,7 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
 
   public function testCancelInvoice() {
     $fetched_invoice = NFe_ServiceInvoice::fetch(
-      "58ab266128718d082845e4be",
+      "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
 
