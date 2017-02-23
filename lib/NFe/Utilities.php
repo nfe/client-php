@@ -89,9 +89,18 @@ class NFe_Utilities {
       return new NFe_SearchResult( $results, count($results) );
     }
     elseif ( is_object($response) ) {
-        $resource = $class_name::objectBaseURI();
-        if(isset($response->$resource)) {
-            return new $class_name( (array) $response->$resource );
+        $resources = $class_name::objectBaseURI();
+        if(isset($response->$resources)) {
+            $result = [];
+            if (is_array($response->$resources)) {
+                foreach($response->$resources as $resource) {
+                    $result[] = new $class_name( (array) $resource );
+                }
+
+                return $result;
+            }
+
+            return new $class_name( (array) $response->$resources );
         }
         return new $class_name( (array) $response );
     }
