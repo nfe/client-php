@@ -109,7 +109,7 @@ class NFe_APIResource extends NFe_Object {
 
   protected static function fetchAPI($key) {
     try {
-      $response = self::API()->request( 'GET', static::url($key) );
+        $response = self::API()->request( 'GET', static::url($key) );
       return self::createFromResponse($response);
     }
     catch ( NFeObjectNotFound $e ) {

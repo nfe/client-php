@@ -40,6 +40,10 @@ class NFe_APIRequest {
       }
     }
 
+    if ( $response_code == 403 ) {
+      throw new NFeAuthorizationException($response_body);
+    }
+
     if ( $response_code == 409 ) {
       throw new NFeObjectAlreadyExists($response_body);
     }
