@@ -28,19 +28,32 @@ class NFe_APIRequest {
     $headers = $this->_defaultHeaders();
 
     list( $response_body, $response_code ) = $this->requestWithCURL( $method, $url, $headers, $data );
+    $response = json_encode("{}");
+
     if ( $response_code == 302 ) {
       $response = $response_body;
     }
-    else {
+    else if (!empty($response_body)) {
       $response = json_decode($response_body);
+      if ( json_last_error() != JSON_ERROR_NONE ) {
+        throw new NFeInvalidResponseBody($response_body);
+      }
     }
 
-    if ( json_last_error() != JSON_ERROR_NONE ) {
-      throw new NFeObjectNotFound($response_body);
+    if ( $response_code == 403 ) {
+      throw new NFeAuthorizationException($response_body);
+    }
+
+    if ( $response_code == 409 ) {
+      throw new NFeObjectAlreadyExists($response_body);
     }
 
     if ( $response_code == 404 ) {
       throw new NFeObjectNotFound($response_body);
+    }
+
+    if ( $response_code == 400 ) {
+      throw new NFeException($response->message);
     }
 
     if ( isset($response->errors) ) {

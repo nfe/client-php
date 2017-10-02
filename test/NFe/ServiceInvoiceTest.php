@@ -2,6 +2,8 @@
 
 class NFe_ServiceInvoiceTest extends NFe_TestCase {
 
+    protected $invoice;
+
   public function testIssue() {
     $this->invoice = NFe_ServiceInvoice::create(
       // ID da empresa, você deve copiar exatamente como está no painel
@@ -58,7 +60,8 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
     $this->assertEqual($this->invoice->cityServiceCode, '2690');
   }
 
-  public function testFetchInvoice() {
+    public function testFetchInvoice() {
+
     $fetched_invoice = NFe_ServiceInvoice::fetch(
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
@@ -75,7 +78,7 @@ class NFe_ServiceInvoiceTest extends NFe_TestCase {
       "54244e0ee340420fdc94ad09",
       $this->invoice->id
     );
-    
+
     $this->assertTrue( strpos($url, "pdf") );
   }
 

@@ -5,7 +5,7 @@ class NFe_CompanyTest extends NFe_TestCase {
 
   public function testCreateAndDelete() {
     $attributes = array(
-      'federalTaxNumber' => 48527553000123, // Generate CNPJ here: http://www.geradordecnpj.org/
+      'federalTaxNumber' => 97625117000100, // Generate CNPJ here: http://www.geradordecnpj.org/
       'name'             => 'TEST Company Name',
       'tradeName'        => 'Company Name',
       'email'            => 'nfe@mailinator.com',
@@ -28,38 +28,37 @@ class NFe_CompanyTest extends NFe_TestCase {
     $object = NFe_Company::create( $attributes );
 
     $this->assertNotNull($object);
-    $this->assertNotNull( $object->companies->name );
-    $this->assertEqual( $object->companies->name, 'TEST Company Name' );
-
-    self::$id = $object->companies->id;
+    $this->assertNotNull( $object->name );
+    $this->assertEqual( $object->name, 'TEST Company Name' );
+    self::$id = $object->id;
   }
 
   public function testGet() {
     $object = NFe_Company::fetch( self::$id );
 
     $this->assertNotNull($object);
-    $this->assertNotNull($object->companies->name);
-    $this->assertEqual($object->companies->name, 'TEST Company Name');
+    $this->assertNotNull($object->name);
+    $this->assertEqual($object->name, 'TEST Company Name');
   }
 
   public function testUpdate() {
     $object = NFe_Company::fetch( self::$id );
 
-    $object->companies->name = 'BB SA';
+    $object->name = 'BB SA';
 
     // @todo Check it out why this is giving error
-    // $this->assertTrue( $object->save() ); 
+    // $this->assertTrue( $object->save() );
 
     $this->assertNotNull($object);
-    $this->assertNotNull($object->companies->name);
-    $this->assertEqual($object->companies->name, 'BB SA');
+    $this->assertNotNull($object->name);
+    $this->assertEqual($object->name, 'BB SA');
   }
 
   public function testDelete() {
     $object = NFe_Company::fetch( self::$id );
 
     $this->assertNotNull($object);
-    $this->assertNotNull($object->companies->name);
+    $this->assertNotNull($object->name);
     $this->assertTrue( $object->delete() );
   }
 }
