@@ -1,3 +1,5 @@
+### 2.5 2017-01-22
+* Fix a conflict in the name of the main class
 
 ### 2.4 2016-08-31
 * Fix strtolower on api resource

@@ -50,7 +50,7 @@
 
 ### Criar empresa
 ```php
-NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
+NFe_io::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
 
 $companyCreated = NFe_Company::create(
   array(
@@ -90,7 +90,7 @@ echo($companyCreated->id);
 
 ### Emitir nota fiscal
 ```php
-NFe::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
+NFe_io::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
 
 $invoiceCreated = NFe_ServiceInvoice::create(
   // ID da empresa, você deve copiar exatamente como está no painel
@@ -144,7 +144,7 @@ echo($invoiceCreated->id);
 
 ### Cancelar nota fiscal
 ```php
-NFe::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
+NFe_io::setApiKey("c73d49f9649046eeba36dcf69f6334fd"); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
 
 $invoice = NFe_ServiceInvoice::fetch(
   '64555e0ee340420fdc94ad09', // ID da empresa, você deve copiar exatamente como está no painel
@@ -158,7 +158,7 @@ if ( $invoice->status == 'Issued' ) {
 
 ### Download do PDF da nota fiscal
 ```php
-NFe::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
+NFe_io::setApiKey('c73d49f9649046eeba36dcf69f6334fd'); // Ache sua chave API no painel (https://app.nfe.io/account/apikeys)
 
 $url = NFe_ServiceInvoice::pdf(
   '64555e0ee340420fdc94ad09', // ID da empresa, você deve copiar exatamente como está no painel
