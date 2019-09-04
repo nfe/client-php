@@ -177,8 +177,25 @@ file_put_contents( './invoice_file.pdf', file_get_contents($url) );
 ```
 
 ### Como validar o Webhook?
->Em construção!
 
+PHP > 5.3
+```
+define('WEBHOOK_SECRET_KEY', 'COLOQUE SUA CHAVE DEFINIDA NO SITE AQUI');
+function verify_webhook($data, $hmac_header)
+{
+    $calculated_hmac = base64_encode(hash_hmac('sha1', $data, WEBHOOK_SECRET_KEY,true));
+    return ($hmac_header == $calculated_hmac);
+}
+
+$hmac_header = str_replace("sha1=", '', $_SERVER['HTTP_X_NFEIO_SIGNATURE']);
+$data = file_get_contents('php://input');
+$verified = verify_webhook($data, $hmac_header);
+if(!$verified) {
+	//Código para requisição que não foi validada
+} else {
+	//Código para requisição validada
+}
+```
 ## Testes
 
 Instale as dependências necessárias para executar os testes. O client-php do NFe utiliza [SimpleTest](http://simpletest.org/).
