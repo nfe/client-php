@@ -23,7 +23,7 @@ class NFe_APIResource extends NFe_Object {
       case 'service_invoice':
         return 'serviceInvoices';
       case 'webhook':
-        return 'hooks';
+        return 'webhooks';
       default:
        return $object_type . 's';
     }
