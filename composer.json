@@ -50,7 +50,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Nfe\\Tests\\": "tests/"
+            "Nfe\\Tests\\": "tests/",
+            "Nfe\\Build\\": "scripts/Generator/"
         }
     },
     "scripts": {

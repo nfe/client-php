@@ -1,0 +1,3 @@
+# Mark generated code so GitHub collapses it in diffs and language stats ignore it.
+src/Generated/** linguist-generated=true
+src/Generated/**/*.php linguist-generated=true
