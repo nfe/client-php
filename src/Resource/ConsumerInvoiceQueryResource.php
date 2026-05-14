@@ -4,20 +4,41 @@ declare(strict_types=1);
 
 namespace Nfe\Resource;
 
+use Nfe\Http\RequestOptions;
+use Nfe\Resource\Dto\ConsumerInvoiceQuery\TaxCoupon;
+use Nfe\Util\IdValidator;
+
 /**
- * Read-only queries against the NFC-e index.
+ * NFC-e read-only query by access key.
  *
- * **Stub** — public methods are implemented in `add-lookup-resources` (c07).
+ * Hosted at `https://nfe.api.nfe.io` (same host as `ProductInvoiceQueryResource`)
+ * under v1 (path `/v1/consumerinvoices/coupon/...`).
  */
 final class ConsumerInvoiceQueryResource extends AbstractResource
 {
     protected function apiFamily(): string
     {
-        return 'consumer-invoice-query';
+        return 'nfe-query';
     }
 
     protected function apiVersion(): string
     {
-        return 'v3';
+        return 'v1';
+    }
+
+    public function retrieve(string $accessKey, ?RequestOptions $options = null): TaxCoupon
+    {
+        $accessKey = IdValidator::accessKey($accessKey);
+        $response = $this->httpGet("/consumerinvoices/coupon/{$accessKey}", options: $options);
+        $payload = $this->decodeBody($response->body);
+
+        return $this->hydrate(TaxCoupon::class, $payload);
+    }
+
+    public function downloadXml(string $accessKey, ?RequestOptions $options = null): string
+    {
+        $accessKey = IdValidator::accessKey($accessKey);
+
+        return $this->download("/consumerinvoices/coupon/{$accessKey}.xml", options: $options);
     }
 }

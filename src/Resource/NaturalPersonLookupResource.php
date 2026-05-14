@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Nfe\Resource;
 
+use DateTimeImmutable;
+use Nfe\Http\RequestOptions;
+use Nfe\Resource\Dto\NaturalPersonLookup\NaturalPersonStatus;
+use Nfe\Util\DateNormalizer;
+use Nfe\Util\IdValidator;
+
 /**
- * CPF (natural person) lookup. Hosted on a dedicated subdomain.
+ * CPF cadastral status lookup against the NFE.io natural-person API.
  *
- * **Stub** — public methods are implemented in `add-lookup-resources` (c07).
+ * Hosted at `https://naturalperson.api.nfe.io` under v1.
  */
 final class NaturalPersonLookupResource extends AbstractResource
 {
@@ -18,6 +24,19 @@ final class NaturalPersonLookupResource extends AbstractResource
 
     protected function apiVersion(): string
     {
-        return 'v3';
+        return 'v1';
+    }
+
+    public function getStatus(
+        string $cpf,
+        string|DateTimeImmutable $birthDate,
+        ?RequestOptions $options = null,
+    ): NaturalPersonStatus {
+        $cpf = IdValidator::cpf($cpf);
+        $date = DateNormalizer::toIsoDate($birthDate);
+        $response = $this->httpGet("/naturalperson/status/{$cpf}/{$date}", options: $options);
+        $payload = $this->decodeBody($response->body);
+
+        return $this->hydrate(NaturalPersonStatus::class, $payload);
     }
 }
