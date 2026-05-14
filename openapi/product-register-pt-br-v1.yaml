@@ -1,0 +1,751 @@
+openapi: 3.0.1
+info:
+  title: API de Cadastro de Produtos
+  description: |
+    ### Introdução
+    API para gerenciar o cadastro de produtos e suas classificações tributárias. Nossa API é projetada para simplificar a complexidade do sistema tributário brasileiro e tem como objetivo principal possibilitar a customização avançada de regras tributárias.
+
+    ### Customização e Conformidade
+    Esta API permite que empresas de todos os tamanhos realizem cadastros precisos de produtos configurando cenários tributários customizados, garantindo conformidade fiscal e otimizando processos administrativos.
+
+    > **Atenção**
+    > _Sujeito a alterações mediante notas técnicas e processos de homologação._
+  version: 1.0.0
+
+servers:
+  - url: https://api.nfse.io
+    description: Servidor de Produção
+
+security:
+  - Authorization_Header: []
+    Authorization_QueryParam: []
+  - Authorization_JwtBearer: []
+
+paths:
+  /{tenantId}/products:
+    post:
+      operationId: Products_Post
+      summary: Criar um novo produto
+      description: Adiciona um novo produto com suas informações tributárias no sistema. O ID do produto é gerado automaticamente pelo servidor.
+      tags:
+        - Produtos
+      parameters:
+        - name: tenantId
+          in: path
+          description: Identificador único do cliente (Tenant).
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Objeto do produto a ser cadastrado.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+            examples:
+              basic_example:
+                summary: Exemplo Básico
+                value:
+                  tenantId: "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+                  collectionId: "seller-company-id-001"
+                  sku: "SKU-PROD-00123"
+                  origin: "national"
+                  description: "Produto de Exemplo para Integração"
+                  gtin: "7891234567890"
+                  taxGtin: "7891234567890"
+                  tax:
+                    ncm: "85171300"
+                    cest: "2105301"
+                  customTax:
+                    - OperationCode: 120
+                      issuer:
+                        - taxRegime: "RealProfit"
+                          taxProfile: "industry"
+                      recipient:
+                        - taxProfile: "retail"
+                      intraState:
+                        cfop: 5102
+                        icms:
+                          cst: "00"
+                          pICMS: "18.00"
+                          modBC: "3"
+                        pis:
+                          cst: "01"
+                          pPIS: "1.65"
+                        cofins:
+                          cst: "01"
+                          pCOFINS: "7.60"
+                      interState:
+                        cfop: 6102
+                        icms:
+                          cst: "00"
+                          pICMS: "12.00"
+                          modBC: "3"
+                        pis:
+                          cst: "01"
+                          pPIS: "1.65"
+                        cofins: 
+                          cst: "01"
+                          pCOFINS: "7.60"
+              exhaustive_example:
+                summary: Exemplo Completo (Exaustivo)
+                value:
+                  tenantId: "a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6"
+                  collectionId: "seller-company-id-999"
+                  sku: "SKU-EXHAUSTIVE-999"
+                  origin: "foreignDirectImport"
+                  description: "Produto exaustivo com todos os campos preenchidos para teste"
+                  gtin: "9876543210987"
+                  taxGtin: "9876543210988"
+                  tax:
+                    ncm: "33049990"
+                    cest: "2002400"
+                  customTax:
+                    - OperationCode: 121
+                      issuer:
+                        - taxRegime: "RealProfit"
+                          taxProfile: "importer"
+                      recipient:
+                        - taxProfile: "final_consumer_non_icms_contributor"
+                      intraState:
+                        cfop: 5405
+                        icms:
+                          cst: "60"
+                          modBC: "3"
+                          modBCST: "4"
+                          motDesICMS: "9"
+                          motDesICMSST: "7"
+                          pICMS: "18.00"
+                          pRedBC: "10.00"
+                          pMVAST: "40.00"
+                          pRedBCST: "15.00"
+                          pICMSST: "18.00"
+                          pFCP: "2.00"
+                          pFCPST: "2.00"
+                          pFCPSTRet: "2.00"
+                          pRedBCEfet: "5.00"
+                          pICMSEfet: "17.50"
+                          pDif: "6.00"
+                          pFCPDif: "1.00"
+                          pCredSN: "1.25"
+                        pis:
+                          cst: "01"
+                          pPIS: "1.65"
+                        cofins:
+                          cst: "01"
+                          pCOFINS: "7.60"
+                      interState:
+                        cfop: 6404
+                        icms:
+                          cst: "10"
+                          modBC: "0"
+                          modBCST: "5"
+                          pICMS: "12.00"
+                          pMVAST: "45.00"
+                          pICMSST: "12.00"
+                          pFCP: "1.00"
+                          pFCPST: "1.00"
+                        pis:
+                          cst: "02"
+                          pPIS: "0.00"
+                        cofins:
+                          cst: "02"
+                          pCOFINS: "0.00"
+              multiple_scenarios_example:
+                summary: Exemplo com Múltiplos Cenários Tributários
+                value:
+                  tenantId: "f0e1d2c3-b4a5-f6e7-d8c9-b0a1f2e3d4c5"
+                  collectionId: "seller-multi-scenario-007"
+                  sku: "SKU-MULTI-SCENARIO-007"
+                  origin: "national"
+                  description: "Produto com Múltiplas Regras Fiscais"
+                  gtin: "1122334455667"
+                  tax:
+                    ncm: "64029990"
+                    cest: "2803200"
+                  customTax:
+                    - OperationCode: 120 # Cenário 1: Venda para Consumidor Final (Dentro do Estado)
+                      issuer:
+                        - taxRegime: "RealProfit"
+                          taxProfile: "retail"
+                      recipient:
+                        - taxProfile: "final_consumer_non_icms_contributor"
+                      intraState:
+                        cfop: 5102
+                        icms:
+                          cst: "00"
+                          pICMS: "18.00"
+                        pis:
+                          cst: "01"
+                          pPIS: "1.65"
+                        cofins:
+                          cst: "01"
+                          pCOFINS: "7.60"
+                    - OperationCode: 125 # Cenário 2: Venda para Revenda (Entre Estados)
+                      issuer:
+                        - taxRegime: "RealProfit"
+                          taxProfile: "wholesale"
+                      recipient:
+                        - taxProfile: "retail"
+                      interState:
+                        cfop: 6108
+                        icms:
+                          cst: "00"
+                          pICMS: "12.00"
+                        pis:
+                          cst: "01"
+                          pPIS: "1.65"
+                        cofins:
+                          cst: "01"
+                          pCOFINS: "7.60"
+      responses:
+        '201':
+          description: Produto criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Dados fornecidos são inválidos.
+
+  /{tenantId}/products/{productId}:
+    get:
+      summary: Consultar produto por ID
+      description: Retorna um único produto a partir do seu identificador único.
+      tags:
+        - Produtos
+      parameters:
+        - name: tenantId
+          in: path
+          description: Identificador único do cliente (Tenant).
+          required: true
+          schema:
+            type: string
+        - name: productId
+          in: path
+          description: Identificador único do produto que será retornado.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Operação realizada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Produto não encontrado.
+
+    put:
+      summary: Atualizar um produto existente
+      description: Atualiza todas as informações de um produto específico.
+      tags:
+        - Produtos
+      parameters:
+        - name: tenantId
+          in: path
+          description: Identificador único do cliente (Tenant).
+          required: true
+          schema:
+            type: string
+        - name: productId
+          in: path
+          description: Identificador único do produto que será atualizado.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Objeto do produto com as informações atualizadas.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Produto atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Dados fornecidos são inválidos.
+        '404':
+          description: Produto não encontrado.
+
+    delete:
+      summary: Excluir um produto
+      description: Exclui um produto a partir do seu identificador único.
+      tags:
+        - Produtos
+      parameters:
+        - name: tenantId
+          in: path
+          description: Identificador único do cliente (Tenant).
+          required: true
+          schema:
+            type: string
+        - name: productId
+          in: path
+          description: Identificador único do produto que será excluído.
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Produto excluído com sucesso.
+        '404':
+          description: Produto não encontrado.
+
+tags:
+  - name: Produtos
+    description: Operações referentes aos produtos
+
+components:
+  securitySchemes:
+    Authorization_Header:
+      type: apiKey
+      name: Authorization
+      in: header
+      description: "Autenticar usando o Cabeçalho HTTP Authorization com sua API Key"
+    Authorization_QueryParam:
+      type: apiKey
+      name: apikey
+      in: query
+      description: 'Autenticar usando o Parametro na URL, exemplo: "/?apikey={APIKEY_TOKEN}"'
+    Authorization_JwtBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Json Web Token
+      description: "Autenticar usando o cabeçalho HTTP"
+  schemas:
+    Product:
+      type: object
+      description: Representa um produto e suas informações tributárias completas.
+      required:
+        - id
+        - tenantId
+        - collectionId
+        - sku
+        - origin
+        - description
+        - customTax
+      properties:
+        id:
+          type: string
+          description: Identificador único do produto (gerado pelo servidor).
+        tenantId:
+          type: string
+          description: Identificador do Tenant (Por exemplo, o AccountId do Marketplace).
+        collectionId:
+          type: string
+          maxLength: 60
+          description: Identificador da coleção. Utilize o companyId do seller para isolar o produto por vendedor.
+        sku:
+          type: string
+          maxLength: 60
+          description: Código único de identificação do produto (SKU do Marketplace).
+          x-sefaz-tag: cProd
+        origin:
+          type: string
+          enum:
+            - national
+            - foreignDirectImport
+            - foreignInternalMarket
+            - nationalWith40To70Import
+            - nationalPpb
+            - nationalWithLess40Import
+            - foreignDirectImportWithoutNationalSimilar
+            - foreignInternalMarketWithoutNationalSimilar
+            - nationalWithGreater70Import
+          description: Origem da mercadoria (NT 2013.006).
+          x-sefaz-tag: orig
+        description:
+          type: string
+          maxLength: 120
+          description: Descrição detalhada do produto.
+          x-sefaz-tag: xProd
+        gtin:
+          type: string
+          maxLength: 14
+          description: GTIN (Global Trade Item Number) do produto (Antigo código EAN ou código de barras).
+          x-sefaz-tag: cEAN
+        taxGtin:
+          type: string
+          maxLength: 14
+          description: GTIN da unidade tributável.
+          x-sefaz-tag: cEANTrib
+        tax:
+          type: object
+          description: Grupo de classificação tributária básica.
+          required:
+            - ncm
+          properties:
+            ncm:
+              type: string
+              maxLength: 8
+              description: Código NCM com 8 dígitos ou 2 dígitos (gênero).
+              x-sefaz-tag: NCM
+            cest:
+              type: string
+              maxLength: 7
+              description: Código CEST (Código Especificador da Substituição Tributária).
+              x-sefaz-tag: CEST
+        customTax:
+          type: array
+          description: Cenários Tributários Customizados.
+          items:
+            $ref: '#/components/schemas/CustomTaxScenario'
+
+    ProductInput:
+      type: object
+      description: Schema para criação ou atualização de um produto. O 'id' é omitido, pois é controlado pelo servidor.
+      required:
+        - tenantId
+        - collectionId
+        - sku
+        - origin
+        - description
+        - customTax
+      properties:
+        tenantId:
+          type: string
+          description: Identificador do Tenant (Por exemplo, o AccountId do Marketplace).
+        collectionId:
+          type: string
+          maxLength: 60
+          description: Identificador da coleção. Utilize o companyId do seller para isolar o produto por vendedor.
+        sku:
+          type: string
+          maxLength: 60
+          description: Código único de identificação do produto (SKU).
+          x-sefaz-tag: cProd
+        origin:
+          type: string
+          enum:
+            - national
+            - foreignDirectImport
+            - foreignInternalMarket
+            - nationalWith40To70Import
+            - nationalPpb
+            - nationalWithLess40Import
+            - foreignDirectImportWithoutNationalSimilar
+            - foreignInternalMarketWithoutNationalSimilar
+            - nationalWithGreater70Import
+          description: |
+            Origem da Mercadoria (conforme NT 2013.006).
+            - `national`: 0 - Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8.
+            - `foreignDirectImport`: 1 - Estrangeira Importação direta, exceto a indicada no código 6.
+            - `foreignInternalMarket`: 2 - Estrangeira Adquirida no mercado interno, exceto a indicada no código 7.
+            - `nationalWith40To70Import`: 3 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 40% e inferior ou igual a 70%.
+            - `nationalPpb`: 4 - Nacional, cuja produção tenha sido feita em conformidade com os processos produtivos básicos de que tratam as legislações citadas nos Ajustes.
+            - `nationalWithLess40Import`: 5 - Nacional, mercadoria ou bem com Conteúdo de Importação inferior ou igual a 40%.
+            - `foreignDirectImportWithoutNationalSimilar`: 6 - Estrangeira Importação direta, sem similar nacional, constante em lista da CAMEX e gás natural.
+            - `foreignInternalMarketWithoutNationalSimilar`: 7 - Estrangeira Adquirida no mercado interno, sem similar nacional, constante lista CAMEX e gás natural.
+            - `nationalWithGreater70Import`: 8 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 70%.
+          x-sefaz-tag: orig
+        description:
+          type: string
+          maxLength: 120
+          description: Descrição detalhada do produto.
+          x-sefaz-tag: xProd
+        gtin:
+          type: string
+          maxLength: 14
+          description: GTIN (Global Trade Item Number) do produto (Antigo código EAN ou código de barras).
+          x-sefaz-tag: cEAN
+        taxGtin:
+          type: string
+          maxLength: 14
+          description: GTIN da unidade tributável.
+          x-sefaz-tag: cEANTrib
+        tax:
+          type: object
+          description: Grupo de classificação tributária básica.
+          required:
+            - ncm
+          properties:
+            ncm:
+              type: string
+              maxLength: 8
+              description: Código NCM com 8 dígitos ou 2 dígitos (gênero).
+              x-sefaz-tag: NCM
+            cest:
+              type: string
+              maxLength: 7
+              description: Código CEST (Código Especificador da Substituição Tributária).
+              x-sefaz-tag: CEST
+        customTax:
+          type: array
+          description: Cenários Tributários Customizados.
+          items:
+            $ref: '#/components/schemas/CustomTaxScenario'
+
+    CustomTaxScenario:
+      type: object
+      required:
+        - OperationCode
+      properties:
+        issuer:
+          type: array          
+          description: Configuração tributária validada para o emitente.
+          items:
+            type: object
+            required:
+              - taxRegime              
+              - taxProfile
+            properties:
+              taxRegime:
+                $ref: '#/components/schemas/TaxRegimeEnum'
+              taxProfile:
+                $ref: '#/components/schemas/IssuerTaxProfileEnum'
+        recipient:
+          type: array          
+          description: Configuração tributária validada para o destinatário.
+          items:
+            type: object
+            required:
+              - taxProfile
+            properties:
+              taxProfile:
+                $ref: '#/components/schemas/RecipientTaxProfileEnum'
+        OperationCode:
+          type: integer
+          format: int32
+          description: Código da Operação. Define a natureza comercial a ser configurada (ex. Venda, Remessa). Utilizado em conjunto para buscar o cenário tributário específico correspondente.
+          minimum: 0
+          maximum: 999
+        intraState:
+          $ref: '#/components/schemas/IntraStateTaxGroup'
+        interState:
+          $ref: '#/components/schemas/InterStateTaxGroup'
+
+    TaxRegimeEnum:      
+      type: string
+      description: |
+        Regime Tributário do Emitente.
+        - `NationalSimple`: Simples Nacional.
+        - `NationalSimpleSublimitExceeded`: Simples Nacional, excesso de sublimite da receita bruta.
+        - `RealProfit`: Regime Normal - Lucro Real.
+        - `PresumidProfile`: Regime Normal - Lucro Presumido.
+      enum:
+        - NationalSimple
+        - NationalSimpleSublimitExceeded
+        - RealProfit
+        - PresumidProfile
+      x-sefaz-tag: CRT
+
+    IssuerTaxProfileEnum:
+      type: string
+      description: |
+        Perfil tributário do emitente.
+        - `none`: Nenhum / Não especificado.
+        - `retail`: Varejista.
+        - `wholesale`: Atacadista.
+        - `wholesale_industry`: Atacado e Indústria.
+        - `importer`: Importador.
+        - `industry`: Indústria.
+        - `cooperative`: Cooperativa.
+      enum:
+        - none
+        - retail
+        - wholesale
+        - wholesale_industry
+        - importer
+        - industry
+        - cooperative
+
+    RecipientTaxProfileEnum:
+      type: string
+      description: |
+        Perfil tributário do destinatário.
+        - `none`: Nenhum / Não especificado.
+        - `industry`: Indústria.
+        - `final_consumer_icms_contributor`: Consumidor final, contribuinte do ICMS.
+        - `final_consumer_non_icms_contributor`: Consumidor final, Não contribuinte do ICMS.
+        - `general_warehouse`: Armazém geral.
+        - `closed_deposit`: Depósito fechado.
+        - `natural_person`: Pessoa física.
+        - `commercial_exporter`: Empresa comercial exportadora.
+        - `importer`: Importador.
+        - `coop`: Cooperativa.
+        - `wholesale`: Atacadista.
+        - `retail`: Varejista.
+        - `interdependent_company`: Empresa interdependente.
+        - `retail_branch`: Filial varejista.
+        - `non_retail_branch`: Filial não varejista.
+        - `wholesale_branch`: Filial atacadista.
+        - `closed_warehouse`: Armazém fechado.
+      enum:
+        - none
+        - industry
+        - final_consumer_icms_contributor
+        - final_consumer_non_icms_contributor
+        - general_warehouse
+        - closed_deposit
+        - natural_person
+        - commercial_exporter
+        - importer
+        - coop
+        - wholesale
+        - retail
+        - interdependent_company
+        - retail_branch
+        - non_retail_branch
+        - wholesale_branch
+        - closed_warehouse
+
+    IcmsTaxGroup:
+      type: object
+      description: Detalhes do Imposto sobre Circulação de Mercadorias e Serviços (ICMS).
+      properties:
+        cst: 
+          type: string
+          maxLength: 3
+          description: Código de Situação Tributária (CST) do ICMS.
+          x-sefaz-tag: CST
+        modBC: 
+          type: string
+          maxLength: 1
+          description: Modalidade de determinação da Base de Cálculo do ICMS.
+          x-sefaz-tag: modBC
+        modBCST: 
+          type: string
+          maxLength: 1
+          description: Modalidade de determinação da Base de Cálculo do ICMS ST (Substituição Tributária).
+          x-sefaz-tag: modBCST
+        motDesICMS: 
+          type: string
+          maxLength: 1
+          description: Motivo da desoneração do ICMS.
+          x-sefaz-tag: motDesICMS
+        motDesICMSST: 
+          type: string
+          maxLength: 1
+          description: Motivo da desoneração do ICMS ST.
+          x-sefaz-tag: motDesICMSST
+        pICMS: 
+          type: string
+          maxLength: 8
+          description: Alíquota do ICMS (percentual).
+          x-sefaz-tag: pICMS
+        pRedBC: 
+          type: string
+          maxLength: 8
+          description: Percentual de redução da Base de Cálculo do ICMS.
+          x-sefaz-tag: pRedBC
+        pMVAST: 
+          type: string
+          maxLength: 8
+          description: Percentual da Margem de Valor Adicionado para ICMS ST.
+          x-sefaz-tag: pMVAST
+        pRedBCST: 
+          type: string
+          maxLength: 8
+          description: Percentual de redução da Base de Cálculo do ICMS ST.
+          x-sefaz-tag: pRedBCST
+        pICMSST: 
+          type: string
+          maxLength: 8
+          description: Alíquota do ICMS ST (percentual).
+          x-sefaz-tag: pICMSST
+        pFCP: 
+          type: string
+          maxLength: 8
+          description: Percentual do Fundo de Combate à Pobreza (FCP).
+          x-sefaz-tag: pFCP
+        pFCPST: 
+          type: string
+          maxLength: 8
+          description: Percentual do Fundo de Combate à Pobreza (FCP) retido por Substituição Tributária.
+          x-sefaz-tag: pFCPST
+        pFCPSTRet: 
+          type: string
+          maxLength: 8
+          description: Percentual do FCP retido anteriormente por Substituição Tributária.
+          x-sefaz-tag: pFCPSTRet
+        pRedBCEfet: 
+          type: string
+          maxLength: 8
+          description: Percentual de redução da Base de Cálculo Efetiva.
+          x-sefaz-tag: pRedBCEfet
+        pICMSEfet: 
+          type: string
+          maxLength: 8
+          description: Alíquota Efetiva do ICMS (percentual).
+          x-sefaz-tag: pICMSEfet
+        pDif: 
+          type: string
+          maxLength: 8
+          description: Percentual do diferimento.
+          x-sefaz-tag: pDif
+        pFCPDif: 
+          type: string
+          maxLength: 8
+          description: Percentual do FCP diferido.
+          x-sefaz-tag: pFCPDif
+        pCredSN: 
+          type: string
+          maxLength: 8
+          description: Alíquota aplicável de cálculo do crédito (Simples Nacional).
+          x-sefaz-tag: pCredSN
+
+    PisTaxGroup:
+      type: object
+      description: Detalhes da tributação do PIS.
+      properties:
+        cst: 
+          type: string
+          maxLength: 3
+          description: Código de Situação Tributária (CST) do PIS.
+          x-sefaz-tag: CST
+        pPIS: 
+          type: string
+          maxLength: 8
+          description: Alíquota do PIS (percentual).
+          x-sefaz-tag: pPIS
+
+    CofinsTaxGroup:
+      type: object
+      description: Detalhes da tributação da COFINS.
+      properties:
+        cst: 
+          type: string
+          maxLength: 3
+          description: Código de Situação Tributária (CST) da COFINS.
+          x-sefaz-tag: CST
+        pCOFINS: 
+          type: string
+          maxLength: 8
+          description: Alíquota da COFINS (percentual).
+          x-sefaz-tag: pCOFINS
+
+    IntraStateTaxGroup:
+      type: object
+      description: Detalhes da tributação para operações internas (dentro do mesmo Cidadão/Estado).
+      required:
+        - cfop
+      properties:
+        cfop: 
+          type: number
+          maxLength: 4
+          description: Código Fiscal de Operações e Prestações (CFOP) para operações estaduais.
+          x-sefaz-tag: CFOP
+        icms: { $ref: '#/components/schemas/IcmsTaxGroup' }
+        pis: { $ref: '#/components/schemas/PisTaxGroup' }
+        cofins: { $ref: '#/components/schemas/CofinsTaxGroup' }
+
+    InterStateTaxGroup:
+      type: object
+      description: Detalhes da tributação para operações interestaduais (entre Estados distintos).
+      properties:
+        cfop: 
+          type: number
+          maxLength: 4
+          description: Código Fiscal de Operações e Prestações (CFOP) para operações interestaduais.
+          x-sefaz-tag: CFOP
+        icms: { $ref: '#/components/schemas/IcmsTaxGroup' }
+        pis: { $ref: '#/components/schemas/PisTaxGroup' }
+        cofins: { $ref: '#/components/schemas/CofinsTaxGroup' }

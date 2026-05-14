@@ -1,0 +1,119 @@
+openapi: 3.0.0
+info:
+  title: Consulta de Pessoa Física
+  version: v1
+  description: >
+    # Introdução
+
+    Seja bem-vindo a documentação da API de consulta de CPF!
+
+    Nossa API foi criada utilizando o padrão REST que possibilita a integração de seu sistema ao nosso, sendo assim você também pode extender ou recriar as funcionalidades existentes na nossa plataforma, tudo isso consumindo a API que está documentada abaixo.
+
+
+
+    # Como usar a API?
+
+    Logo a seguir você encontrará todos os recursos e metódos suportados pela API, sendo que essa página possibilita que você teste os recursos e métodos diretamente através dela.
+
+
+
+    # Autenticação
+
+    Você precisa de uma chave de API (API Key) para identificar a conta que está realizando solicitações para a API. 
+
+    Para isso você deve colocar sua chave de API no campo que se encontra topo desta página para que os métodos funcionem corretamente.
+
+    No seu código e integração temos suporte para autenticação de diversas formas sendo eles: 
+
+    HTTP Header (Authorization) ou HTTP Query String (api_key) nos dois modos passando o valor da sua chave de api (API Key).
+
+    <!-- ReDoc-Inject: <security-definitions> -->
+paths:
+  "/v1/naturalperson/status/{federalTaxNumber}/{birthDate}":
+    get:
+      tags:
+        - NaturalPerson
+      summary: Consulta de Situação Cadastral do CPF
+      description: Você precisará do APIKEY da Empresa
+      operationId: V1NaturalpersonStatusByFederalTaxNumberByBirthDateGet
+      parameters:
+        - name: federalTaxNumber
+          in: path
+          description: CPF
+          required: true
+          schema:
+            type: string
+        - name: birthDate
+          in: path
+          description: Data de Nascimento aaaa-mm-dd
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sucesso na requisição
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdOn:
+                    format: date-time
+                    type: string
+                  name:
+                    type: string
+                  federalTaxNumber:
+                    type: string
+                  birthOn:
+                    format: date-time
+                    type: string
+                  status:
+                    type: string
+        "400":
+          description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                type: string
+        "401":
+          description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+        "403":
+          description: Accesso proibido
+        "404":
+          description: CPF não encontrado ou data de nascimento divergente
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                type: string
+        "503":
+          description: Temporariamente indisponível
+          content:
+            application/json:
+              schema:
+                type: string
+      security:
+        - Authorization_Header:
+            - apiKey
+        - Authorization_QueryParam:
+            - apiKey
+servers:
+  - url: //naturalperson.api.nfe.io
+components:
+  securitySchemes:
+    Authorization_Header:
+      name: Authorization
+      in: header
+      type: apiKey
+      description: Autenticar usando o Cabeçalho HTTP Authorization com sua API Key
+    Authorization_QueryParam:
+      name: apikey
+      in: query
+      type: apiKey
+      description: 'Autenticar usando o Parametro na URL, exemplo:
+        "/?apikey={APIKEY_TOKEN}"'

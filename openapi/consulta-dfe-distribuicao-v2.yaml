@@ -1,0 +1,868 @@
+openapi: 3.0.1
+info:
+  title: DFeDistribution - Inbound API
+  description: |
+    API de Consulta de NF-e e CT-e (Distribuição) da plataforma nfe.io.
+    Permite habilitar/desabilitar a busca automatica de documentos fiscais,
+    consultar metadados, XMLs, PDFs, eventos e listar documentos via OData.
+  version: "v2"
+
+servers:
+  - url: https://api.nfse.io
+    description: Producao
+  - url: https://api.nfse.io
+    description: Homologacao
+
+security:
+  - Authorization_Header: []
+    Authorization_QueryParam: []
+  - Authorization_JwtBearer: []
+
+tags:
+  - name: Product Invoices
+    description: Endpoints para NF-e (Nota Fiscal Eletronica)
+  - name: Product Invoices OData
+    description: Listagem paginada de NF-e e eventos via OData
+  - name: Transportation Invoices
+    description: Endpoints para CT-e (Conhecimento de Transporte Eletronico)
+  - name: Transportation Invoices OData
+    description: Listagem paginada de CT-e e eventos via OData
+  - name: Inbound
+    description: Consulta generica de metadados, XMLs, PDFs e eventos (NF-e e CT-e)
+
+paths:
+  # ===== PRODUCT INVOICES (NF-e) =====
+  /v2/companies/{company_id}/inbound/productinvoices:
+    post:
+      tags: [Product Invoices]
+      summary: Ativar busca automatica de NF-e
+      operationId: enableInboundProductInvoice
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableInboundProductInvoiceResource'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInvoiceInboundResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+    get:
+      tags: [Product Invoices]
+      summary: Obter configuracao do servico de distribuicao NF-e
+      operationId: getInboundProductInvoice
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInvoiceInboundResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+    delete:
+      tags: [Product Invoices]
+      summary: Desativar busca automatica de NF-e
+      operationId: disableInboundProductInvoice
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductInvoiceInboundResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{company_id}/inbound/productinvoices/{access_key}:
+    get:
+      tags: [Product Invoices]
+      summary: Obter metadados de uma NF-e pela chave de acesso
+      operationId: getInboundNFeMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFeMetadataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{company_id}/inbound/productinvoices/{access_key}/json:
+    get:
+      tags: [Product Invoices]
+      summary: Obter JSON de uma NF-e pela chave de acesso
+      operationId: getInboundNFeJson
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{company_id}/inbound/productinvoices/{access_key}/events/{event_key}:
+    get:
+      tags: [Product Invoices]
+      summary: Obter detalhes de um evento de NF-e
+      operationId: getInboundNFeEventMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+        - $ref: '#/components/parameters/event_key'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFeMetadataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{company_id}/inbound/productinvoices/{access_key_or_nsu}/processwebhook:
+    post:
+      tags: [Product Invoices]
+      summary: Reprocessar webhook por chave de acesso ou NSU
+      operationId: processWebhookByAccessKeyOrNsu
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - name: access_key_or_nsu
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Chave de acesso (44 digitos) ou NSU
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ===== NF-e OData (NOVOS) =====
+  /v2/companies/{company_id}/inbound/odata/ProductInvoices:
+    get:
+      tags: [Product Invoices OData]
+      summary: Listar NF-e com paginacao OData
+      description: |
+        Lista documentos NFeMetadata filtrados por companyId + EnvironmentType.
+        Suporta paginacao cursor-based via $skiptoken (NSU).
+        **Filtro obrigatorio:** `$filter=environmentType eq {value}`
+      operationId: listNFeMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - name: $filter
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "Filtro obrigatorio. Ex: environmentType eq 1"
+          example: "environmentType eq 1"
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+          description: Quantidade maxima de registros (max 1000)
+        - name: $skiptoken
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Cursor de paginacao (ultimo NSU retornado)
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Incluir contagem total
+      responses:
+        '200':
+          description: Lista de NF-e
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NFeMetadataODataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{company_id}/inbound/odata/ProductInvoiceEvents:
+    get:
+      tags: [Product Invoices OData]
+      summary: Listar eventos de NF-e com paginacao OData
+      description: |
+        Lista documentos NFeEventMetadata filtrados por companyId + AccessKey (da NF-e pai).
+        Suporta paginacao cursor-based via $skiptoken (NSU).
+        **Filtro obrigatorio:** `$filter=accessKey eq '{chave_acesso}'`
+      operationId: listNFeEventMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - name: $filter
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "Filtro obrigatorio. Ex: accessKey eq '35240612345678000195550010000012341123456789'"
+          example: "accessKey eq '35240612345678000195550010000012341123456789'"
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+        - name: $skiptoken
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Cursor de paginacao (ultimo NSU retornado)
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de eventos de NF-e
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NFeEventMetadataODataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  # ===== CT-e OData =====
+  /v2/companies/{company_id}/inbound/odata/TransportationInvoices:
+    get:
+      tags: [Transportation Invoices OData]
+      summary: Listar CT-e com paginacao OData
+      description: |
+        Filtro obrigatorio: `$filter=issuedOn eq {data}`
+      operationId: listCTeMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - name: $filter
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "issuedOn eq 2026-04-01"
+        - name: $top
+          in: query
+          schema:
+            type: integer
+            maximum: 1000
+            default: 50
+        - name: $skiptoken
+          in: query
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de CT-e
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CTeMetadataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /v2/companies/{company_id}/inbound/odata/TransportationInvoiceEvents:
+    get:
+      tags: [Transportation Invoices OData]
+      summary: Listar eventos de CT-e com paginacao OData
+      description: |
+        Filtro obrigatorio: `$filter=receiptOn eq {data}`
+      operationId: listCTeEventMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - name: $filter
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "receiptOn eq 2026-04-01"
+        - name: $top
+          in: query
+          schema:
+            type: integer
+            maximum: 1000
+            default: 50
+        - name: $skiptoken
+          in: query
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de eventos de CT-e
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CTeEventMetadataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  # ===== TRANSPORTATION INVOICES (CT-e) =====
+  /v2/companies/{companyId}/inbound/transportationinvoices:
+    post:
+      tags: [Transportation Invoices]
+      summary: Ativar busca automatica de CT-e
+      operationId: enableTransportationInvoiceInbound
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableTransportationInvoiceInboundResource'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransportationInvoiceInboundResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+    get:
+      tags: [Transportation Invoices]
+      summary: Obter configuracao de busca automatica de CT-e
+      operationId: getTransportationInvoiceInbound
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransportationInvoiceInboundResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+    delete:
+      tags: [Transportation Invoices]
+      summary: Desativar busca automatica de CT-e
+      operationId: disableTransportationInvoiceInbound
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransportationInvoiceInboundResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{companyId}/inbound/transportationinvoices/reprocess/webhook:
+    post:
+      tags: [Transportation Invoices]
+      summary: Reprocessar webhook de CT-e
+      operationId: reprocessWebhookCTe
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessWebhookResource'
+      responses:
+        '204': { description: Processamento iniciado em background }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v2/companies/{companyId}/inbound/transportationinvoices/reprocess/item:
+    put:
+      tags: [Transportation Invoices]
+      summary: Reprocessar lista de NSU de CT-e
+      operationId: reprocessCTeItem
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { type: integer, format: int64 }
+      responses:
+        '204': { description: Sucesso }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /v2/companies/{companyId}/inbound/transportationinvoices/process/item:
+    put:
+      tags: [Transportation Invoices]
+      summary: Processar lista de NSU de CT-e
+      operationId: processCTeItem
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { type: integer, format: int64 }
+      responses:
+        '204': { description: Sucesso }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /v2/companies/{companyId}/inbound/transportationinvoices/reprocess/batch:
+    put:
+      tags: [Transportation Invoices]
+      summary: Reprocessar lote de CT-e por NSU
+      operationId: reprocessCTeBatch
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { type: integer, format: int64 }
+      responses:
+        '204': { description: Sucesso }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /v2/companies/{companyId}/inbound/transportationinvoices/batch/consolidation:
+    put:
+      tags: [Transportation Invoices]
+      summary: Consolidar lotes de CT-e
+      operationId: consolidateCTeBatch
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startNSU: { type: integer, format: int64 }
+                endNSU: { type: integer, format: int64 }
+      responses:
+        '204': { description: Sucesso }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  # ===== INBOUND (generico NF-e / CT-e) =====
+  /v2/companies/{company_id}/inbound/{access_key}:
+    get:
+      tags: [Inbound]
+      summary: Obter metadados de NF-e ou CT-e pela chave de acesso
+      operationId: getInboundMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/NFeMetadataResource'
+                  - $ref: '#/components/schemas/MetadataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /v2/companies/{company_id}/inbound/{access_key}/xml:
+    get:
+      tags: [Inbound]
+      summary: Obter XML de NF-e ou CT-e
+      operationId: getInboundXml
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+      responses:
+        '200':
+          description: URL temporaria do XML
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XmlFileResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v2/companies/{company_id}/inbound/{access_key}/pdf:
+    get:
+      tags: [Inbound]
+      summary: Obter PDF de NF-e (DANFE)
+      operationId: getInboundPdf
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+      responses:
+        '200':
+          description: URL temporaria do PDF
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XmlFileResource'
+        '204': { description: Nao disponivel para CT-e }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v2/companies/{company_id}/inbound/{access_key}/events/{event_key}:
+    get:
+      tags: [Inbound]
+      summary: Obter detalhes de evento de NF-e ou CT-e
+      operationId: getInboundEventMetadata
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+        - $ref: '#/components/parameters/event_key'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/NFeMetadataResource'
+                  - $ref: '#/components/schemas/MetadataResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v2/companies/{company_id}/inbound/{access_key}/events/{event_key}/xml:
+    get:
+      tags: [Inbound]
+      summary: Obter XML de evento de NF-e ou CT-e
+      operationId: getEventInboundXml
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+        - $ref: '#/components/parameters/event_key'
+      responses:
+        '200':
+          description: URL temporaria do XML
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XmlFileResource'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v2/companies/{company_id}/inbound/{access_key}/manifest:
+    post:
+      tags: [Inbound]
+      summary: Enviar evento de manifestacao do destinatario
+      operationId: processManifest
+      parameters:
+        - $ref: '#/components/parameters/company_id'
+        - $ref: '#/components/parameters/access_key'
+        - name: tpEvent
+          in: query
+          schema:
+            type: integer
+            format: int64
+            default: 210210
+          description: "Tipo do evento (210210=Ciencia da Operacao)"
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema: { type: string }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: API Key da conta nfe.io
+
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      schema: { type: string }
+      description: ID da empresa na plataforma nfe.io
+    access_key:
+      name: access_key
+      in: path
+      required: true
+      schema: { type: string }
+      description: Chave de acesso do documento (44 digitos)
+    event_key:
+      name: event_key
+      in: path
+      required: true
+      schema: { type: string }
+      description: Chave do evento
+
+  responses:
+    BadRequest:
+      description: Parametro invalido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Nao encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Erro interno
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          description: Lista de Erros
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                description: Código do erro
+              message:
+                type: string
+                description: Mensagem contendo os detalhes do erro
+    NFeMetadataODataResource:
+      type: object
+      properties:
+        accessKey: { type: string, description: Chave de acesso (44 digitos) }
+        createdOn: { type: string, format: date-time }
+        company: { $ref: '#/components/schemas/InboundCompanyResource' }
+        type: { type: string, enum: [productInvoice] }
+        nsu: { type: string, description: Numero Sequencial Unico }
+        issuedOn: { type: string, format: date-time }
+        nfeNumber: { type: string }
+        nfeSerialNumber: { type: string }
+        operationType: { type: string, enum: [Incoming, Outgoing] }
+        totalInvoiceAmount: { type: string }
+        federalTaxNumberSender: { type: string }
+        nameSender: { type: string }
+        xmlUrl: { type: string, format: uri }
+
+    NFeEventMetadataODataResource:
+      type: object
+      properties:
+        id: { type: string }
+        createdOn: { type: string, format: date-time }
+        company: { $ref: '#/components/schemas/InboundCompanyResource' }
+        accessKey: { type: string }
+        type: { type: string, enum: [productInvoiceEvent] }
+        nsu: { type: integer, format: int64 }
+        receiptOn: { type: string, format: date-time }
+        description: { type: string }
+        xmlUrl: { type: string, format: uri }
+
+    NFeMetadataResource:
+      type: object
+      properties:
+        accessKey: { type: string }
+        createdOn: { type: string, format: date-time }
+        parentAccessKey: { type: string }
+        company: { $ref: '#/components/schemas/InboundCompanyResource' }
+        issuer: { $ref: '#/components/schemas/IssuerResource' }
+        buyer: { $ref: '#/components/schemas/BuyerResource' }
+        transportation: { $ref: '#/components/schemas/TransportationResource' }
+        xmlUrl: { type: string, format: uri }
+        federalTaxNumberSender: { type: string }
+        nameSender: { type: string }
+        type: { type: string }
+        nsu: { type: string }
+        nsuParent: { type: string }
+        nfeNumber: { type: string }
+        nfeSerialNumber: { type: string }
+        issuedOn: { type: string, format: date-time }
+        description: { type: string }
+        totalInvoiceAmount: { type: string }
+        operationType: { type: string, enum: [Incoming, Outgoing] }
+
+    MetadataResource:
+      type: object
+      properties:
+        id: { type: string }
+        createdOn: { type: string, format: date-time }
+        accessKey: { type: string }
+        parentAccessKey: { type: string }
+        nsu: { type: integer, format: int64 }
+        company: { $ref: '#/components/schemas/InboundCompanyResource' }
+        type: { type: string }
+        description: { type: string }
+        xmlUrl: { type: string, format: uri }
+
+    CTeMetadataResource:
+      allOf:
+        - $ref: '#/components/schemas/MetadataResource'
+        - type: object
+          properties:
+            issuedOn: { type: string, format: date-time }
+
+    CTeEventMetadataResource:
+      allOf:
+        - $ref: '#/components/schemas/MetadataResource'
+        - type: object
+          properties:
+            receiptOn: { type: string, format: date-time }
+
+    InboundCompanyResource:
+      type: object
+      properties:
+        id: { type: string }
+        federalTaxNumber: { type: string }
+
+    IssuerResource:
+      type: object
+      properties:
+        federalTaxNumber: { type: string }
+        name: { type: string }
+
+    BuyerResource:
+      type: object
+      properties:
+        federalTaxNumber: { type: string }
+        name: { type: string }
+
+    TransportationResource:
+      type: object
+      properties:
+        federalTaxNumber: { type: string }
+        name: { type: string }
+
+    XmlFileResource:
+      type: object
+      properties:
+        url: { type: string, format: uri }
+
+    MessageResource:
+      type: object
+      properties:
+        message: { type: string }
+
+    EnableInboundProductInvoiceResource:
+      type: object
+      properties:
+        startFromDate: { type: string, format: date-time }
+        startFromNsu: { type: integer, format: int64 }
+        environmentSEFAZ: { type: string, enum: [None, Test, Production] }
+        automaticManifesting:
+          type: object
+          properties:
+            minutesToWaitAwarenessOperation: { type: integer }
+
+    ProductInvoiceInboundResource:
+      type: object
+      properties:
+        status: { type: string }
+        environmentSEFAZ: { type: string }
+        startFromDate: { type: string, format: date-time }
+
+    EnableTransportationInvoiceInboundResource:
+      type: object
+      properties:
+        startFromDate: { type: string, format: date-time }
+        startFromNsu: { type: integer, format: int64 }
+        environmentSEFAZ: { type: string, enum: [None, Test, Production] }
+
+    TransportationInvoiceInboundResource:
+      type: object
+      properties:
+        status: { type: string }
+        environmentSEFAZ: { type: string }
+        startFromDate: { type: string, format: date-time }
+
+    ProcessWebhookResource:
+      type: object
+      properties:
+        key: { type: string }
+        date: { type: string, format: date-time }
