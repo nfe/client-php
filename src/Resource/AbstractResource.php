@@ -38,24 +38,28 @@ abstract class AbstractResource
     abstract protected function apiVersion(): string;
 
     /**
+     * Internal HTTP helpers. Named with `http` prefix so subclasses can freely
+     * declare public CRUD methods named `get`, `post`, `put`, `delete` with
+     * their own signatures without LSP conflicts.
+     *
      * @param array<string, scalar|array<int, scalar>> $query
      */
-    protected function get(string $path, array $query = [], ?RequestOptions $options = null): Response
+    protected function httpGet(string $path, array $query = [], ?RequestOptions $options = null): Response
     {
         return $this->send('GET', $path, query: $query, options: $options);
     }
 
-    protected function post(string $path, mixed $body = null, ?RequestOptions $options = null): Response
+    protected function httpPost(string $path, mixed $body = null, ?RequestOptions $options = null): Response
     {
         return $this->send('POST', $path, body: $body, options: $options);
     }
 
-    protected function put(string $path, mixed $body = null, ?RequestOptions $options = null): Response
+    protected function httpPut(string $path, mixed $body = null, ?RequestOptions $options = null): Response
     {
         return $this->send('PUT', $path, body: $body, options: $options);
     }
 
-    protected function delete(string $path, ?RequestOptions $options = null): Response
+    protected function httpDelete(string $path, ?RequestOptions $options = null): Response
     {
         return $this->send('DELETE', $path, options: $options);
     }
@@ -84,7 +88,7 @@ abstract class AbstractResource
      */
     protected function download(string $path, array $query = [], ?RequestOptions $options = null): string
     {
-        $response = $this->get($path, $query, $options);
+        $response = $this->httpGet($path, $query, $options);
         if (!$response->isSuccess()) {
             throw ErrorFactory::fromResponse($response);
         }
@@ -95,16 +99,19 @@ abstract class AbstractResource
      * Unwrap a single-key envelope from a response payload.
      *
      * Many NFE.io endpoints wrap their content under a plural-name key
-     * (e.g., `{companies: {...}}`, `{legalPeople: [...]}`). This helper
-     * unwraps when the key is present; otherwise returns the payload as-is.
+     * (e.g., `{companies: {...}}`, `{legalPeople: {...}}`). This helper
+     * unwraps when the key is present and points to an associative payload;
+     * otherwise returns the payload as-is.
      *
      * @param array<string, mixed> $payload
-     * @return array<int|string, mixed>
+     * @return array<string, mixed>
      */
     protected function unwrap(array $payload, string $key): array
     {
         if (isset($payload[$key]) && is_array($payload[$key])) {
-            return $payload[$key];
+            /** @var array<string, mixed> $inner */
+            $inner = $payload[$key];
+            return $inner;
         }
         return $payload;
     }

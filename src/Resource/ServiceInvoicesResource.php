@@ -46,7 +46,7 @@ final class ServiceInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): ServiceInvoicePending|ServiceInvoiceIssued {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->post("/companies/{$companyId}/serviceinvoices", $data, $options);
+        $response = $this->httpPost("/companies/{$companyId}/serviceinvoices", $data, $options);
 
         $result = $this->handleAsyncResponse(
             response: $response,
@@ -72,7 +72,7 @@ final class ServiceInvoicesResource extends AbstractResource
         ?RequestOptions $reqOptions = null,
     ): ListResponse {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->get("/companies/{$companyId}/serviceinvoices", $options, $reqOptions);
+        $response = $this->httpGet("/companies/{$companyId}/serviceinvoices", $options, $reqOptions);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrateList(ServiceInvoice::class, $payload, 'serviceInvoices');
@@ -88,7 +88,7 @@ final class ServiceInvoicesResource extends AbstractResource
     ): ServiceInvoice {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->get("/companies/{$companyId}/serviceinvoices/{$invoiceId}", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/serviceinvoices/{$invoiceId}", options: $options);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrate(ServiceInvoice::class, $payload);
@@ -104,7 +104,7 @@ final class ServiceInvoicesResource extends AbstractResource
     ): ServiceInvoice {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->delete("/companies/{$companyId}/serviceinvoices/{$invoiceId}", $options);
+        $response = $this->httpDelete("/companies/{$companyId}/serviceinvoices/{$invoiceId}", $options);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrate(ServiceInvoice::class, $payload);
@@ -122,7 +122,7 @@ final class ServiceInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->put("/companies/{$companyId}/serviceinvoices/{$invoiceId}/sendemail", options: $options);
+        $response = $this->httpPut("/companies/{$companyId}/serviceinvoices/{$invoiceId}/sendemail", options: $options);
 
         return $this->decodeBody($response->body);
     }
@@ -167,7 +167,7 @@ final class ServiceInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->get("/companies/{$companyId}/serviceinvoices/{$invoiceId}/status", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/serviceinvoices/{$invoiceId}/status", options: $options);
 
         return $this->decodeBody($response->body);
     }

@@ -30,12 +30,12 @@ final class TestResource extends AbstractResource
 
     public function doGet(string $path, array $query = []): Response
     {
-        return $this->get($path, $query);
+        return $this->httpGet($path, $query);
     }
 
     public function doPost(string $path, mixed $body = null): Response
     {
-        return $this->post($path, $body);
+        return $this->httpPost($path, $body);
     }
 
     public function exposeLocationParse(string $location): string

@@ -40,7 +40,7 @@ final class ProductInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): ProductInvoicePending|ProductInvoiceIssued {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->post("/companies/{$companyId}/productinvoices", $data, $options);
+        $response = $this->httpPost("/companies/{$companyId}/productinvoices", $data, $options);
 
         /** @var ProductInvoicePending|ProductInvoiceIssued $result */
         $result = $this->handleAsyncResponse(
@@ -65,7 +65,7 @@ final class ProductInvoicesResource extends AbstractResource
     ): ProductInvoicePending|ProductInvoiceIssued {
         $companyId = IdValidator::companyId($companyId);
         $stateTaxId = IdValidator::stateTaxId($stateTaxId);
-        $response = $this->post(
+        $response = $this->httpPost(
             "/companies/{$companyId}/statetaxes/{$stateTaxId}/productinvoices",
             $data,
             $options,
@@ -94,7 +94,7 @@ final class ProductInvoicesResource extends AbstractResource
         ?RequestOptions $reqOptions = null,
     ): ListResponse {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->get("/companies/{$companyId}/productinvoices", $options, $reqOptions);
+        $response = $this->httpGet("/companies/{$companyId}/productinvoices", $options, $reqOptions);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrateList(ProductInvoice::class, $payload, 'productInvoices');
@@ -107,7 +107,7 @@ final class ProductInvoicesResource extends AbstractResource
     ): ProductInvoice {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->get("/companies/{$companyId}/productinvoices/{$invoiceId}", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/productinvoices/{$invoiceId}", options: $options);
 
         return $this->hydrate(ProductInvoice::class, $this->decodeBody($response->body));
     }
@@ -136,7 +136,7 @@ final class ProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->get("/companies/{$companyId}/productinvoices/{$invoiceId}/items", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/productinvoices/{$invoiceId}/items", options: $options);
         $payload = $this->decodeBody($response->body);
 
         return is_array($payload['items'] ?? null) ? $payload['items'] : (array_is_list($payload) ? $payload : []);
@@ -152,7 +152,7 @@ final class ProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->get("/companies/{$companyId}/productinvoices/{$invoiceId}/events", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/productinvoices/{$invoiceId}/events", options: $options);
         $payload = $this->decodeBody($response->body);
 
         return is_array($payload['events'] ?? null) ? $payload['events'] : (array_is_list($payload) ? $payload : []);
@@ -206,7 +206,7 @@ final class ProductInvoicesResource extends AbstractResource
         if (trim($correction) === '') {
             throw new \Nfe\Exception\InvalidRequestException('Texto da carta de correção é obrigatório.');
         }
-        $response = $this->put(
+        $response = $this->httpPut(
             "/companies/{$companyId}/productinvoices/{$invoiceId}/correctionletter",
             ['correction' => $correction],
             $options,
@@ -245,7 +245,7 @@ final class ProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->put("/companies/{$companyId}/productinvoices/{$invoiceId}/disable", $data, $options);
+        $response = $this->httpPut("/companies/{$companyId}/productinvoices/{$invoiceId}/disable", $data, $options);
 
         return $this->decodeBody($response->body);
     }
@@ -262,7 +262,7 @@ final class ProductInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): array {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->put("/companies/{$companyId}/productinvoices/disable", $data, $options);
+        $response = $this->httpPut("/companies/{$companyId}/productinvoices/disable", $data, $options);
 
         return $this->decodeBody($response->body);
     }
@@ -275,10 +275,10 @@ final class ProductInvoicesResource extends AbstractResource
         // Helper local — DELETE com query string. AbstractResource::delete() não aceita query;
         // emulamos via GET-with-DELETE-method seria errado; usamos build manual.
         if ($query === []) {
-            return $this->delete($path, $options);
+            return $this->httpDelete($path, $options);
         }
         // Compose path with query for the DELETE-with-reason case.
         $qs = http_build_query($query);
-        return $this->delete($path . '?' . $qs, $options);
+        return $this->httpDelete($path . '?' . $qs, $options);
     }
 }

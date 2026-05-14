@@ -37,7 +37,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): InboundSettings {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->put("/companies/{$companyId}/productinvoices/inbound", $data, $options);
+        $response = $this->httpPut("/companies/{$companyId}/productinvoices/inbound", $data, $options);
 
         return $this->hydrate(InboundSettings::class, $this->decodeBody($response->body));
     }
@@ -45,7 +45,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     public function disableAutoFetch(string $companyId, ?RequestOptions $options = null): InboundSettings
     {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->delete("/companies/{$companyId}/productinvoices/inbound", $options);
+        $response = $this->httpDelete("/companies/{$companyId}/productinvoices/inbound", $options);
 
         return $this->hydrate(InboundSettings::class, $this->decodeBody($response->body));
     }
@@ -53,7 +53,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     public function getSettings(string $companyId, ?RequestOptions $options = null): InboundSettings
     {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->get("/companies/{$companyId}/productinvoices/inbound", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/productinvoices/inbound", options: $options);
 
         return $this->hydrate(InboundSettings::class, $this->decodeBody($response->body));
     }
@@ -65,7 +65,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     {
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
-        $response = $this->get(
+        $response = $this->httpGet(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}",
             options: $options,
         );
@@ -83,7 +83,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
-        $response = $this->get(
+        $response = $this->httpGet(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}/productinvoice",
             options: $options,
         );
@@ -103,7 +103,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
         $eventKey = IdValidator::eventKey($eventKey);
-        $response = $this->get(
+        $response = $this->httpGet(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}/events/{$eventKey}",
             options: $options,
         );
@@ -123,7 +123,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
         $eventKey = IdValidator::eventKey($eventKey);
-        $response = $this->get(
+        $response = $this->httpGet(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}/events/{$eventKey}/productinvoice",
             options: $options,
         );
@@ -176,7 +176,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     {
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
-        $response = $this->get(
+        $response = $this->httpGet(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}/json",
             options: $options,
         );
@@ -202,7 +202,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         if (trim($manifestType) === '') {
             throw new \Nfe\Exception\InvalidRequestException('manifestType é obrigatório (Confirmation/Acknowledgement/Unknown/Refused).');
         }
-        $response = $this->put(
+        $response = $this->httpPut(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}/manifest/{$manifestType}",
             $data,
             $options,
@@ -223,7 +223,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
-        $response = $this->post(
+        $response = $this->httpPost(
             "/companies/{$companyId}/productinvoices/received/{$accessKey}/webhook/reprocess",
             options: $options,
         );
