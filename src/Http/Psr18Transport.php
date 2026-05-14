@@ -63,8 +63,8 @@ final class Psr18Transport implements Transport
 
         return new Response(
             statusCode: $psrResponse->getStatusCode(),
-            headers:    $headers,
-            body:       (string) $psrResponse->getBody(),
+            headers: $headers,
+            body: (string) $psrResponse->getBody(),
         );
     }
 }

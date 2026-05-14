@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nfe\Resource;
 
+use JsonException;
 use Nfe\Client;
 use Nfe\Exception\ErrorFactory;
 use Nfe\Exception\InvalidRequestException;
@@ -11,6 +12,7 @@ use Nfe\Http\Request;
 use Nfe\Http\RequestOptions;
 use Nfe\Http\Response;
 use Nfe\Response\InvoiceResponse;
+use ReflectionClass;
 
 /**
  * Base class for every resource.
@@ -121,7 +123,7 @@ abstract class AbstractResource
             }
         }
 
-        $segments = array_values(array_filter(explode('/', $path), fn (string $s) => $s !== ''));
+        $segments = array_values(array_filter(explode('/', $path), fn(string $s) => $s !== ''));
         return $segments[array_key_last($segments)] ?? '';
     }
 
@@ -138,7 +140,7 @@ abstract class AbstractResource
      */
     protected function hydrate(string $class, array $data): object
     {
-        $reflection = new \ReflectionClass($class);
+        $reflection = new ReflectionClass($class);
         $constructor = $reflection->getConstructor();
         if ($constructor === null) {
             /** @var T $instance */
@@ -173,7 +175,7 @@ abstract class AbstractResource
         }
         try {
             $decoded = json_decode($body, associative: true, flags: JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             throw new InvalidRequestException(
                 "Failed to decode JSON response body: {$e->getMessage()}",
                 responseBody: $body,
@@ -193,22 +195,23 @@ abstract class AbstractResource
         mixed $body = null,
         ?RequestOptions $options = null,
     ): Response {
-        $baseUrl = $options?->baseUrl
+        // `??` suppresses property access on a null object — `->` is correct here.
+        $baseUrl = $options->baseUrl
             ?? $this->client->config->baseUrlForApi($this->apiFamily());
 
         $encodedBody = $body !== null ? json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : null;
 
         $request = new Request(
-            method:  $method,
+            method: $method,
             baseUrl: $baseUrl,
-            path:    $this->fullPath($path),
+            path: $this->fullPath($path),
             headers: [
                 'Content-Type' => 'application/json',
                 'Accept'       => 'application/json',
             ],
-            query:   $query,
-            body:    $encodedBody === false ? null : $encodedBody,
-            timeout: $options?->timeout ?? 0,
+            query: $query,
+            body: $encodedBody === false ? null : $encodedBody,
+            timeout: $options->timeout ?? 0,
         );
 
         return $this->client->send($request, $options);

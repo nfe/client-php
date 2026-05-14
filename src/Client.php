@@ -133,7 +133,9 @@ final class Client
      */
     public function send(Request $request, ?RequestOptions $options = null): Response
     {
-        $apiKey = $options?->apiKey ?? $this->config->apiKey;
+        // `??` suppresses property access on a null object, so `->` is correct here even
+        // when $options is null. PHPStan flags `?->` as redundant in this exact pattern.
+        $apiKey = $options->apiKey ?? $this->config->apiKey;
 
         $headers = $request->headers;
 
@@ -148,12 +150,12 @@ final class Client
         }
 
         $authoritative = new Request(
-            method:  $request->method,
+            method: $request->method,
             baseUrl: $request->baseUrl,
-            path:    $request->path,
+            path: $request->path,
             headers: $headers,
-            query:   $request->query,
-            body:    $request->body,
+            query: $request->query,
+            body: $request->body,
             timeout: $request->timeout > 0 ? $request->timeout : $this->config->timeout,
         );
 
@@ -178,12 +180,12 @@ final class Client
         ?RequestOptions $options = null,
     ): Response {
         $request = new Request(
-            method:  $method,
+            method: $method,
             baseUrl: $baseUrl,
-            path:    $path,
+            path: $path,
             headers: [],
-            query:   $query,
-            body:    $body !== null ? json_encode($body, JSON_THROW_ON_ERROR) : null,
+            query: $query,
+            body: $body !== null ? json_encode($body, JSON_THROW_ON_ERROR) : null,
         );
         return $this->send($request, $options);
     }

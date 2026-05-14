@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nfe\Exception;
 
+use JsonException;
 use Nfe\Http\Response;
 
 /**
@@ -47,7 +48,7 @@ final class ErrorFactory
 
         try {
             $decoded = json_decode($body, associative: true, flags: JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
+        } catch (JsonException) {
             return null;
         }
 

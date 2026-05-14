@@ -59,7 +59,7 @@ final readonly class RetryPolicy
             return $base;
         }
 
-        $multiplier = 1.0 - $this->jitter + (2.0 * $this->jitter * (mt_rand() / mt_getrandmax()));
+        $multiplier = 1.0 - $this->jitter + (2.0 * $this->jitter * (mt_rand() / getrandmax()));
 
         return min($this->maxDelay, $base * $multiplier);
     }

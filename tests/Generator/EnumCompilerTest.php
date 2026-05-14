@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Nfe\Build\EnumCompiler;
 
-it('compiles a string-backed enum', function () {
+it('compiles a string-backed enum', function (): void {
     $body = EnumCompiler::compile('FlowStatus', [
         'type' => 'string',
         'enum' => ['WaitingDefineRpsNumber', 'Issued', 'Cancelled'],
@@ -17,7 +17,7 @@ it('compiles a string-backed enum', function () {
     expect($body)->toContain("case Cancelled = 'Cancelled';");
 });
 
-it('compiles an int-backed enum', function () {
+it('compiles an int-backed enum', function (): void {
     $body = EnumCompiler::compile('Priority', [
         'type' => 'integer',
         'enum' => [1, 2, 3],
@@ -27,11 +27,11 @@ it('compiles an int-backed enum', function () {
     expect($body)->toContain('case Value_1 = 1;');
 });
 
-it('returns null when the schema is not an enum', function () {
+it('returns null when the schema is not an enum', function (): void {
     expect(EnumCompiler::compile('Borrower', ['type' => 'object']))->toBeNull();
 });
 
-it('PascalCases hyphenated enum values', function () {
+it('PascalCases hyphenated enum values', function (): void {
     $body = EnumCompiler::compile('Status', [
         'type' => 'string',
         'enum' => ['in-progress', 'not-started'],

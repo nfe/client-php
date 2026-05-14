@@ -11,35 +11,35 @@ use Nfe\Exception\RateLimitException;
 use Nfe\Exception\ServerException;
 use Nfe\Http\Response;
 
-it('maps 400 to InvalidRequestException', function () {
+it('maps 400 to InvalidRequestException', function (): void {
     $e = ErrorFactory::fromResponse(new Response(400, [], '{"message":"bad input"}'));
     expect($e)->toBeInstanceOf(InvalidRequestException::class);
     expect($e->getMessage())->toBe('bad input');
     expect($e->statusCode)->toBe(400);
 });
 
-it('maps 401 to AuthenticationException', function () {
+it('maps 401 to AuthenticationException', function (): void {
     $e = ErrorFactory::fromResponse(new Response(401, [], ''));
     expect($e)->toBeInstanceOf(AuthenticationException::class);
 });
 
-it('maps 404 to NotFoundException', function () {
+it('maps 404 to NotFoundException', function (): void {
     $e = ErrorFactory::fromResponse(new Response(404, [], '{"message":"not found"}'));
     expect($e)->toBeInstanceOf(NotFoundException::class);
 });
 
-it('maps 429 to RateLimitException', function () {
+it('maps 429 to RateLimitException', function (): void {
     $e = ErrorFactory::fromResponse(new Response(429, ['retry-after' => '10'], ''));
     expect($e)->toBeInstanceOf(RateLimitException::class);
 });
 
-it('maps 5xx to ServerException', function () {
+it('maps 5xx to ServerException', function (): void {
     expect(ErrorFactory::fromResponse(new Response(500, [], '')))->toBeInstanceOf(ServerException::class);
     expect(ErrorFactory::fromResponse(new Response(502, [], '')))->toBeInstanceOf(ServerException::class);
     expect(ErrorFactory::fromResponse(new Response(599, [], '')))->toBeInstanceOf(ServerException::class);
 });
 
-it('exposes responseBody and responseHeaders', function () {
+it('exposes responseBody and responseHeaders', function (): void {
     $e = ErrorFactory::fromResponse(new Response(400, ['x-trace' => 'abc'], '{"errorCode":"E001","message":"oops"}'));
     expect($e)->toBeInstanceOf(ApiErrorException::class);
     expect($e->responseBody)->toBe('{"errorCode":"E001","message":"oops"}');
@@ -47,7 +47,7 @@ it('exposes responseBody and responseHeaders', function () {
     expect($e->errorCode)->toBe('E001');
 });
 
-it('falls back to a generic message when body is empty', function () {
+it('falls back to a generic message when body is empty', function (): void {
     $e = ErrorFactory::fromResponse(new Response(503, [], ''));
     expect($e->getMessage())->toBe('API request failed with HTTP 503');
 });

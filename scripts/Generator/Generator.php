@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nfe\Build;
 
+use RuntimeException;
+
 /**
  * Orchestrator: turn a directory of OpenAPI specs into a directory of generated PHP files.
  *
@@ -78,10 +80,10 @@ final class Generator
             $abs = $outputRoot . DIRECTORY_SEPARATOR . $rel;
             $dir = dirname($abs);
             if (!is_dir($dir) && !mkdir($dir, 0o755, true) && !is_dir($dir)) {
-                throw new \RuntimeException("Cannot create directory: {$dir}");
+                throw new RuntimeException("Cannot create directory: {$dir}");
             }
             if (file_put_contents($abs, $contents) === false) {
-                throw new \RuntimeException("Cannot write: {$abs}");
+                throw new RuntimeException("Cannot write: {$abs}");
             }
             $written[] = $rel;
         }
@@ -95,7 +97,7 @@ final class Generator
     private function discoverSpecs(): array
     {
         if (!is_dir($this->specsDir)) {
-            throw new \RuntimeException("Specs directory not found: {$this->specsDir}");
+            throw new RuntimeException("Specs directory not found: {$this->specsDir}");
         }
 
         $files = [];

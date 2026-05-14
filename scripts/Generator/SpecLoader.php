@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nfe\Build;
 
+use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -28,17 +29,17 @@ final class SpecLoader
     public static function fromFile(string $path): self
     {
         if (!is_file($path)) {
-            throw new \RuntimeException("Spec file not found: {$path}");
+            throw new RuntimeException("Spec file not found: {$path}");
         }
 
         $contents = file_get_contents($path);
         if ($contents === false) {
-            throw new \RuntimeException("Cannot read spec file: {$path}");
+            throw new RuntimeException("Cannot read spec file: {$path}");
         }
 
         $parsed = Yaml::parse($contents);
         if (!is_array($parsed)) {
-            throw new \RuntimeException("Spec is not a YAML document: {$path}");
+            throw new RuntimeException("Spec is not a YAML document: {$path}");
         }
 
         return new self(

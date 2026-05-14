@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nfe\Tests\Support;
 
+use LogicException;
 use Nfe\Exception\ApiConnectionException;
 use Nfe\Http\Request;
 use Nfe\Http\Response;
@@ -36,7 +37,7 @@ final class MockTransport implements Transport
         $this->sent[] = $request;
 
         if ($this->queue === []) {
-            throw new \LogicException('MockTransport queue is empty; push a Response or exception before sending.');
+            throw new LogicException('MockTransport queue is empty; push a Response or exception before sending.');
         }
 
         $next = array_shift($this->queue);

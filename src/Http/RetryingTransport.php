@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nfe\Http;
 
+use Closure;
 use Nfe\Exception\ApiConnectionException;
 
 /**
@@ -22,7 +23,7 @@ final class RetryingTransport implements Transport
     public function __construct(
         private readonly Transport $inner,
         private readonly RetryPolicy $policy,
-        private readonly ?\Closure $sleepFn = null,
+        private readonly ?Closure $sleepFn = null,
     ) {}
 
     public function send(Request $request): Response

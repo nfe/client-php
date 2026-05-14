@@ -32,26 +32,36 @@ final class CurlTransport implements Transport
 
         $headers = $this->serializeHeaders($request->headers);
 
-        $opts = [
-            CURLOPT_URL            => $request->url(),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER         => true,
-            CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_TIMEOUT        => $request->timeout > 0 ? $request->timeout : $this->defaultTimeout,
-            CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_CUSTOMREQUEST  => strtoupper($request->method),
-        ];
+        // cURL constant types in PHPStan stubs are stricter than runtime requires;
+        // we set options one-by-one to sidestep the shape mismatch on curl_setopt_array.
+        $url = $request->url();
+        $method = strtoupper($request->method);
+        if ($url === '' || $method === '') {
+            throw new ApiConnectionException('Cannot send request with empty URL or method.');
+        }
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HEADER, true);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt(
+            $curl,
+            CURLOPT_TIMEOUT,
+            $request->timeout > 0 ? $request->timeout : $this->defaultTimeout,
+        );
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->connectTimeout);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
 
         if ($request->body !== null && $request->body !== '') {
-            $opts[CURLOPT_POSTFIELDS] = $request->body;
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $request->body);
         }
-
-        curl_setopt_array($curl, $opts);
 
         $raw = curl_exec($curl);
 
-        if ($raw === false || $raw === true) {
+        // CURLOPT_RETURNTRANSFER=true makes curl_exec return string|false at runtime.
+        // PHPStan's stub keeps `true` in the union; narrow with !is_string so the rest
+        // of the function sees a definite string.
+        if (!is_string($raw)) {
             $errno = curl_errno($curl);
             $msg = curl_error($curl);
             curl_close($curl);
@@ -71,8 +81,8 @@ final class CurlTransport implements Transport
 
         return new Response(
             statusCode: $statusCode,
-            headers:    $this->parseHeaders($rawHeaders),
-            body:       $body === false ? '' : $body,
+            headers: $this->parseHeaders($rawHeaders),
+            body: $body,
         );
     }
 

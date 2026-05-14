@@ -11,26 +11,25 @@ use Nfe\Http\Response;
 use Nfe\Http\RetryPolicy;
 use Nfe\Resource\ServiceInvoicesResource;
 use Nfe\Tests\Support\MockTransport;
-use Nfe\Util\UserAgent;
 
-it('builds a client from just an apiKey', function () {
+it('builds a client from just an apiKey', function (): void {
     $client = new Client(apiKey: 'k');
     expect($client->config->apiKey)->toBe('k');
     expect($client->config->environment)->toBe(Environment::Production);
 });
 
-it('throws when neither apiKey nor config are provided', function () {
-    expect(fn () => new Client())->toThrow(InvalidRequestException::class);
+it('throws when neither apiKey nor config are provided', function (): void {
+    expect(fn() => new Client())->toThrow(InvalidRequestException::class);
 });
 
-it('accepts a full Config object', function () {
+it('accepts a full Config object', function (): void {
     $config = new Config(apiKey: 'k', environment: Environment::Sandbox, timeout: 120);
     $client = new Client(config: $config);
     expect($client->config)->toBe($config);
     expect($client->config->timeout)->toBe(120);
 });
 
-it('exposes all 16 resource properties typed correctly', function () {
+it('exposes all 16 resource properties typed correctly', function (): void {
     $client = new Client(apiKey: 'k');
 
     expect($client->serviceInvoices)->toBeInstanceOf(ServiceInvoicesResource::class);
@@ -52,7 +51,7 @@ it('exposes all 16 resource properties typed correctly', function () {
     expect($client->stateTaxes)->toBeInstanceOf(Nfe\Resource\StateTaxesResource::class);
 });
 
-it('injects Authorization and User-Agent into outgoing requests', function () {
+it('injects Authorization and User-Agent into outgoing requests', function (): void {
     $mock = new MockTransport();
     $mock->push(new Response(200, [], '{}'));
 
@@ -70,7 +69,7 @@ it('injects Authorization and User-Agent into outgoing requests', function () {
     expect($sent?->headers['User-Agent'])->toStartWith('Nfe-PHP/');
 });
 
-it('appends the userAgentSuffix to the User-Agent header', function () {
+it('appends the userAgentSuffix to the User-Agent header', function (): void {
     $mock = (new MockTransport())->push(new Response(200, [], '{}'));
 
     $config = new Config(
@@ -86,7 +85,7 @@ it('appends the userAgentSuffix to the User-Agent header', function () {
     expect($mock->lastRequest()?->headers['User-Agent'])->toEndWith('WHMCS/8.10');
 });
 
-it('does not overwrite Authorization or User-Agent when caller already set them', function () {
+it('does not overwrite Authorization or User-Agent when caller already set them', function (): void {
     $mock = (new MockTransport())->push(new Response(200, [], '{}'));
 
     $config = new Config(
@@ -97,9 +96,9 @@ it('does not overwrite Authorization or User-Agent when caller already set them'
     $client = new Client(config: $config);
 
     $client->send(new Request(
-        method:  'GET',
+        method: 'GET',
         baseUrl: 'https://api.nfe.io',
-        path:    '/v1/x',
+        path: '/v1/x',
         headers: ['Authorization' => 'Bearer override', 'User-Agent' => 'custom'],
     ));
 

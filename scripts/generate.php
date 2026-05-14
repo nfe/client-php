@@ -27,7 +27,7 @@ $outputRoot = $repoRoot . '/src/Generated';
 $checkMode = in_array('--check', $argv, true);
 
 $generator = new Generator(
-    specsDir:   $specsDir,
+    specsDir: $specsDir,
     outputRoot: $outputRoot,
 );
 
