@@ -12,3 +12,8 @@ composer.lock
 
 # Ignore PHPUnit coverage file
 clover.xml
+
+openspec/
+client-nodejs
+nfeio-docs
+nfeio-whmcs-modulo

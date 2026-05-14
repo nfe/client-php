@@ -1,37 +1,72 @@
 {
-  "name": "nfe/nfe",
-  "description": "NFe.io PHP Library",
-  "homepage": "https://nfe.io",
-  "version": "2.5",
-  "keywords": [
-    "nfe",
-    "nfse",
-    "nfe.io",
-    "api",
-    "nota",
-    "nota fiscal"
-  ],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "NFe.io team and contributors",
-      "homepage": "https://github.com/nfe/client-php/contributors"
+    "name": "nfe/client-php",
+    "description": "Official NFE.io PHP SDK — modern PHP 8.2+, zero runtime dependencies, parity with the Node.js SDK.",
+    "homepage": "https://nfe.io",
+    "type": "library",
+    "keywords": [
+        "nfe",
+        "nfse",
+        "nfe.io",
+        "api",
+        "sdk",
+        "nota-fiscal",
+        "invoice",
+        "brazil"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "NFE.io",
+            "homepage": "https://nfe.io",
+            "email": "suporte@nfe.io"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/nfe/client-php/issues",
+        "source": "https://github.com/nfe/client-php"
     },
-    {
-      "name": "Renato Alves",
-      "homepage": "http://ralv.es/"
-    }
-  ],
-  "require": {
-    "php": ">=5.4",
-    "ext-curl": "*",
-    "ext-json": "*",
-    "ext-mbstring": "*"
-  },
-  "require-dev": {
-    "simpletest/simpletest": "^1.1"
-  },
-  "autoload": {
-    "classmap": ["lib/NFe/"]
-  }
+    "require": {
+        "php": "^8.2",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0",
+        "phpstan/phpstan": "^2.0",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "symfony/yaml": "^7.0",
+        "nikic/php-parser": "^5.0"
+    },
+    "suggest": {
+        "psr/http-client": "Required only if you wish to use Nfe\\Http\\Psr18Transport with a custom PSR-18 client (Guzzle, Symfony HttpClient, etc.).",
+        "psr/http-factory": "Required only if you wish to use Nfe\\Http\\Psr18Transport (PSR-17 request/stream factories).",
+        "psr/log": "Required only if you want to wire a PSR-3 logger to the SDK via Nfe\\Config(logger: ...)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Nfe\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nfe\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "stan": "phpstan analyse",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "generate": "@php scripts/generate.php",
+        "generate:check": "@php scripts/generate.php --check"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }
