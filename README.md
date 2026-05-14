@@ -65,7 +65,6 @@ if ($result instanceof Nfe\Response\Pending) {
 |---|---|
 | `$nfe->serviceInvoices` | NFS-e (service invoice) |
 | `$nfe->productInvoices` | NF-e (product invoice) |
-| `$nfe->consumerInvoices` | NFC-e (consumer invoice) |
 | `$nfe->transportationInvoices` | CT-e |
 | `$nfe->inboundProductInvoices` | Inbound NF-e |
 | `$nfe->productInvoiceQuery` | NF-e query |

@@ -46,28 +46,47 @@ final readonly class Config
     /**
      * Resolve the base URL for a given NFE.io product family.
      *
-     * Per-family hosts mirror the Node.js SDK so resource code in c05-c07 can
-     * declare its target host as a stable identifier.
+     * The mapping mirrors the Node.js SDK's authoritative host routing exactly
+     * (verified against `client-nodejs/src/core/client.ts` during c05). The
+     * NFE.io platform exposes several distinct subdomains; each resource
+     * declares its target via `AbstractResource::apiFamily()`.
+     *
+     * Hosts:
+     *
+     *  - `main`          → api.nfe.io  (companies, service invoices, legal/natural people, webhooks)
+     *  - `addresses`     → address.api.nfe.io/v2  (postal-code lookup; version is part of the base URL)
+     *  - `nfe-query`     → nfe.api.nfe.io  (NF-e and NFC-e query/download by access key)
+     *  - `legal-entity`  → legalentity.api.nfe.io  (CNPJ lookup)
+     *  - `natural-person`→ naturalperson.api.nfe.io  (CPF lookup)
+     *  - `cte`           → api.nfse.io  (CT-e, inbound product, tax calculation, tax codes,
+     *                                    product invoices, state taxes)
+     *
+     * Unknown families fall back to the `main` host as a safe default.
      */
     public function baseUrlForApi(string $api): string
     {
-        $isProd = $this->environment === Environment::Production;
-
         return match ($api) {
-            // Main API host (most endpoints, including invoice resources, companies, webhooks, addresses).
-            'core', 'invoices', 'companies', 'addresses', 'webhooks' => 'https://api.nfe.io',
+            'main', 'companies', 'service-invoices', 'legal-people', 'natural-people', 'webhooks'
+                => 'https://api.nfe.io',
 
-            // CT-e (transportation invoices) and consumer invoice query live under api.nfse.io.
-            'cte', 'transportation', 'consumer-invoice-query' => 'https://api.nfse.io',
+            'addresses'
+                => 'https://address.api.nfe.io/v2',
 
-            // Dedicated lookup hosts.
-            'legal-entity' => 'https://api-legalentity.nfe.io',
-            'natural-person' => 'https://api-naturalperson.nfe.io',
+            'nfe-query'
+                => 'https://nfe.api.nfe.io',
 
-            // Sandbox uses the same hosts but with sandbox-scoped credentials. NFE.io does
-            // not currently expose distinct sandbox subdomains; the API key determines
-            // routing on the server side.
-            default => 'https://api.nfe.io',
+            'legal-entity'
+                => 'https://legalentity.api.nfe.io',
+
+            'natural-person'
+                => 'https://naturalperson.api.nfe.io',
+
+            'cte', 'transportation', 'inbound-product', 'tax-calculation', 'tax-codes',
+            'product-invoices', 'state-taxes'
+                => 'https://api.nfse.io',
+
+            default
+            => 'https://api.nfe.io',
         };
     }
 }

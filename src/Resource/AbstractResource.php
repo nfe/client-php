@@ -62,11 +62,84 @@ abstract class AbstractResource
 
     /**
      * Compose the full path with the API version prefix.
+     *
+     * When `apiVersion()` returns an empty string (because the version is part of
+     * the base URL — e.g., `AddressesResource` with `address.api.nfe.io/v2`), the
+     * version segment is omitted to avoid producing `//path`.
      */
     protected function fullPath(string $path): string
     {
         $path = '/' . ltrim($path, '/');
-        return '/' . $this->apiVersion() . $path;
+        $version = $this->apiVersion();
+        return $version === '' ? $path : '/' . $version . $path;
+    }
+
+    /**
+     * Issue a GET and return the raw response body as bytes.
+     *
+     * Used by PDF/XML download methods. Any non-2xx response is mapped to the
+     * appropriate exception via {@see ErrorFactory}.
+     *
+     * @param array<string, scalar|array<int, scalar>> $query
+     */
+    protected function download(string $path, array $query = [], ?RequestOptions $options = null): string
+    {
+        $response = $this->get($path, $query, $options);
+        if (!$response->isSuccess()) {
+            throw ErrorFactory::fromResponse($response);
+        }
+        return $response->body;
+    }
+
+    /**
+     * Unwrap a single-key envelope from a response payload.
+     *
+     * Many NFE.io endpoints wrap their content under a plural-name key
+     * (e.g., `{companies: {...}}`, `{legalPeople: [...]}`). This helper
+     * unwraps when the key is present; otherwise returns the payload as-is.
+     *
+     * @param array<string, mixed> $payload
+     * @return array<int|string, mixed>
+     */
+    protected function unwrap(array $payload, string $key): array
+    {
+        if (isset($payload[$key]) && is_array($payload[$key])) {
+            return $payload[$key];
+        }
+        return $payload;
+    }
+
+    /**
+     * Hydrate a list response into a {@see ListResponse}, detecting page-style vs cursor-style
+     * pagination from the payload shape.
+     *
+     * @template T of object
+     * @param class-string<T> $itemClass DTO class for items
+     * @param array<string, mixed> $payload Raw response payload
+     * @param string $wrapperKey Key carrying the items array (e.g. 'companies', 'serviceInvoices')
+     * @return \Nfe\Util\ListResponse<T>
+     */
+    protected function hydrateList(string $itemClass, array $payload, string $wrapperKey): \Nfe\Util\ListResponse
+    {
+        $items = [];
+        if (isset($payload[$wrapperKey]) && is_array($payload[$wrapperKey])) {
+            foreach ($payload[$wrapperKey] as $itemData) {
+                if (is_array($itemData)) {
+                    /** @var array<string, mixed> $itemData */
+                    $items[] = $this->hydrate($itemClass, $itemData);
+                }
+            }
+        }
+
+        $page = new \Nfe\Util\ListPage(
+            pageIndex: isset($payload['pageIndex']) && is_int($payload['pageIndex']) ? $payload['pageIndex'] : null,
+            pageCount: isset($payload['pageCount']) && is_int($payload['pageCount']) ? $payload['pageCount'] : null,
+            startingAfter: isset($payload['startingAfter']) && is_string($payload['startingAfter']) ? $payload['startingAfter'] : null,
+            endingBefore: isset($payload['endingBefore']) && is_string($payload['endingBefore']) ? $payload['endingBefore'] : null,
+            total: isset($payload['total']) && is_int($payload['total']) ? $payload['total'] : null,
+        );
+
+        return new \Nfe\Util\ListResponse(data: $items, page: $page);
     }
 
     /**

@@ -34,7 +34,6 @@ it('exposes all 16 resource properties typed correctly', function (): void {
 
     expect($client->serviceInvoices)->toBeInstanceOf(ServiceInvoicesResource::class);
     expect($client->productInvoices)->toBeInstanceOf(Nfe\Resource\ProductInvoicesResource::class);
-    expect($client->consumerInvoices)->toBeInstanceOf(Nfe\Resource\ConsumerInvoicesResource::class);
     expect($client->transportationInvoices)->toBeInstanceOf(Nfe\Resource\TransportationInvoicesResource::class);
     expect($client->inboundProductInvoices)->toBeInstanceOf(Nfe\Resource\InboundProductInvoicesResource::class);
     expect($client->productInvoiceQuery)->toBeInstanceOf(Nfe\Resource\ProductInvoiceQueryResource::class);
