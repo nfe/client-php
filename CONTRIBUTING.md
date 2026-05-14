@@ -9,6 +9,32 @@ PRs targeting `master` will be closed; open them against `v3` instead.
 
 ## Local setup
 
+You have two equivalent paths. Pick whichever fits your workflow.
+
+### Option A — Docker (recommended, zero local PHP)
+
+No PHP or Composer on the host required.
+
+```bash
+git clone https://github.com/nfe/client-php.git
+cd client-php
+git checkout v3
+
+cp .env.docker.example .env       # captures your UID/GID for file ownership
+make build                        # builds php82/php83/php84 images (~2 min, once)
+make install                      # composer install inside the container
+make test                         # pest on PHP 8.2
+make test-matrix                  # pest on 8.2, 8.3, AND 8.4
+make generate                     # regenerate src/Generated/ from openapi/*.yaml
+make shell                        # bash into the PHP 8.2 container
+```
+
+See [Makefile](Makefile) for the full list of targets. Each one is a thin
+`docker compose run` wrapper. Override the active PHP version with
+`make test PHP=php83`.
+
+### Option B — Native PHP
+
 ```bash
 git clone https://github.com/nfe/client-php.git
 cd client-php
@@ -16,7 +42,7 @@ git checkout v3
 composer install
 ```
 
-Requires PHP 8.2, 8.3, or 8.4 and Composer 2.
+Requires PHP 8.2, 8.3, or 8.4 and Composer 2 on the host.
 
 ## Toolchain
 
