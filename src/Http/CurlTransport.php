@@ -1,0 +1,130 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nfe\Http;
+
+use Nfe\Exception\ApiConnectionException;
+
+/**
+ * Default zero-dependency HTTP transport.
+ *
+ * Uses ext-curl directly. No following of redirects or 202 Location headers
+ * (the caller decides). Network-level failures raise {@see ApiConnectionException};
+ * HTTP failures are returned as-is for upper layers to interpret.
+ */
+final class CurlTransport implements Transport
+{
+    /**
+     * @param int $defaultTimeout Used when {@see Request::$timeout} is 0 (default).
+     */
+    public function __construct(
+        private readonly int $defaultTimeout = 60,
+        private readonly int $connectTimeout = 30,
+    ) {}
+
+    public function send(Request $request): Response
+    {
+        $curl = curl_init();
+        if ($curl === false) {
+            throw new ApiConnectionException('Failed to initialise cURL handle.');
+        }
+
+        $headers = $this->serializeHeaders($request->headers);
+
+        $opts = [
+            CURLOPT_URL            => $request->url(),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_TIMEOUT        => $request->timeout > 0 ? $request->timeout : $this->defaultTimeout,
+            CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
+            CURLOPT_HTTPHEADER     => $headers,
+            CURLOPT_CUSTOMREQUEST  => strtoupper($request->method),
+        ];
+
+        if ($request->body !== null && $request->body !== '') {
+            $opts[CURLOPT_POSTFIELDS] = $request->body;
+        }
+
+        curl_setopt_array($curl, $opts);
+
+        $raw = curl_exec($curl);
+
+        if ($raw === false || $raw === true) {
+            $errno = curl_errno($curl);
+            $msg = curl_error($curl);
+            curl_close($curl);
+
+            throw new ApiConnectionException(
+                "Network error talking to NFE.io ({$errno}): {$msg}",
+                previous: null,
+            );
+        }
+
+        $statusCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $headerSize = (int) curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+        curl_close($curl);
+
+        $rawHeaders = substr($raw, 0, $headerSize);
+        $body       = substr($raw, $headerSize);
+
+        return new Response(
+            statusCode: $statusCode,
+            headers:    $this->parseHeaders($rawHeaders),
+            body:       $body === false ? '' : $body,
+        );
+    }
+
+    /**
+     * @param array<string, string> $headers
+     * @return array<int, string>
+     */
+    private function serializeHeaders(array $headers): array
+    {
+        $out = [];
+        foreach ($headers as $name => $value) {
+            $out[] = "{$name}: {$value}";
+        }
+        return $out;
+    }
+
+    /**
+     * Parse the raw header block returned by cURL.
+     *
+     * Multiple header blocks may be present (e.g. on 100 Continue or redirect
+     * chains); we keep only the final one. Header names are normalised to
+     * lowercase. Multi-value headers are joined with ", ".
+     *
+     * @return array<string, string>
+     */
+    private function parseHeaders(string $raw): array
+    {
+        $headers = [];
+        $blocks  = preg_split("/\r?\n\r?\n/", trim($raw)) ?: [];
+        $final   = end($blocks);
+
+        if ($final === false) {
+            return $headers;
+        }
+
+        $lines = preg_split("/\r?\n/", $final) ?: [];
+        foreach ($lines as $line) {
+            $pos = strpos($line, ':');
+            if ($pos === false) {
+                continue;
+            }
+
+            $name  = strtolower(trim(substr($line, 0, $pos)));
+            $value = trim(substr($line, $pos + 1));
+
+            if (isset($headers[$name])) {
+                $headers[$name] .= ', ' . $value;
+            } else {
+                $headers[$name] = $value;
+            }
+        }
+
+        return $headers;
+    }
+}
