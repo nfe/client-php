@@ -451,6 +451,40 @@ paths:
           description: Processamento do RPS/DPS iniciado com sucesso
         '400':
           description: Dados inválidos na requisição
+  /v1/companies/:company_id/serviceinvoices/:id/cancellation-xml:
+    get:
+      tags:
+        - Nota Fiscal de Serviço (RTC)
+      summary: Download do XML do evento de cancelamento da NFS-e (Ambiente Nacional)
+      description: |
+        Retorna o XML do **evento de cancelamento** (`e110001`) de uma NFS-e emitida no **Ambiente Nacional (ADN)**.
+
+        > **Atenção**
+        > Disponível **apenas** para notas do Ambiente Nacional. Provedores de layout municipal/ABRASF não possuem evento de cancelamento próprio e retornam `404`.
+
+        Quando existem o XML enviado (request do `e110001`) e o XML do evento autorizado (retorno do ADN — `procEventoNFSe`), o **retorno autorizado é priorizado**. O XML só está disponível para notas com status `Cancelled`.
+      parameters:
+        - name: company_id
+          in: path
+          description: ID da empresa
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: ID da Nota Fiscal de Serviço (NFS-e)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: XML do evento de cancelamento retornado com sucesso
+          content:
+            application/xml:
+              schema:
+                type: string
+        '404':
+          description: Não há XML de evento de cancelamento para esta nota (provedor legado, ambiente não Nacional ou nota ainda não cancelada)
 
 components:
   schemas:
@@ -458,6 +492,7 @@ components:
       type: object
       title: Nota Fiscal de Serviço (NFSe) Schema
       required:
+        - borrower
         - cityServiceCode
         - description
         - servicesAmount
@@ -1385,7 +1420,9 @@ components:
             Para um serviço de reforma de um imóvel (`código 020201`), o imposto será devido no município onde o imóvel está localizado, independentemente de onde o prestador ou o tomador do serviço estejam estabelecidos. Já para um serviço de consultoria prestado à distância (`código 100301`), a regra geral aponta para o domicílio do adquirente.
 
             A lista completa de valores pode ser consultada na Tabela de [operationIndicator](https://nfe.io/docs/documentacao/reforma-tributaria/conceitos-funcionais/documentacao-layout-nfse-rtc/#tabela-de-operationindicator) da documentação funcional.
-          maxLength: 7
+          minLength: 6
+          maxLength: 6
+          pattern: '^[0-9]{6}$'
         operationType:
           type: string
           description: |

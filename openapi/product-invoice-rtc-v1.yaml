@@ -563,6 +563,31 @@ paths:
                       numberOrderBuy: "PED-COMPRA-555" # Número do pedido de compra
                       itemNumberOrderBuy: 1
                       importControlSheetNumber: "FCI-12345678-ABCD"
+                      vehicleDetail:
+                        operationType: 1 # 1-Venda concessionária
+                        chassis: "9BWZZZ377VT004251"
+                        colorCode: "001"
+                        colorDescription: "PRETO"
+                        enginePower: "150"
+                        engineDisplacement: "1998"
+                        netWeight: "1250.000"
+                        grossWeight: "1500.000"
+                        serialNumber: "123456789"
+                        fuelType: "16" # 16-Álcool/Gasolina
+                        engineNumber: "MOTOR123456789"
+                        maximumTractionCapacity: "0.0000"
+                        wheelBase: "2649"
+                        modelYear: 2026
+                        manufactureYear: 2025
+                        paintType: "S" # Sólida
+                        vehicleType: "06" # Automóvel
+                        vehicleSpecies: 1 # Passageiro
+                        vinCondition: "N" # N-Normal
+                        vehicleCondition: 1 # 1-Acabado
+                        brandModelCode: "025104"
+                        denatranColorCode: "11" # 11-PRETA
+                        seatingCapacity: 5
+                        restrictionType: 0 # 0-Não há
                       fuelDetail:
                         codeANP: "210203001"
                         percentageNG: 50.0
@@ -847,10 +872,10 @@ components:
           $ref: "#/components/schemas/ExportResource"
         items:
           type: "array"
-          nullable: true
+          minItems: 1
           items:
             $ref: "#/components/schemas/InvoiceItemResource"
-          description: "Detalhamento de Produtos e Serviços (det)"
+          description: "Detalhamento de Produtos e Serviços (det). Pelo menos um item é obrigatório."
         totals:
           description: "Grupo de Valores Totais da NF-e (total)"
           $ref: "#/components/schemas/Total"
@@ -952,7 +977,7 @@ components:
           nullable: true
           items:
             $ref: "#/components/schemas/AdvancePaymentItemResource"
-          description: "Grupo de notas de antecipação de pagamento - Informado para abater as parcelas de antecipação de pagamento, conforme Art. 10. § 4º (gPagAntecipado). Optional group."
+          description: "Grupo de notas de antecipação de pagamento - Informado para abater as parcelas de antecipação de pagamento, conforme Art. 10. § 4º (gPagAntecipado)."
         taxpayerComments:
           type: "array"
           nullable: true
@@ -974,18 +999,15 @@ components:
         - district
         - street
         - number
-        - country
       properties:
         state:
           type: "string" # Estado
-          nullable: true
           description: "Estado, ex.: SP, RJ, AC, padrão ISO 3166-2 ALFA 2."
         city:
           description: "Cidade do Endereço (cMun)"
           $ref: "#/components/schemas/CityResource"
         district:
           type: "string"
-          nullable: true # Bairro do Endereço
           description: "Bairro do Endereço (xBairro)"
         additionalInformation:
           type: "string"
@@ -993,21 +1015,19 @@ components:
           description: "Complemento do Endereço, ex.: AP 2, BL A. (xCpl)"
         street:
           type: "string"
-          nullable: true
           description: "Logradouro do Endereço (xLgr)"
         number: # Número do Endereço
           type: "string"
-          nullable: true
           description: "Número do Endereço. Usar S/N para \"sem número\". (nro)"
         postalCode:
           type: "string"
           nullable: true
           description: "Cód. Endereço Postal (CEP)"
         country:
-          type: "string"
-          nullable: true # País
-          description: "País, ex.: BRA, ARG, USA, padrão ISO 3166-1 ALFA-3. (xPais)"
-          default: "BRA" # Mantido o default anterior
+          type: "string" # País
+          nullable: true
+          description: "País, ex.: BRA, ARG, USA, padrão ISO 3166-1 ALFA-3. (xPais). Opcional — se omitido, assume BRA."
+          default: "BRA"
         phone:
           type: "string"
           nullable: true
@@ -1021,7 +1041,7 @@ components:
           type: "string"
           nullable: true
       additionalProperties: false
-      description: "Grupo de notas de antecipação de pagamento - Informado para abater as parcelas de antecipação de pagamento, conforme Art. 10. § 4º (gPagAntecipado). Optional group."
+      description: "Grupo de notas de antecipação de pagamento - Informado para abater as parcelas de antecipação de pagamento, conforme Art. 10. § 4º (gPagAntecipado)."
     AuthorizationResource:
       type: "object"
       properties:
@@ -1082,7 +1102,6 @@ components:
       required:
         - name
         - federalTaxNumber
-        - email
         - address
       properties:
         accountId:
@@ -1095,16 +1114,14 @@ components:
           description: "Identificação"
         name:
           type: "string"
-          nullable: true
           description: "Nome ou Razão Social (xNome)"
         federalTaxNumber:
-          type: "integer"
-          nullable: true # O valor padrão de consumerType é determinado com base neste campo. Se for um CNPJ, o padrão será "Normal"; se for um CPF, será "FinalConsumer".
+          type: "integer" # O valor padrão de consumerType é determinado com base neste campo. Se for um CNPJ, o padrão será "Normal"; se for um CPF, será "FinalConsumer".
           description: "CNPJ ou CPF (CNPJ/CPF)"
           format: "int64"
         email:
           type: "string"
-          nullable: true # Email
+          nullable: true # Email — opcional pelo leiaute SEFAZ
           description: "Email (email)"
         address:
           description: "Dados do Endereço (enderDest)"
@@ -1203,11 +1220,9 @@ components:
       properties:
         code:
           type: "string" # Cód. do Município
-          nullable: true
           description: "Cód. do Município, segundo o Tabela de Municípios do IBGE (cMun)"
         name:
           type: "string"
-          nullable: true
           description: "Nome do Município (xMun)"
       additionalProperties: false
     CofinsTaxResource:
@@ -1217,7 +1232,6 @@ components:
       properties:
         cst:
           type: "string" # Código de Situação Tributária da COFINS
-          nullable: true
           description: "Código de Situação Tributária da COFINS (CST)"
         baseTax:
           type: "number"
@@ -1760,7 +1774,13 @@ components:
         operationType:
           type: "integer"
           nullable: true
-          description: "Tipo da Operação (tpOp). 0-Outros; 1-Venda concessionária; 2-Faturamento direto para consumidor final; 3-Venda direta para grandes consumidores"
+          description: |
+            Tipo da Operação (tpOp).
+            Valores possíveis:
+            - `0`: Outros
+            - `1`: Venda concessionária
+            - `2`: Faturamento direto para consumidor final
+            - `3`: Venda direta para grandes consumidores
           format: "int32"
           enum: [0, 1, 2, 3]
         chassis:
@@ -1853,12 +1873,21 @@ components:
         vinCondition:
           type: "string"
           nullable: true
-          description: "Condição do VIN - chassi (VIN). R-Remarcado; N-Normal"
+          description: |
+            Condição do VIN — chassi (VIN).
+            Valores possíveis:
+            - `R`: Remarcado (chassi regravado pelo DETRAN)
+            - `N`: Normal (chassi original de fábrica)
           enum: ["R", "N"]
         vehicleCondition:
           type: "integer"
           nullable: true
-          description: "Condição do veículo (condVeic). 1-Acabado; 2-Inacabado; 3-Semi-acabado"
+          description: |
+            Condição do veículo (condVeic).
+            Valores possíveis:
+            - `1`: Acabado (veículo pronto para uso)
+            - `2`: Inacabado (veículo sem algum componente essencial)
+            - `3`: Semi-acabado (veículo parcialmente montado, ex: chassis-cabina)
           format: "int32"
           enum: [1, 2, 3]
         brandModelCode:
@@ -1879,7 +1908,15 @@ components:
         restrictionType:
           type: "integer"
           nullable: true
-          description: "Restrição (tpRest). 0-Não há; 1-Alienação Fiduciária; 2-Arrendamento Mercantil; 3-Reserva de Domínio; 4-Penhor de Veículos; 9-Outras"
+          description: |
+            Tipo de restrição sobre o veículo (tpRest).
+            Valores possíveis:
+            - `0`: Não há restrição (veículo livre para venda e transferência)
+            - `1`: Alienação Fiduciária (veículo dado como garantia em financiamento)
+            - `2`: Arrendamento Mercantil (veículo em contrato de leasing)
+            - `3`: Reserva de Domínio (vendedor mantém a propriedade até quitação total)
+            - `4`: Penhor de Veículos (veículo dado como garantia em empréstimo)
+            - `9`: Outras restrições
           format: "int32"
           enum: [0, 1, 2, 3, 4, 9]
       additionalProperties: false
@@ -2031,7 +2068,7 @@ components:
         situationCode:
           type: "string"
           nullable: true # Código de Situação Tributária do IBS/CBS
-          description: "Código de Situação Tributária do IBS/CBS (CST). Campo opcional. Se preenchido, será considerado; caso contrário, será definido com base no valor informado no campo `classCode`. Consulte a tabela de referência [situationCode](url) disponível na nossa documentação funcional."
+          description: "Código de Situação Tributária do IBS/CBS (CST). Campo opcional. Se preenchido, será considerado; caso contrário, será definido com base no valor informado no campo `classCode`. Consulte a tabela de referência de `situationCode` (CST) disponível na nossa documentação funcional."
           maxLength: 3
         classCode:
           type: "string"
@@ -2067,7 +2104,7 @@ components:
         ibsTotalAmount:
           type: "number"
           nullable: true
-          description: "Total do IBS (vIBSTot = vIBSUF + vIBSMun). When there is a presumed credit with the indicator \"IndDeduzCredPres=1\", vCredPres must be deducted from this amount."
+          description: "Total do IBS (vIBSTot = vIBSUF + vIBSMun). Quando houver crédito presumido com o indicador \"IndDeduzCredPres=1\", o valor de vCredPres deve ser deduzido deste total."
           format: "double"
         cbs:
           $ref: "#/components/schemas/CBSTaxResource"
@@ -2694,7 +2731,7 @@ components:
       additionalProperties: false
     ISTaxResource:
       type: "object"
-      description: "Imposto Seletivo (IS) — Selective Tax group. Informe quando o item estiver sujeito ao IS. Selective Tax Information"
+      description: "Imposto Seletivo (IS). Informe quando o item estiver sujeito ao IS."
       properties:
         situationCode:
           type: "string" # CST do Imposto Seletivo (IS)
@@ -2758,18 +2795,19 @@ components:
         - "ItAndOtherGoods"
     IcmsTaxResource: # Grupo do ICMS da Operação própria e ST (ICMS)
       type: "object"
+      description: |
+        Grupo do ICMS da Operação própria e ST (ICMS).
+        **Regra de obrigatoriedade**: deve-se informar **exatamente um** entre `cst` (Regime Normal) ou `csosn` (Simples Nacional). A SEFAZ não aceita ambos preenchidos ou nenhum dos dois.
       required:
         - origin
-        - cst
       properties:
         origin:
           type: "string"
-          nullable: true
           description: "Origem da mercadoria (orig).\n0 - Nacional, exceto as indicadas nos códigos 3, 4, 5 e 8;\n1 - Estrangeira - Importação direta, exceto a indicada no código 6;\n2 - Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7;\n3 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 40% e inferior ou igual a 70%;\n4 - Nacional, cuja produção tenha sido feita em conformidade com os processos produtivos básicos de que tratam as legislações citadas nos Ajustes;\n5 - Nacional, mercadoria ou bem com Conteúdo de Importação inferior ou igual a 40%;\n6 - Estrangeira - Importação direta, sem similar nacional, constante em lista da CAMEX e gás natural;\n7 - Estrangeira - Adquirida no mercado interno, sem similar nacional, constante lista CAMEX e gás natural;\n8 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 70%;"
         cst:
           type: "string"
           nullable: true
-          description: "Tributação do ICMS (CST)"
+          description: "Tributação do ICMS (CST) — obrigatório quando o emitente é do Regime Normal. Mutuamente exclusivo com `csosn`."
         csosn:
           type: "string"
           nullable: true # Código de Situação da Operação – Simples Nacional
@@ -2974,7 +3012,6 @@ components:
           description: "Indicador de dedução do ICMS desonerado (indDeducao)"
           $ref: "#/components/schemas/DuductionIndicator"
       additionalProperties: false
-      description: "Grupo do ICMS da Operação própria e ST\r\n\r\nID: N01\r\nPAI: M01\r\n\r\n    Obs: Informar apenas um dos grupos N02, N03, N04, N05, N06, N07, N08, N09, N10,\r\n    N10a, N10b, N10c, N10d, N10e, N10f, N10g ou N10h com \r\nbase no conteúdo informado na TAG Tributação do ICMS. (v2.0)\r\n"
     ImportDeclarationResource:
       type: "object"
       properties:
@@ -3035,7 +3072,11 @@ components:
       enum:
         - "Integrated"
         - "NotIntegrated"
-      description: "Tipo de Integração para pagamento (tpIntegra).<br/>Integrated: Pagamento integrado com o sistema de automação da empresa (Ex.: equipamento TEF, Comércio Eletrônico)<br/>NotIntegrated: Pagamento não integrado com o sistema de automação da empresa (Ex.: equipamento POS)"
+      description: |
+        Tipo de Integração para pagamento (tpIntegra).
+        Valores possíveis:
+        - `Integrated`: 1 - Pagamento integrado com o sistema de automação da empresa (ex: equipamento TEF, Comércio Eletrônico)
+        - `NotIntegrated`: 2 - Pagamento não integrado com o sistema de automação da empresa (ex: equipamento POS)
     IntermediateResource:
       type: "object"
       properties:
@@ -3147,10 +3188,10 @@ components:
         - quantity
         - unitAmount
         - totalAmount
+        - tax
       properties:
         code:
           type: "string"
-          nullable: true # Código do produto ou serviço
           description: "Código do produto ou serviço (cProd)"
         codeGTIN:
           type: "string"
@@ -3158,11 +3199,9 @@ components:
           description: "GTIN (Global Trade Item Number) do produto, antigo código EAN ou código de barras (cEAN)"
         description:
           type: "string"
-          nullable: true # Descrição do produto ou serviço
           description: "Descrição do produto ou serviço (xProd)"
         ncm:
           type: "string"
-          nullable: true
           description: "Código NCM com 8 dígitos ou 2 dígitos (gênero) (NCM)"
         nve:
           type: "array"
@@ -3181,21 +3220,17 @@ components:
           format: "int64"
         unit:
           type: "string"
-          nullable: true
           description: "Unidade Comercial (uCom)"
         quantity:
           type: "number"
-          nullable: true # Quantidade Comercial
           description: "Quantidade Comercial (qCom)"
           format: "double"
         unitAmount:
           type: "number"
-          nullable: true
           description: "Valor Unitário de Comercialização (vUnCom)"
           format: "double"
         totalAmount:
           type: "number"
-          nullable: true # Valor Total Bruto dos Produtos ou Serviços
           description: "Valor Total Bruto dos Produtos ou Serviços (vProd)"
           format: "double"
         codeTaxGTIN:
@@ -3204,7 +3239,6 @@ components:
           description: "GTIN (Global Trade Item Number) da unidade tributável, antigo código EAN ou código de barras (cEANTrib)"
         unitTax:
           type: "string"
-          nullable: true # Unidade Tributável
           description: "Unidade Tributável (uTrib)"
         quantityTax:
           type: "number"
@@ -3275,6 +3309,11 @@ components:
           type: "string"
           nullable: true
           description: "Número de controle da FCI - Ficha de Conteúdo de Importação (nFCI)"
+        vehicleDetail:
+          description: |
+            Detalhamento de Veículos novos (veicProd). Preencher exclusivamente quando o item da nota fiscal é um veículo 0 km.
+            **Mutuamente exclusivo** com `fuelDetail` e `medicineDetail` — cada item da nota pode conter no máximo um grupo de produto específico.
+          $ref: "#/components/schemas/VehicleDetailResource"
         fuelDetail:
           description: "Detalhamento de Combustível (comb)"
           $ref: "#/components/schemas/FuelResource" # Detalhamento de Combustível
@@ -3310,14 +3349,11 @@ components:
     InvoiceItemTaxResource:
       type: "object"
       required:
-        - totalTax
         - icms
-        - pis
-        - cofins
       properties:
         totalTax:
           type: "number"
-          nullable: true # Valor aproximado total de tributos federais, estaduais e municipais
+          nullable: true # Valor aproximado total de tributos federais, estaduais e municipais — opcional (calculado automaticamente quando não informado)
           description: "Valor aproximado total de tributos federais, estaduais e municipais (vTotTrib)"
           format: "double"
         icms:
@@ -3709,7 +3745,47 @@ components:
         - "ComunidadeIndigena"
         - "FundoPrivado"
         - "AssociacaoPrivada"
-      description: "Natureza jurídica (natJuridica).<br/>EmpresaPublica: Empresa Pública<br/>SociedadeEconomiaMista: Sociedade de Economia Mista<br/>SociedadeAnonimaAberta: Sociedade Anônima Aberta<br/>SociedadeAnonimaFechada: Sociedade Anônima Fechada<br/>SociedadeEmpresariaLimitada: Sociedade Empresária Limitada<br/>SociedadeEmpresariaEmNomeColetivo: Sociedade Empresária em Nome Coletivo<br/>SociedadeEmpresariaEmComanditaSimples: Sociedade Empresária em Comandita Simples<br/>SociedadeEmpresariaEmComanditaporAcoes: Sociedade Empresária em Comandita por Ações<br/>SociedadeemContaParticipacao: Sociedade em Conta de Participação<br/>Empresario: Empresário Individual<br/>Cooperativa: Cooperativa<br/>ConsorcioSociedades: Consórcio de Sociedades<br/>GrupoSociedades: Grupo de Sociedades<br/>EmpresaDomiciliadaExterior: Empresa Domiciliada no Exterior<br/>ClubeFundoInvestimento: Clube/Fundo de Investimento<br/>SociedadeSimplesPura: Sociedade Simples Pura<br/>SociedadeSimplesLimitada: Sociedade Simples Limitada<br/>SociedadeSimplesEmNomeColetivo: Sociedade Simples em Nome Coletivo<br/>SociedadeSimplesEmComanditaSimples: Sociedade Simples em Comandita Simples<br/>EmpresaBinacional: Empresa Binacional<br/>ConsorcioEmpregadores: Consórcio de Empregadores<br/>ConsorcioSimples: Consórcio Simples<br/>EireliNaturezaEmpresaria: EIRELI de Natureza Empresária<br/>EireliNaturezaSimples: EIRELI de Natureza Simples<br/>ServicoNotarial: Serviço Notarial e de Registro<br/>FundacaoPrivada: Fundação Privada<br/>ServicoSocialAutonomo: Serviço Social Autônomo<br/>CondominioEdilicio: Condomínio Edilício<br/>ComissaoConciliacaoPrevia: Comissão de Conciliação Prévia<br/>EntidadeMediacaoArbitragem: Entidade de Mediação e Arbitragem<br/>PartidoPolitico: Partido Político<br/>EntidadeSindical: Entidade Sindical<br/>EstabelecimentoBrasilFundacaoAssociacaoEstrangeiras: Estabelecimento no Brasil de Fundação ou Associação Estrangeiras<br/>FundacaoAssociacaoDomiciliadaExterior: Fundação ou Associação Domiciliada no Exterior<br/>OrganizacaoReligiosa: Organização Religiosa<br/>ComunidadeIndigena: Comunidade Indígena<br/>FundoPrivado: Fundo Privado<br/>AssociacaoPrivada: Associação Privada"
+      description: |
+        Código da Natureza Jurídica da empresa (natJuridica), conforme tabela do IBGE.
+        Valores possíveis:
+        - `EmpresaPublica`: Empresa Pública
+        - `SociedadeEconomiaMista`: Sociedade de Economia Mista
+        - `SociedadeAnonimaAberta`: Sociedade Anônima Aberta
+        - `SociedadeAnonimaFechada`: Sociedade Anônima Fechada
+        - `SociedadeEmpresariaLimitada`: Sociedade Empresária Limitada (LTDA)
+        - `SociedadeEmpresariaEmNomeColetivo`: Sociedade Empresária em Nome Coletivo
+        - `SociedadeEmpresariaEmComanditaSimples`: Sociedade Empresária em Comandita Simples
+        - `SociedadeEmpresariaEmComanditaporAcoes`: Sociedade Empresária em Comandita por Ações
+        - `SociedadeemContaParticipacao`: Sociedade em Conta de Participação
+        - `Empresario`: Empresário Individual
+        - `Cooperativa`: Cooperativa
+        - `ConsorcioSociedades`: Consórcio de Sociedades
+        - `GrupoSociedades`: Grupo de Sociedades
+        - `EmpresaDomiciliadaExterior`: Empresa Domiciliada no Exterior
+        - `ClubeFundoInvestimento`: Clube/Fundo de Investimento
+        - `SociedadeSimplesPura`: Sociedade Simples Pura
+        - `SociedadeSimplesLimitada`: Sociedade Simples Limitada
+        - `SociedadeSimplesEmNomeColetivo`: Sociedade Simples em Nome Coletivo
+        - `SociedadeSimplesEmComanditaSimples`: Sociedade Simples em Comandita Simples
+        - `EmpresaBinacional`: Empresa Binacional
+        - `ConsorcioEmpregadores`: Consórcio de Empregadores
+        - `ConsorcioSimples`: Consórcio Simples
+        - `EireliNaturezaEmpresaria`: EIRELI de Natureza Empresária
+        - `EireliNaturezaSimples`: EIRELI de Natureza Simples
+        - `ServicoNotarial`: Serviço Notarial e Registral (Cartórios)
+        - `FundacaoPrivada`: Fundação Privada
+        - `ServicoSocialAutonomo`: Serviço Social Autônomo
+        - `CondominioEdilicio`: Condomínio Edilício
+        - `ComissaoConciliacaoPrevia`: Comissão de Conciliação Prévia
+        - `EntidadeMediacaoArbitragem`: Entidade de Mediação e Arbitragem
+        - `PartidoPolitico`: Partido Político
+        - `EntidadeSindical`: Entidade Sindical
+        - `EstabelecimentoBrasilFundacaoAssociacaoEstrangeiras`: Estabelecimento no Brasil de Fundação ou Associação Estrangeiras
+        - `FundacaoAssociacaoDomiciliadaExterior`: Fundação ou Associação Domiciliada no Exterior
+        - `OrganizacaoReligiosa`: Organização Religiosa
+        - `ComunidadeIndigena`: Comunidade Indígena
+        - `FundoPrivado`: Fundo Privado
+        - `AssociacaoPrivada`: Associação Privada
     MonophaseDefermentTaxResource:
       type: "object"
       description: "Deferimento na tributação monofásica (para biocombustíveis)."
