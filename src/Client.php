@@ -14,6 +14,7 @@ use Nfe\Http\Transport;
 use Nfe\Resource\AddressesResource;
 use Nfe\Resource\CompaniesResource;
 use Nfe\Resource\ConsumerInvoiceQueryResource;
+use Nfe\Resource\ConsumerInvoicesResource;
 use Nfe\Resource\InboundProductInvoicesResource;
 use Nfe\Resource\LegalEntityLookupResource;
 use Nfe\Resource\LegalPeopleResource;
@@ -52,6 +53,7 @@ final class Client
 
     public readonly ServiceInvoicesResource $serviceInvoices;
     public readonly ProductInvoicesResource $productInvoices;
+    public readonly ConsumerInvoicesResource $consumerInvoices;
     public readonly TransportationInvoicesResource $transportationInvoices;
     public readonly InboundProductInvoicesResource $inboundProductInvoices;
     public readonly ProductInvoiceQueryResource $productInvoiceQuery;
@@ -104,6 +106,7 @@ final class Client
         // Bind resources eagerly. They each just keep a reference to $this.
         $this->serviceInvoices        = new ServiceInvoicesResource($this);
         $this->productInvoices        = new ProductInvoicesResource($this);
+        $this->consumerInvoices       = new ConsumerInvoicesResource($this);
         $this->transportationInvoices = new TransportationInvoicesResource($this);
         $this->inboundProductInvoices = new InboundProductInvoicesResource($this);
         $this->productInvoiceQuery    = new ProductInvoiceQueryResource($this);

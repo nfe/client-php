@@ -29,11 +29,12 @@ it('accepts a full Config object', function (): void {
     expect($client->config->timeout)->toBe(120);
 });
 
-it('exposes all 16 resource properties typed correctly', function (): void {
+it('exposes all 17 resource properties typed correctly', function (): void {
     $client = new Client(apiKey: 'k');
 
     expect($client->serviceInvoices)->toBeInstanceOf(ServiceInvoicesResource::class);
     expect($client->productInvoices)->toBeInstanceOf(Nfe\Resource\ProductInvoicesResource::class);
+    expect($client->consumerInvoices)->toBeInstanceOf(Nfe\Resource\ConsumerInvoicesResource::class);
     expect($client->transportationInvoices)->toBeInstanceOf(Nfe\Resource\TransportationInvoicesResource::class);
     expect($client->inboundProductInvoices)->toBeInstanceOf(Nfe\Resource\InboundProductInvoicesResource::class);
     expect($client->productInvoiceQuery)->toBeInstanceOf(Nfe\Resource\ProductInvoiceQueryResource::class);

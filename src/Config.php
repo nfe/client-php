@@ -82,7 +82,7 @@ final readonly class Config
                 => 'https://naturalperson.api.nfe.io',
 
             'cte', 'transportation', 'inbound-product', 'tax-calculation', 'tax-codes',
-            'product-invoices', 'state-taxes'
+            'product-invoices', 'consumer-invoices', 'state-taxes'
                 => 'https://api.nfse.io',
 
             default
