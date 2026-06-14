@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pest 3, PHPStan level 8, and PHP-CS-Fixer (PER-CS 2.0 + PHP 8.2 migration)
   wired in `require-dev` and enforced via CI.
 - GitHub Actions CI matrix across PHP 8.2 / 8.3 / 8.4.
-- OpenSpec workflow with 8 change proposals captured under `openspec/changes/`.
 
 ### Changed
 

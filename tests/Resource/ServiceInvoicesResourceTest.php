@@ -82,7 +82,7 @@ it('surfaces 404 as NotFoundException', function (): void {
 
     expect(fn() => $client->serviceInvoices->retrieve('abc', 'inv-x'))
         ->toThrow(NotFoundException::class);
-})->skip('AbstractResource::get() does not map 4xx to ErrorFactory yet; this scenario is exercised after §9 wires error handling in resources.');
+});
 
 it('downloadPdf returns raw bytes', function (): void {
     $pdfBytes = "%PDF-1.4 fake-pdf-payload\n";

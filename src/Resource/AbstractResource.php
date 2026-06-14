@@ -294,6 +294,17 @@ abstract class AbstractResource
             timeout: $options->timeout ?? 0,
         );
 
-        return $this->client->send($request, $options);
+        $response = $this->client->send($request, $options);
+
+        // Auto-map non-2xx responses to typed exceptions. 2xx (including 202) flows
+        // through to the caller; 202 specifically is then discriminated by
+        // handleAsyncResponse() when the calling resource expects async semantics.
+        // Resources that need to inspect raw failure responses can catch the
+        // resulting ApiErrorException and read its $statusCode / $responseBody.
+        if (!$response->isSuccess()) {
+            throw ErrorFactory::fromResponse($response);
+        }
+
+        return $response;
     }
 }

@@ -19,6 +19,13 @@ x-php-defaults: &php-defaults
   working_dir: /app
   init: true
   tty: true
+  # Forward .env into the container so SDK env vars (NFEIO_API_KEY, NFEIO_COMPANY_ID,
+  # NFE_SDK_E2E, etc.) are available to PHP scripts running inside the container.
+  # The file is loaded at runtime (docker compose run/exec); build args still come
+  # from the host shell or `.env` interpolation in `args:`.
+  env_file:
+    - path: .env
+      required: false
 
 services:
   php:
