@@ -52,12 +52,45 @@ $result = $nfe->serviceInvoices->create($companyId, [
 
 if ($result instanceof Nfe\Response\Pending) {
     // 202 — invoice is being processed asynchronously
-    echo "Pending — invoiceId: {$result->invoiceId}\n";
+    echo "Pending — invoiceId: {$result->invoiceId()}\n";
 } else {
     // 201 — invoice issued immediately
-    echo "Issued: {$result->invoice->id}\n";
+    echo "Issued: {$result->resource()->id}\n";
 }
 ```
+
+## Two API keys (emission vs. data services)
+
+NFE.io's platform separates billing between the main API (emission, companies,
+webhooks — billed per document) and the data-services API (CEP/CNPJ/CPF
+lookups, NF-e/NFC-e query — billed per query, typically a separate plan).
+Some integrators have a single key with both plans; others have two distinct
+keys.
+
+The SDK accepts both. Pass `dataApiKey` when you have a dedicated key for
+data services; the SDK routes `addresses`, `legalEntityLookup`,
+`naturalPersonLookup`, `productInvoiceQuery`, and `consumerInvoiceQuery` to
+it. When `dataApiKey` is omitted, those calls fall back to `apiKey` — same
+chain as the Node SDK's `resolveDataApiKey()`.
+
+```php
+$nfe = new Client(
+    apiKey:     $_ENV['NFE_API_KEY'],
+    dataApiKey: $_ENV['NFE_DATA_API_KEY'] ?? null,
+);
+
+// Routed via apiKey (main API)
+$nfe->serviceInvoices->retrieve($companyId, $invoiceId);
+
+// Routed via dataApiKey when set, otherwise apiKey
+$nfe->addresses->lookupByPostalCode('01310-100');
+$nfe->legalEntityLookup->getBasicInfo('12.345.678/0001-90');
+```
+
+> If you see `Nfe\Exception\AuthorizationException` (HTTP 403) on lookup calls,
+> the most likely cause is that the key in use does not carry the data-services
+> plan. Provision a `dataApiKey` for the data plan and the SDK will route
+> accordingly.
 
 ## Resources (parity with the Node.js SDK)
 
@@ -107,15 +140,56 @@ try {
 For asynchronous invoice issuance (HTTP 202), v3.0 returns a discriminated `Pending | Issued` response. A `pollUntilComplete()` helper will land in a later 3.x release; until then, loop manually in a worker/CLI context:
 
 ```php
+use Nfe\Util\FlowStatus;
+
 $result = $nfe->serviceInvoices->create($companyId, $data);
 
 if ($result instanceof Nfe\Response\Pending) {
+    $invoiceId = $result->invoiceId();
     do {
         sleep(2);
-        $invoice = $nfe->serviceInvoices->retrieve($companyId, $result->invoiceId);
-    } while ($invoice->flowStatus === Nfe\Generated\ServiceInvoiceRtcV1\FlowStatus::Pending);
+        $invoice = $nfe->serviceInvoices->retrieve($companyId, $invoiceId);
+    } while (!FlowStatus::isTerminal($invoice->flowStatus));
 }
 ```
+
+`FlowStatus::TERMINAL` lists the four terminal states (`Issued`, `IssueFailed`, `Cancelled`, `CancelFailed`). Mirrors the Node SDK's `TERMINAL_FLOW_STATES`.
+
+## Error handling
+
+Every non-2xx response is mapped to a typed exception extending `Nfe\Exception\ApiErrorException`. Catch the base class for a blanket handler, or the subclass for targeted recovery:
+
+| HTTP | Exception | Typical cause |
+|---|---|---|
+| 400 | `InvalidRequestException` | Malformed payload, validation failure |
+| 401 | `AuthenticationException` | Missing / invalid API key |
+| 403 | `AuthorizationException` | Valid key, but plan/scope rejects the action (e.g. data-services key required) |
+| 404 | `NotFoundException` | Resource does not exist |
+| 429 | `RateLimitException` | Throttled — inspect `Retry-After` |
+| 5xx | `ServerException` | Upstream / NFE.io infrastructure failure |
+| — | `ApiConnectionException` | Network failure, DNS, TLS, timeout |
+| — | `SignatureVerificationException` | Webhook payload signature mismatch |
+
+```php
+use Nfe\Exception\ApiErrorException;
+use Nfe\Exception\AuthorizationException;
+use Nfe\Exception\RateLimitException;
+
+try {
+    $nfe->addresses->lookupByPostalCode($cep);
+} catch (AuthorizationException $e) {
+    // 403 — key probably lacks the data-services plan
+    error_log("Lookup denied: {$e->getMessage()}");
+} catch (RateLimitException $e) {
+    // Inspect $e->responseHeaders['retry-after']
+    throw $e;
+} catch (ApiErrorException $e) {
+    // Any other non-2xx
+    error_log("API error {$e->statusCode}: {$e->getMessage()}");
+}
+```
+
+Each exception exposes `$statusCode`, `$responseBody`, `$responseHeaders`, and `$errorCode` for diagnostics.
 
 ## Migrating from v2
 

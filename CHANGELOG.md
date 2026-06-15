@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pest 3, PHPStan level 8, and PHP-CS-Fixer (PER-CS 2.0 + PHP 8.2 migration)
   wired in `require-dev` and enforced via CI.
 - GitHub Actions CI matrix across PHP 8.2 / 8.3 / 8.4.
+- Optional `dataApiKey` in `Config` and `Client` for the data-services API
+  (CEP/CNPJ/CPF lookups, NF-e/NFC-e query). When set, the SDK routes the
+  matching resource families to the data key; when null, it falls back to
+  `apiKey` — mirrors the Node SDK's `resolveDataApiKey()` chain.
+- `Nfe\Exception\AuthorizationException` for HTTP 403 (distinct from the
+  401 `AuthenticationException`). Surfaces plan/scope rejection — common
+  when a main key calls a data-services endpoint without the data plan.
+- Auto-mapping of every non-2xx response to a typed `ApiErrorException`
+  subclass at the resource layer. Previously 5xx responses could surface
+  as null-everything DTOs; now they raise.
 
 ### Changed
 
