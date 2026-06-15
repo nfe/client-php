@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Nfe\Exception\ApiErrorException;
 use Nfe\Exception\AuthenticationException;
+use Nfe\Exception\AuthorizationException;
 use Nfe\Exception\ErrorFactory;
 use Nfe\Exception\InvalidRequestException;
 use Nfe\Exception\NotFoundException;
@@ -21,6 +22,14 @@ it('maps 400 to InvalidRequestException', function (): void {
 it('maps 401 to AuthenticationException', function (): void {
     $e = ErrorFactory::fromResponse(new Response(401, [], ''));
     expect($e)->toBeInstanceOf(AuthenticationException::class);
+});
+
+it('maps 403 to AuthorizationException (distinct from 401)', function (): void {
+    $e = ErrorFactory::fromResponse(new Response(403, [], '{"message":"plan does not include data services"}'));
+    expect($e)->toBeInstanceOf(AuthorizationException::class);
+    expect($e)->not->toBeInstanceOf(AuthenticationException::class);
+    expect($e->statusCode)->toBe(403);
+    expect($e->getMessage())->toBe('plan does not include data services');
 });
 
 it('maps 404 to NotFoundException', function (): void {

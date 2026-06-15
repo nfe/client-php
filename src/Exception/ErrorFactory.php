@@ -22,6 +22,7 @@ final class ErrorFactory
         $class = match (true) {
             $response->statusCode === 400 => InvalidRequestException::class,
             $response->statusCode === 401 => AuthenticationException::class,
+            $response->statusCode === 403 => AuthorizationException::class,
             $response->statusCode === 404 => NotFoundException::class,
             $response->statusCode === 429 => RateLimitException::class,
             $response->statusCode >= 500 && $response->statusCode <= 599 => ServerException::class,
