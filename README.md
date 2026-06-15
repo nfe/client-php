@@ -1,32 +1,32 @@
-# NFE.io PHP SDK
+# SDK PHP da NFE.io
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![PHP Version](https://img.shields.io/badge/php-%5E8.2-787CB5)](composer.json)
-[![Status](https://img.shields.io/badge/v3-in--development-orange)](https://github.com/nfe/client-php/tree/v3)
+[![Licença](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Versão PHP](https://img.shields.io/badge/php-%5E8.2-787CB5)](composer.json)
+[![Status](https://img.shields.io/badge/v3-em--desenvolvimento-orange)](https://github.com/nfe/client-php/tree/v3)
 
-Official PHP SDK for the [NFE.io](https://nfe.io) API. Modern PHP 8.2+, zero runtime dependencies, designed in parity with the [Node.js SDK](https://github.com/nfe/client-nodejs).
+SDK PHP oficial da API [NFE.io](https://nfe.io). PHP 8.2+ moderno, zero dependências em runtime, projetado em paridade com o [SDK Node.js](https://github.com/nfe/client-nodejs).
 
-> **You are reading the v3 branch.** v3 is a full rewrite and is currently in development. For the stable v2 release, see the [`master` branch](https://github.com/nfe/client-php/tree/master) and the `nfe/nfe` package on Packagist. v2 is frozen and receives no further updates.
+> **Você está lendo a branch v3.** A v3 é uma reescrita completa e está em desenvolvimento. Para a versão estável v2, veja a [branch `master`](https://github.com/nfe/client-php/tree/master) e o pacote `nfe/nfe` no Packagist. A v2 está congelada e não receberá novas atualizações.
 
 ## Status
 
-| Branch | Package | Status |
+| Branch | Pacote | Situação |
 |---|---|---|
-| `v3` | `nfe/client-php` | 🚧 **In development** — not yet released |
-| `master` | `nfe/nfe` | ❄️ Frozen (v2.5, no further updates) |
+| `v3` | `nfe/client-php` | 🚧 **Em desenvolvimento** — ainda não lançado |
+| `master` | `nfe/nfe` | ❄️ Congelado (v2.5, sem novas atualizações) |
 
-## Requirements
+## Requisitos
 
-- PHP 8.2, 8.3, or 8.4
-- ext-curl, ext-json, ext-mbstring
+- PHP 8.2, 8.3 ou 8.4
+- Extensões: `ext-curl`, `ext-json`, `ext-mbstring`
 
-## Installation (once v3 is released)
+## Instalação (quando a v3 for lançada)
 
 ```bash
 composer require nfe/client-php
 ```
 
-## Quickstart (target API for v3)
+## Início rápido (API alvo da v3)
 
 ```php
 use Nfe\Client;
@@ -37,7 +37,7 @@ $nfe = new Client(
     environment: Environment::Production,
 );
 
-// Issue a service invoice (NFS-e)
+// Emite uma nota de serviço (NFS-e)
 $result = $nfe->serviceInvoices->create($companyId, [
     'borrower' => [
         'federalTaxNumber' => 12345678901234,
@@ -51,27 +51,28 @@ $result = $nfe->serviceInvoices->create($companyId, [
 ]);
 
 if ($result instanceof Nfe\Response\Pending) {
-    // 202 — invoice is being processed asynchronously
-    echo "Pending — invoiceId: {$result->invoiceId()}\n";
+    // 202 — nota está sendo processada de forma assíncrona
+    echo "Pendente — invoiceId: {$result->invoiceId()}\n";
 } else {
-    // 201 — invoice issued immediately
-    echo "Issued: {$result->resource()->id}\n";
+    // 201 — nota emitida imediatamente
+    echo "Emitida: {$result->resource()->id}\n";
 }
 ```
 
-## Two API keys (emission vs. data services)
+## Duas chaves de API (emissão vs. serviços de dados)
 
-NFE.io's platform separates billing between the main API (emission, companies,
-webhooks — billed per document) and the data-services API (CEP/CNPJ/CPF
-lookups, NF-e/NFC-e query — billed per query, typically a separate plan).
-Some integrators have a single key with both plans; others have two distinct
-keys.
+A plataforma NFE.io separa o faturamento entre a API principal (emissão,
+empresas, webhooks — cobrada por documento) e a API de serviços de dados
+(consultas de CEP/CNPJ/CPF, query de NF-e/NFC-e — cobrada por consulta,
+tipicamente um plano separado). Alguns integradores possuem uma única chave
+com ambos os planos; outros possuem duas chaves distintas.
 
-The SDK accepts both. Pass `dataApiKey` when you have a dedicated key for
-data services; the SDK routes `addresses`, `legalEntityLookup`,
-`naturalPersonLookup`, `productInvoiceQuery`, and `consumerInvoiceQuery` to
-it. When `dataApiKey` is omitted, those calls fall back to `apiKey` — same
-chain as the Node SDK's `resolveDataApiKey()`.
+O SDK aceita as duas. Passe `dataApiKey` quando você tiver uma chave
+dedicada para serviços de dados; o SDK roteia `addresses`,
+`legalEntityLookup`, `naturalPersonLookup`, `productInvoiceQuery` e
+`consumerInvoiceQuery` para ela. Quando `dataApiKey` é omitido, essas
+chamadas caem por padrão na `apiKey` — mesma cadeia do `resolveDataApiKey()`
+do SDK Node.
 
 ```php
 $nfe = new Client(
@@ -79,44 +80,44 @@ $nfe = new Client(
     dataApiKey: $_ENV['NFE_DATA_API_KEY'] ?? null,
 );
 
-// Routed via apiKey (main API)
+// Roteado via apiKey (API principal)
 $nfe->serviceInvoices->retrieve($companyId, $invoiceId);
 
-// Routed via dataApiKey when set, otherwise apiKey
+// Roteado via dataApiKey quando definida; senão, via apiKey
 $nfe->addresses->lookupByPostalCode('01310-100');
 $nfe->legalEntityLookup->getBasicInfo('12.345.678/0001-90');
 ```
 
-> If you see `Nfe\Exception\AuthorizationException` (HTTP 403) on lookup calls,
-> the most likely cause is that the key in use does not carry the data-services
-> plan. Provision a `dataApiKey` for the data plan and the SDK will route
-> accordingly.
+> Se você ver `Nfe\Exception\AuthorizationException` (HTTP 403) em chamadas
+> de consulta, a causa mais provável é que a chave em uso não possui o plano
+> de serviços de dados. Provisione uma `dataApiKey` com o plano de dados e o
+> SDK fará o roteamento automaticamente.
 
-## Resources (parity with the Node.js SDK)
+## Recursos (paridade com o SDK Node.js)
 
-| Property | Endpoint family |
+| Propriedade | Família de endpoints |
 |---|---|
-| `$nfe->serviceInvoices` | NFS-e (service invoice) |
-| `$nfe->productInvoices` | NF-e (product invoice) |
-| `$nfe->consumerInvoices` | NFC-e (consumer invoice) — emissão + query |
+| `$nfe->serviceInvoices` | NFS-e (nota de serviço) |
+| `$nfe->productInvoices` | NF-e (nota de produto) |
+| `$nfe->consumerInvoices` | NFC-e (nota ao consumidor) — emissão + consulta |
 | `$nfe->transportationInvoices` | CT-e |
-| `$nfe->inboundProductInvoices` | Inbound NF-e |
-| `$nfe->productInvoiceQuery` | NF-e query |
-| `$nfe->consumerInvoiceQuery` | NFC-e query |
-| `$nfe->companies` | Company management |
-| `$nfe->legalPeople` | Legal person (PJ) |
-| `$nfe->naturalPeople` | Natural person (PF) |
-| `$nfe->webhooks` | Webhook configuration |
-| `$nfe->addresses` | CEP lookup |
-| `$nfe->legalEntityLookup` | CNPJ lookup |
-| `$nfe->naturalPersonLookup` | CPF lookup |
-| `$nfe->taxCalculation` | Tax calculation |
-| `$nfe->taxCodes` | Tax codes (NBS / CNAE) |
-| `$nfe->stateTaxes` | State tax registration |
+| `$nfe->inboundProductInvoices` | NF-e de entrada |
+| `$nfe->productInvoiceQuery` | Consulta de NF-e |
+| `$nfe->consumerInvoiceQuery` | Consulta de NFC-e |
+| `$nfe->companies` | Gestão de empresas |
+| `$nfe->legalPeople` | Pessoa jurídica (PJ) |
+| `$nfe->naturalPeople` | Pessoa física (PF) |
+| `$nfe->webhooks` | Configuração de webhooks |
+| `$nfe->addresses` | Consulta de CEP |
+| `$nfe->legalEntityLookup` | Consulta de CNPJ |
+| `$nfe->naturalPersonLookup` | Consulta de CPF |
+| `$nfe->taxCalculation` | Cálculo de impostos |
+| `$nfe->taxCodes` | Códigos fiscais (NBS / CNAE) |
+| `$nfe->stateTaxes` | Inscrição estadual |
 
-## Webhook signature verification
+## Verificação de assinatura de webhook
 
-The SDK ships a static helper aligned with the canonical scheme used by NFE.io (HMAC-SHA1 over `X-Hub-Signature`):
+O SDK fornece um helper estático alinhado ao esquema canônico usado pela NFE.io (HMAC-SHA1 sobre `X-Hub-Signature`):
 
 ```php
 use Nfe\Webhook;
@@ -128,16 +129,16 @@ try {
         sigHeader: $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '',
         secret:    $_ENV['NFE_WEBHOOK_SECRET'],
     );
-    // $event is a typed WebhookEvent
+    // $event é um WebhookEvent tipado
 } catch (SignatureVerificationException $e) {
     http_response_code(403);
     exit;
 }
 ```
 
-## Polling (manual for v3.0)
+## Polling (manual na v3.0)
 
-For asynchronous invoice issuance (HTTP 202), v3.0 returns a discriminated `Pending | Issued` response. A `pollUntilComplete()` helper will land in a later 3.x release; until then, loop manually in a worker/CLI context:
+Para emissão assíncrona de notas (HTTP 202), a v3.0 retorna uma resposta discriminada `Pending | Issued`. Um helper `pollUntilComplete()` chegará em uma release 3.x posterior; até lá, faça o loop manualmente em um worker/CLI:
 
 ```php
 use Nfe\Util\FlowStatus;
@@ -153,22 +154,22 @@ if ($result instanceof Nfe\Response\Pending) {
 }
 ```
 
-`FlowStatus::TERMINAL` lists the four terminal states (`Issued`, `IssueFailed`, `Cancelled`, `CancelFailed`). Mirrors the Node SDK's `TERMINAL_FLOW_STATES`.
+`FlowStatus::TERMINAL` lista os quatro estados terminais (`Issued`, `IssueFailed`, `Cancelled`, `CancelFailed`). Espelha `TERMINAL_FLOW_STATES` do SDK Node.
 
-## Error handling
+## Tratamento de erros
 
-Every non-2xx response is mapped to a typed exception extending `Nfe\Exception\ApiErrorException`. Catch the base class for a blanket handler, or the subclass for targeted recovery:
+Toda resposta não-2xx é mapeada para uma exceção tipada que estende `Nfe\Exception\ApiErrorException`. Capture a classe base para um handler genérico, ou a subclasse para uma recuperação direcionada:
 
-| HTTP | Exception | Typical cause |
+| HTTP | Exceção | Causa típica |
 |---|---|---|
-| 400 | `InvalidRequestException` | Malformed payload, validation failure |
-| 401 | `AuthenticationException` | Missing / invalid API key |
-| 403 | `AuthorizationException` | Valid key, but plan/scope rejects the action (e.g. data-services key required) |
-| 404 | `NotFoundException` | Resource does not exist |
-| 429 | `RateLimitException` | Throttled — inspect `Retry-After` |
-| 5xx | `ServerException` | Upstream / NFE.io infrastructure failure |
-| — | `ApiConnectionException` | Network failure, DNS, TLS, timeout |
-| — | `SignatureVerificationException` | Webhook payload signature mismatch |
+| 400 | `InvalidRequestException` | Payload mal formado, falha de validação |
+| 401 | `AuthenticationException` | Chave de API ausente ou inválida |
+| 403 | `AuthorizationException` | Chave válida, mas o plano/escopo recusa a ação (ex.: requer chave de serviços de dados) |
+| 404 | `NotFoundException` | Recurso não existe |
+| 429 | `RateLimitException` | Throttling — consulte `Retry-After` |
+| 5xx | `ServerException` | Falha na infraestrutura upstream / NFE.io |
+| — | `ApiConnectionException` | Falha de rede, DNS, TLS, timeout |
+| — | `SignatureVerificationException` | Assinatura do payload do webhook não confere |
 
 ```php
 use Nfe\Exception\ApiErrorException;
@@ -178,27 +179,27 @@ use Nfe\Exception\RateLimitException;
 try {
     $nfe->addresses->lookupByPostalCode($cep);
 } catch (AuthorizationException $e) {
-    // 403 — key probably lacks the data-services plan
-    error_log("Lookup denied: {$e->getMessage()}");
+    // 403 — chave provavelmente sem o plano de serviços de dados
+    error_log("Consulta negada: {$e->getMessage()}");
 } catch (RateLimitException $e) {
-    // Inspect $e->responseHeaders['retry-after']
+    // Consulte $e->responseHeaders['retry-after']
     throw $e;
 } catch (ApiErrorException $e) {
-    // Any other non-2xx
-    error_log("API error {$e->statusCode}: {$e->getMessage()}");
+    // Qualquer outra resposta não-2xx
+    error_log("Erro na API {$e->statusCode}: {$e->getMessage()}");
 }
 ```
 
-Each exception exposes `$statusCode`, `$responseBody`, `$responseHeaders`, and `$errorCode` for diagnostics.
+Cada exceção expõe `$statusCode`, `$responseBody`, `$responseHeaders` e `$errorCode` para diagnóstico.
 
-## Migrating from v2
+## Migrando da v2
 
-See [MIGRATION.md](MIGRATION.md) for the full v2 → v3 mapping. There is no backwards compatibility — v3 is a clean rewrite.
+Veja [MIGRATION.md](MIGRATION.md) para o mapeamento completo v2 → v3. Não há retrocompatibilidade — a v3 é uma reescrita limpa.
 
-## Contributing
+## Contribuindo
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Veja [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+## Licença
 
-MIT — see [LICENSE](LICENSE).
+MIT — veja [LICENSE](LICENSE).

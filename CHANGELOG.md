@@ -1,44 +1,47 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Todas as mudanças relevantes deste projeto serão documentadas neste arquivo.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
+e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/spec/v2.0.0.html).
 
-## [Unreleased] — v3 (in development)
+## [Unreleased] — v3 (em desenvolvimento)
 
-### Added
+### Adicionado
 
-- PHP 8.2+ baseline. Drops support for PHP 5.4 through 8.1.
-- PSR-4 autoload with root namespace `Nfe\` under `src/`.
-- Renamed Composer package: `nfe/client-php` (was `nfe/nfe`). Both can coexist
-  during migration. `nfe/nfe` is frozen at v2.5.
-- Strict types enforced in every source file.
-- Pest 3, PHPStan level 8, and PHP-CS-Fixer (PER-CS 2.0 + PHP 8.2 migration)
-  wired in `require-dev` and enforced via CI.
-- GitHub Actions CI matrix across PHP 8.2 / 8.3 / 8.4.
-- Optional `dataApiKey` in `Config` and `Client` for the data-services API
-  (CEP/CNPJ/CPF lookups, NF-e/NFC-e query). When set, the SDK routes the
-  matching resource families to the data key; when null, it falls back to
-  `apiKey` — mirrors the Node SDK's `resolveDataApiKey()` chain.
-- `Nfe\Exception\AuthorizationException` for HTTP 403 (distinct from the
-  401 `AuthenticationException`). Surfaces plan/scope rejection — common
-  when a main key calls a data-services endpoint without the data plan.
-- Auto-mapping of every non-2xx response to a typed `ApiErrorException`
-  subclass at the resource layer. Previously 5xx responses could surface
-  as null-everything DTOs; now they raise.
+- Baseline em PHP 8.2+. Encerra suporte às versões 5.4 até 8.1.
+- Autoload PSR-4 com namespace raiz `Nfe\` em `src/`.
+- Pacote Composer renomeado: `nfe/client-php` (antes `nfe/nfe`). Os dois
+  podem coexistir durante a migração. O `nfe/nfe` está congelado na v2.5.
+- `declare(strict_types=1)` em todos os arquivos-fonte.
+- Pest 3, PHPStan nível 8 e PHP-CS-Fixer (PER-CS 2.0 + PHP 8.2 migration)
+  configurados em `require-dev` e impostos pelo CI.
+- Matriz de CI do GitHub Actions em PHP 8.2 / 8.3 / 8.4.
+- `dataApiKey` opcional em `Config` e `Client` para a API de serviços de
+  dados (consultas de CEP/CNPJ/CPF, query de NF-e/NFC-e). Quando definida,
+  o SDK roteia as famílias de recurso correspondentes para a chave de
+  dados; quando `null`, faz fallback para `apiKey` — espelha a cadeia
+  `resolveDataApiKey()` do SDK Node.
+- `Nfe\Exception\AuthorizationException` para HTTP 403 (distinta do 401
+  `AuthenticationException`). Sinaliza recusa por plano/escopo — comum
+  quando uma chave principal chama um endpoint de serviços de dados sem
+  o plano de dados.
+- Mapeamento automático de toda resposta não-2xx para uma subclasse tipada
+  de `ApiErrorException` na camada de recurso. Antes, respostas 5xx podiam
+  emergir como DTOs com tudo `null`; agora geram exceção.
 
-### Changed
+### Alterado
 
-- Repository now develops on the `v3` branch. `master` is frozen at v2.5.
+- O desenvolvimento agora ocorre na branch `v3`. A `master` está congelada
+  na v2.5.
 
-### Removed
+### Removido
 
-- `lib/NFe/*` (legacy classmap-autoloaded code).
-- `test/simpletest/*` runner integration. Pest replaces SimpleTest.
-- Vendored `composer.phar`.
-- `.travis.yml` (replaced by `.github/workflows/ci.yml`).
+- `lib/NFe/*` (código legado autoloaded por classmap).
+- Integração com runner `test/simpletest/*`. Pest substitui o SimpleTest.
+- `composer.phar` versionado no repositório.
+- `.travis.yml` (substituído por `.github/workflows/ci.yml`).
 
-## [2.5] and earlier
+## [2.5] e anteriores
 
-See git history on the `master` branch. The v2 line is no longer maintained.
+Veja o histórico git na branch `master`. A linha v2 não recebe mais manutenção.
