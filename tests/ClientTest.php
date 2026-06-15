@@ -85,6 +85,62 @@ it('appends the userAgentSuffix to the User-Agent header', function (): void {
     expect($mock->lastRequest()?->headers['User-Agent'])->toEndWith('WHMCS/8.10');
 });
 
+it('routes data-services resource calls with dataApiKey when set', function (): void {
+    $mock = (new MockTransport())
+        ->push(new Response(200, [], '{"addresses":[]}'))
+        ->push(new Response(200, [], '{"legalEntity":{"name":"x"}}'))
+        ->push(new Response(
+            200,
+            [],
+            '{"name":"x","federalTaxNumber":"12345678901","status":"Regular"}',
+        ));
+
+    $client = new Client(config: new Config(
+        apiKey: 'main-key',
+        dataApiKey: 'data-key',
+        retry: RetryPolicy::none(),
+        transport: $mock,
+    ));
+
+    $client->addresses->lookupByPostalCode('01310-100');
+    $client->legalEntityLookup->getBasicInfo('12.345.678/0001-90');
+    $client->naturalPersonLookup->getStatus('12345678901', '1990-01-15');
+
+    $sent = $mock->sent();
+    expect($sent[0]->headers['Authorization'])->toBe('Basic data-key');
+    expect($sent[1]->headers['Authorization'])->toBe('Basic data-key');
+    expect($sent[2]->headers['Authorization'])->toBe('Basic data-key');
+});
+
+it('routes emission resource calls with the main apiKey even when dataApiKey is set', function (): void {
+    $mock = (new MockTransport())->push(new Response(200, [], '{"id":"x"}'));
+
+    $client = new Client(config: new Config(
+        apiKey: 'main-key',
+        dataApiKey: 'data-key',
+        retry: RetryPolicy::none(),
+        transport: $mock,
+    ));
+
+    $client->serviceInvoices->retrieve('co-1', 'inv-1');
+
+    expect($mock->lastRequest()?->headers['Authorization'])->toBe('Basic main-key');
+});
+
+it('falls back to main apiKey for data-services calls when dataApiKey is null', function (): void {
+    $mock = (new MockTransport())->push(new Response(200, [], '{"addresses":[]}'));
+
+    $client = new Client(config: new Config(
+        apiKey: 'main-key',
+        retry: RetryPolicy::none(),
+        transport: $mock,
+    ));
+
+    $client->addresses->lookupByPostalCode('01310-100');
+
+    expect($mock->lastRequest()?->headers['Authorization'])->toBe('Basic main-key');
+});
+
 it('does not overwrite Authorization or User-Agent when caller already set them', function (): void {
     $mock = (new MockTransport())->push(new Response(200, [], '{}'));
 

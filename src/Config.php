@@ -14,11 +14,23 @@ use Psr\Log\LoggerInterface;
  *
  * Build directly or accept the convenience constructor on Client which
  * builds one for you from primitives.
+ *
+ * **Two-key model**: NFE.io's platform separates billing between the main API
+ * (emission, companies, webhooks — billed per document) and the data-services
+ * API (CEP/CNPJ/CPF lookups, NF-e query — billed per query, often a different
+ * plan). Some integrators have one key with both plans; others have two
+ * distinct keys. {@see Config} accepts both via `apiKey` (main) and the
+ * optional `dataApiKey`. When the data key is absent, the SDK falls back to
+ * `apiKey` — matching the Node SDK's resolveDataApiKey behaviour exactly.
  */
 final readonly class Config
 {
     /**
-     * @param string                $apiKey          NFE.io API key. Required.
+     * @param string                $apiKey          NFE.io main API key. Required.
+     * @param string|null           $dataApiKey      Optional separate key for data-services
+     *                                                (CEP/CNPJ/CPF/NF-e query). Falls back to
+     *                                                $apiKey when null. Mirrors Node SDK
+     *                                                resolveDataApiKey().
      * @param Environment           $environment     Production or Sandbox routing.
      * @param int                   $timeout         Default per-request timeout in seconds.
      * @param RetryPolicy           $retry           Retry behavior for transient failures.
@@ -28,6 +40,7 @@ final readonly class Config
      */
     public function __construct(
         public string $apiKey,
+        public ?string $dataApiKey = null,
         public Environment $environment = Environment::Production,
         public int $timeout = 60,
         public RetryPolicy $retry = new RetryPolicy(),
@@ -37,6 +50,9 @@ final readonly class Config
     ) {
         if (trim($apiKey) === '') {
             throw new InvalidRequestException('Nfe\\Config: apiKey must be a non-empty string.');
+        }
+        if ($dataApiKey !== null && trim($dataApiKey) === '') {
+            throw new InvalidRequestException('Nfe\\Config: dataApiKey must be null or a non-empty string.');
         }
         if ($timeout <= 0) {
             throw new InvalidRequestException('Nfe\\Config: timeout must be positive.');
@@ -88,5 +104,32 @@ final readonly class Config
             default
             => 'https://api.nfe.io',
         };
+    }
+
+    /**
+     * Resolve which API key to use for a given API family.
+     *
+     * Data-services families (CEP/CNPJ/CPF lookup, NF-e/NFC-e query) use
+     * `dataApiKey` when set; everything else uses `apiKey`. When `dataApiKey`
+     * is null, data-services fall back to `apiKey` — matching the Node SDK
+     * resolveDataApiKey() chain (`dataApiKey ?? apiKey`).
+     *
+     * If you see HTTP 403 on `addresses`/`legalEntityLookup`/`naturalPersonLookup`/
+     * `productInvoiceQuery`/`consumerInvoiceQuery` despite a valid main key,
+     * the most likely cause is that the main key's plan does not include the
+     * data-services product. Pass a `dataApiKey` provisioned for the data
+     * plan and the SDK routes the call accordingly.
+     */
+    public function apiKeyForApi(string $api): string
+    {
+        $usesDataKey = match ($api) {
+            'addresses', 'legal-entity', 'natural-person', 'nfe-query' => true,
+            default => false,
+        };
+
+        if ($usesDataKey && $this->dataApiKey !== null) {
+            return $this->dataApiKey;
+        }
+        return $this->apiKey;
     }
 }

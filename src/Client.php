@@ -71,6 +71,9 @@ final class Client
 
     /**
      * @param string|null      $apiKey          Convenience: when present, builds the Config for you.
+     * @param string|null      $dataApiKey      Optional separate key for data-services
+     *                                            (CEP/CNPJ/CPF/NF-e query). Ignored if `$config` is set.
+     *                                            Mirrors Node SDK dataApiKey.
      * @param Config|null      $config          Provide an explicit Config to override every default.
      * @param Environment      $environment     Defaults to Production. Ignored if `$config` is set.
      * @param int              $timeout         Per-request timeout in seconds. Ignored if `$config` is set.
@@ -79,6 +82,7 @@ final class Client
      */
     public function __construct(
         ?string $apiKey = null,
+        ?string $dataApiKey = null,
         ?Config $config = null,
         Environment $environment = Environment::Production,
         int $timeout = 60,
@@ -93,6 +97,7 @@ final class Client
             }
             $config = new Config(
                 apiKey: $apiKey,
+                dataApiKey: $dataApiKey,
                 environment: $environment,
                 timeout: $timeout,
                 transport: $transport,

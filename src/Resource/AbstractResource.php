@@ -275,9 +275,21 @@ abstract class AbstractResource
         mixed $body = null,
         ?RequestOptions $options = null,
     ): Response {
+        $family = $this->apiFamily();
         // `??` suppresses property access on a null object — `->` is correct here.
         $baseUrl = $options->baseUrl
-            ?? $this->client->config->baseUrlForApi($this->apiFamily());
+            ?? $this->client->config->baseUrlForApi($family);
+
+        // Resolve which API key applies to this family. Caller's per-call
+        // override (RequestOptions::$apiKey) takes precedence; otherwise pick
+        // dataApiKey for data-services families and apiKey for everything else.
+        $apiKey = $options->apiKey ?? $this->client->config->apiKeyForApi($family);
+
+        $effectiveOptions = new RequestOptions(
+            apiKey: $apiKey,
+            baseUrl: $baseUrl,
+            timeout: $options->timeout ?? null,
+        );
 
         $encodedBody = $body !== null ? json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : null;
 
@@ -291,10 +303,10 @@ abstract class AbstractResource
             ],
             query: $query,
             body: $encodedBody === false ? null : $encodedBody,
-            timeout: $options->timeout ?? 0,
+            timeout: $effectiveOptions->timeout ?? 0,
         );
 
-        $response = $this->client->send($request, $options);
+        $response = $this->client->send($request, $effectiveOptions);
 
         // Auto-map non-2xx responses to typed exceptions. 2xx (including 202) flows
         // through to the caller; 202 specifically is then discriminated by

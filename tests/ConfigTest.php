@@ -69,3 +69,38 @@ it('routes cte and shared nfse families to api.nfse.io', function (): void {
 it('falls back to api.nfe.io for unknown families', function (): void {
     expect((new Config(apiKey: 'k'))->baseUrlForApi('unknown-future-family'))->toBe('https://api.nfe.io');
 });
+
+it('defaults dataApiKey to null and falls back to apiKey for data families', function (): void {
+    $c = new Config(apiKey: 'main-key');
+    expect($c->dataApiKey)->toBeNull();
+    // Data-services families fall back to the main key when dataApiKey is null.
+    expect($c->apiKeyForApi('addresses'))->toBe('main-key');
+    expect($c->apiKeyForApi('legal-entity'))->toBe('main-key');
+    expect($c->apiKeyForApi('natural-person'))->toBe('main-key');
+    expect($c->apiKeyForApi('nfe-query'))->toBe('main-key');
+    // Non-data families always use the main key.
+    expect($c->apiKeyForApi('main'))->toBe('main-key');
+    expect($c->apiKeyForApi('companies'))->toBe('main-key');
+});
+
+it('routes data-services families to dataApiKey when set', function (): void {
+    $c = new Config(apiKey: 'main-key', dataApiKey: 'data-key');
+    expect($c->apiKeyForApi('addresses'))->toBe('data-key');
+    expect($c->apiKeyForApi('legal-entity'))->toBe('data-key');
+    expect($c->apiKeyForApi('natural-person'))->toBe('data-key');
+    expect($c->apiKeyForApi('nfe-query'))->toBe('data-key');
+    // Emission/CRUD families still use the main key.
+    expect($c->apiKeyForApi('main'))->toBe('main-key');
+    expect($c->apiKeyForApi('companies'))->toBe('main-key');
+    expect($c->apiKeyForApi('service-invoices'))->toBe('main-key');
+    expect($c->apiKeyForApi('consumer-invoices'))->toBe('main-key');
+    expect($c->apiKeyForApi('webhooks'))->toBe('main-key');
+});
+
+it('rejects an empty dataApiKey but accepts null', function (): void {
+    // Null means "fall back to apiKey" — explicitly supported.
+    expect(fn() => new Config(apiKey: 'k', dataApiKey: null))->not->toThrow(InvalidRequestException::class);
+    // Empty/whitespace would silently authenticate as anonymous — reject.
+    expect(fn() => new Config(apiKey: 'k', dataApiKey: ''))->toThrow(InvalidRequestException::class);
+    expect(fn() => new Config(apiKey: 'k', dataApiKey: '   '))->toThrow(InvalidRequestException::class);
+});
