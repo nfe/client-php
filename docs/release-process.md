@@ -1,0 +1,137 @@
+# Processo de Release v3
+
+Runbook completo para cortar uma release da branch `v3`. Use a primeira vez para `v3.0.0-rc.1`; revise nas próximas releases.
+
+## Pré-requisitos uma única vez (admin do repo + Packagist)
+
+### 1. Registrar `nfe/client-php` no Packagist
+
+Sem isso, `composer require nfe/client-php` falha 404. Hoje o pacote **ainda não existe** no Packagist.
+
+1. Acesse https://packagist.org/packages/submit
+2. Cole `https://github.com/nfe/client-php`
+3. Confirme — Packagist crawla o `composer.json` e cria o pacote
+4. Anote o **API token** em `Profile → Show API token` (precisa do passo 2)
+
+### 2. Configurar webhook GitHub → Packagist
+
+Pra que cada `git push --tags` atualize o Packagist em ≤ 5 min:
+
+1. Repo `nfe/client-php` no GitHub → `Settings → Webhooks → Add webhook`
+2. Payload URL: `https://packagist.org/api/github?username=<seu-user-packagist>`
+3. Content type: `application/json`
+4. Secret: o API token do passo 1
+5. Eventos: marcar **Push** e **Release**
+6. Active: ✓
+
+Validar: criar um commit dummy em `v3`, push, e em poucos segundos checar `https://packagist.org/packages/nfe/client-php` — `dev-v3` deve aparecer.
+
+### 3. Configurar secrets para o workflow de integration
+
+`.github/workflows/integration.yml` roda contra a API real. Precisa em `Settings → Secrets → Actions`:
+
+| Secret | Conteúdo |
+|---|---|
+| `NFE_SDK_E2E_API_KEY` | chave principal de sandbox NFE.io |
+| `NFE_SDK_E2E_DATA_API_KEY` | (opcional) chave de serviços de dados |
+| `NFE_SDK_E2E_COMPANY_ID` | id de uma empresa cadastrada no sandbox |
+| `NFE_SDK_E2E_WEBHOOK_SECRET` | (opcional, só para o teste de webhook) |
+
+---
+
+## Cortar uma release
+
+### Para cada release
+
+A operação é **um comando** depois dos pré-requisitos:
+
+```bash
+# 1. dry-run primeiro (sem efeito colateral)
+scripts/release.sh --version 3.0.0-rc.1 --dry-run
+
+# 2. vai pra valer (cria commit local + tag local; NÃO pusha)
+scripts/release.sh --version 3.0.0-rc.1
+```
+
+O script faz, em ordem:
+1. Pre-flight: confere branch=`v3`, working tree limpo, CI verde via `gh`, tag pretendida ainda não existe.
+2. Atualiza `src/Version.php` com `'3.0.0-rc.1'`.
+3. Move a seção `[Unreleased]` do `CHANGELOG.md` para `[3.0.0-rc.1] — YYYY-MM-DD` e prepende uma nova `[Unreleased]` vazia.
+4. Roda `composer test`.
+5. Cria commit `chore(release): v3.0.0-rc.1`.
+6. Cria tag anotada `v3.0.0-rc.1` com as notas do CHANGELOG como mensagem.
+
+### Push manual
+
+O script para antes do push **intencionalmente** — você revisa o commit + tag local antes de empurrar:
+
+```bash
+git log -1
+git show v3.0.0-rc.1
+
+# tudo certo? então
+git push origin v3
+git push origin v3.0.0-rc.1
+```
+
+Quando a tag chega no remote, dois automatismos disparam:
+
+- `.github/workflows/release.yml` valida matrix completa (PHP 8.2/8.3/8.4 + PHPStan + CS + OpenAPI sync + consistência tag↔Version.php) e cria GitHub Release. Tags `-rc/-beta/-alpha` viram prerelease automaticamente.
+- Webhook GitHub → Packagist publica a versão em ~5min.
+
+### Validação pós-release
+
+```bash
+# Tag publicada no GitHub Release?
+gh release view v3.0.0-rc.1
+
+# Packagist indexou?
+curl -s https://repo.packagist.org/p2/nfe/client-php.json | jq '.packages."nfe/client-php" | keys[]' | head
+
+# Instalação real funciona?
+mkdir -p /tmp/install-test && cd /tmp/install-test
+composer init --no-interaction --name=test/install --require="nfe/client-php:3.0.0-rc.1" --stability=RC
+composer install --quiet
+php -r "require 'vendor/autoload.php'; echo Nfe\\Version::CURRENT . PHP_EOL;"
+```
+
+---
+
+## Cadência
+
+| Tipo | Janela mínima de RC/beta |
+|---|---|
+| Patch (`x.y.Z`) | sem RC, direto após CI verde |
+| Minor (`x.Y.0`) | 7 dias (14 se feature substancial) |
+| Major (`X.0.0`) | 14 dias mínimo |
+
+Para a primeira release `v3.0.0`:
+
+1. **Hoje**: cortar `v3.0.0-rc.1`. Comunicar internamente (Teams) + para integradores conhecidos (módulo WHMCS, etc.).
+2. **Dia 7**: cortar `v3.0.0-rc.2` se houver fix; senão pular.
+3. **Dia 14**: se zero issues críticas, cortar `v3.0.0` GA.
+4. **Pós-GA**: trocar badge "v3-em-desenvolvimento" no README por badge de versão estável; remover banner da branch `master`.
+
+---
+
+## Rollback / desfazer release local
+
+Se rodou `release.sh` mas ainda **não pushou**:
+
+```bash
+# Remove a tag local
+git tag -d v3.0.0-rc.1
+
+# Reverte o commit de release
+git reset --hard HEAD^
+```
+
+Se já pushou tag mas precisa retirar (situação rara — apenas se algo crítico foi descoberto entre push e indexação):
+
+```bash
+# CUIDADO: força delete no remote
+git push --delete origin v3.0.0-rc.1
+gh release delete v3.0.0-rc.1 --yes
+```
+
+Nunca delete uma tag que já foi instalada por terceiros via Packagist — isso quebra builds. Em vez disso, publique uma nova patch (`v3.0.0-rc.2`).
