@@ -1,38 +1,40 @@
-# Migrating from v2 to v3
+# Migrando da v2 para a v3
 
-> v3 is a full rewrite. There is no backwards compatibility shim, no alias, and no
-> drop-in upgrade path. This document maps the most common v2 patterns to their v3
-> equivalents.
+> A v3 é uma reescrita completa. Não há camada de compatibilidade, alias ou
+> caminho de upgrade direto. Este documento mapeia os padrões mais comuns da
+> v2 para seus equivalentes na v3.
 
-## Composer package name
+## Nome do pacote Composer
 
 | v2 | v3 |
 |---|---|
 | `composer require nfe/nfe` | `composer require nfe/client-php` |
 
-`nfe/nfe` and `nfe/client-php` are distinct Packagist packages and can coexist in a project temporarily during migration. Once your code is on v3, drop `nfe/nfe`.
+`nfe/nfe` e `nfe/client-php` são pacotes Packagist distintos e podem coexistir temporariamente no mesmo projeto durante a migração. Quando seu código estiver inteiramente na v3, remova o `nfe/nfe`.
 
-## PHP version
-
-| v2 | v3 |
-|---|---|
-| PHP 5.4+ | PHP 8.2, 8.3, or 8.4 |
-
-## Namespace and class names
-
-v2 used a flat `NFe_` prefix without PHP namespaces. v3 uses the `Nfe\` namespace with PSR-4 autoloading.
+## Versão do PHP
 
 | v2 | v3 |
 |---|---|
-| `NFe_io` | `Nfe\Client` (instance, not static) |
-| `NFe_Company` | `Nfe\Client::companies` (resource) |
-| `NFe_ServiceInvoice` | `Nfe\Client::serviceInvoices` (resource) |
-| `NFe_LegalPerson` | `Nfe\Client::legalPeople` (resource) |
-| `NFe_NaturalPerson` | `Nfe\Client::naturalPeople` (resource) |
-| `NFe_Webhook` | `Nfe\Client::webhooks` (resource); see also `Nfe\Webhook` helper |
-| `NFe_APIRequest` | `Nfe\Http\CurlTransport` (internal) |
+| PHP 5.4+ | PHP 8.2, 8.3 ou 8.4 |
 
-## Configuration
+## Namespace e nomes de classe
+
+A v2 usava o prefixo achatado `NFe_` sem namespaces PHP. A v3 usa o namespace `Nfe\` com autoload PSR-4.
+
+| v2 | v3 |
+|---|---|
+| `NFe_io` | `Nfe\Client` (instância, não estático) |
+| `NFe_Company` | `Nfe\Client::companies` (recurso) |
+| `NFe_ServiceInvoice` | `Nfe\Client::serviceInvoices` (recurso) |
+| `NFe_LegalPerson` | `Nfe\Client::legalPeople` (recurso) |
+| `NFe_NaturalPerson` | `Nfe\Client::naturalPeople` (recurso) |
+| `NFe_Webhook` | `Nfe\Client::webhooks` (recurso); veja também o helper `Nfe\Webhook` |
+| `NFe_APIRequest` | `Nfe\Http\CurlTransport` (interno) |
+
+A v3 traz 17 recursos no total (a v2 não tinha equivalentes para a maioria). Veja a tabela completa no [README](README.md#recursos-paridade-com-o-sdk-nodejs).
+
+## Configuração
 
 ```php
 // v2
@@ -46,69 +48,87 @@ $nfe = new Nfe\Client(
 );
 ```
 
-The base URL is no longer configured globally; v3 routes per-resource to the correct NFE.io host automatically (api.nfe.io, api.nfse.io, etc.).
+A base URL não é mais configurada globalmente; a v3 roteia automaticamente por recurso para o host correto da NFE.io (api.nfe.io, api.nfse.io, address.api.nfe.io/v2, legalentity.api.nfe.io, naturalperson.api.nfe.io, nfe.api.nfe.io).
 
-## Static calls become instance calls
+### Duas chaves de API (novidade da v3)
+
+A NFE.io separa o faturamento entre a API principal (emissão, empresas, webhooks) e a API de serviços de dados (consultas de CEP/CNPJ/CPF, query de NF-e/NFC-e). Se você possui duas chaves distintas, passe ambas:
 
 ```php
-// v2 (static / active-record-ish)
+$nfe = new Nfe\Client(
+    apiKey:     $_ENV['NFE_API_KEY'],
+    dataApiKey: $_ENV['NFE_DATA_API_KEY'] ?? null,
+);
+```
+
+Quando `dataApiKey` é omitido, as consultas de dados fazem fallback para `apiKey`. Veja a seção [Duas chaves de API](README.md#duas-chaves-de-api-emiss%C3%A3o-vs-servi%C3%A7os-de-dados) no README.
+
+## Chamadas estáticas viram chamadas de instância
+
+```php
+// v2 (estático / estilo active-record)
 $company = NFe_Company::create(['name' => '...']);
 $invoice = NFe_ServiceInvoice::create([...]);
 
-// v3 (instance / Stripe-style)
+// v3 (instância / estilo Stripe)
 $company = $nfe->companies->create(['name' => '...']);
 $invoice = $nfe->serviceInvoices->create($companyId, [...]);
 ```
 
-## Error handling
+## Tratamento de erros
 
-v2 returned objects with an `errors` field and used a generic `NFeException`.
-v3 raises typed exceptions you can catch specifically.
+A v2 retornava objetos com um campo `errors` e usava uma `NFeException` genérica. A v3 lança exceções tipadas que você pode capturar individualmente.
 
 ```php
 // v2
 $response = NFe_ServiceInvoice::create($attrs);
-if (isset($response->errors)) { /* handle */ }
+if (isset($response->errors)) { /* trata */ }
 
 // v3
 try {
     $invoice = $nfe->serviceInvoices->create($companyId, $data);
 } catch (Nfe\Exception\AuthenticationException $e) {
-    // 401
+    // 401 — chave ausente/inválida
+} catch (Nfe\Exception\AuthorizationException $e) {
+    // 403 — chave válida, mas plano/escopo recusa (ex.: precisa de dataApiKey)
 } catch (Nfe\Exception\InvalidRequestException $e) {
     // 400 — $e->responseBody, $e->errorCode
 } catch (Nfe\Exception\RateLimitException $e) {
-    // 429 — SDK has already retried; surface to caller
+    // 429 — o SDK já fez retry com backoff; surfaça para quem chamou
 } catch (Nfe\Exception\ApiErrorException $e) {
-    // anything else from the API
+    // qualquer outra resposta não-2xx da API
 }
 ```
 
-## Asynchronous (202) responses
+A tabela completa da hierarquia de exceções está em [Tratamento de erros](README.md#tratamento-de-erros) no README.
 
-v2 did not have a typed shape for the 202 + Location pattern that NFE.io uses for
-asynchronous invoice issuance. v3 returns a discriminated union:
+## Respostas assíncronas (HTTP 202)
+
+A v2 não tinha um formato tipado para o padrão 202 + `Location` que a NFE.io usa em emissão assíncrona. A v3 retorna uma união discriminada:
 
 ```php
 $result = $nfe->serviceInvoices->create($companyId, $data);
 
 if ($result instanceof Nfe\Response\Pending) {
-    // The API accepted the request (HTTP 202) and is processing.
-    // $result->invoiceId, $result->location
+    // A API aceitou o pedido (HTTP 202) e está processando.
+    $invoiceId = $result->invoiceId();
+    $location  = $result->location();
 } else {
-    // HTTP 201 — invoice was issued immediately.
-    // $result->invoice is the typed ServiceInvoice DTO
+    // HTTP 201 — nota emitida imediatamente.
+    $invoice = $result->resource(); // DTO tipado (ServiceInvoice)
+    echo $invoice->id;
 }
 ```
 
-A `pollUntilComplete()` convenience helper is **not** included in v3.0; loop manually with `retrieve()` in CLI/worker contexts. See README for an example.
+> ⚠️ `invoiceId()` e `location()` são **métodos** no contrato `Pending`, não propriedades. O DTO emitido vem via `resource()`.
 
-## Webhook signature verification
+Um helper `pollUntilComplete()` **não** está incluído na v3.0; faça o loop manualmente com `retrieve()` em CLI/worker. Veja o exemplo em [Polling](README.md#polling-manual-na-v30) no README.
 
-The v2 SDK did not provide a webhook signature helper. Integrators rolled their own
-(see, e.g., `nfeio-whmcs-modulo`).
+## Verificação de assinatura de webhook
 
-v3 ships `Nfe\Webhook`:
+O SDK v2 não fornecia helper de assinatura. Integradores rolavam o seu próprio (veja, por exemplo, o `nfeio-whmcs-modulo`).
+
+A v3 traz `Nfe\Webhook`:
 
 ```php
 use Nfe\Webhook;
@@ -120,25 +140,29 @@ $event = Webhook::constructEvent(
 );
 ```
 
-Algorithm: HMAC-SHA1 over the raw request body, hex-encoded, with `sha1=<hex>` prefix in the `X-Hub-Signature` header. Confirmed canonical scheme as of 2026-05-13.
+Algoritmo: HMAC-SHA1 sobre o corpo bruto da requisição, em hex, com prefixo `sha1=<hex>` no header `X-Hub-Signature`. Esquema canônico confirmado com a API NFE.io em 2026-05-13.
 
-## Generated types
+## Tipos gerados
 
-v2 had ad-hoc `NFe_Object`-derived classes per entity. v3 generates DTOs from the
-OpenAPI specs in `openapi/` into `src/Generated/`. Never edit these by hand.
+A v2 tinha classes ad-hoc derivadas de `NFe_Object` por entidade. A v3 gera DTOs a partir dos specs OpenAPI em `openapi/` para `src/Generated/`. **Nunca edite esses arquivos à mão.**
 
 ```php
-// Type the result of retrieve()
 $invoice = $nfe->serviceInvoices->retrieve($companyId, $invoiceId);
-// $invoice is Nfe\Generated\ServiceInvoiceRtcV1\ServiceInvoice
+// $invoice é Nfe\Resource\Dto\ServiceInvoices\ServiceInvoice
+// (hand-written, porque nf-servico-v1.yaml não tem schemas)
+
+$company = $nfe->companies->retrieve($companyId);
+// $company é um DTO gerado em Nfe\Generated\...
 ```
 
-## Polling helper, idempotency keys, and other deferred features
+A maioria das famílias usa os DTOs gerados em `src/Generated/`. Algumas famílias (NFS-e e variantes onde o spec OpenAPI é Swagger 2.0 ou não tem schemas) usam DTOs hand-written em `src/Resource/Dto/<Família>/`. O tipo de retorno declarado em cada método do recurso é a fonte da verdade.
 
-- `pollUntilComplete()` — deferred to a future 3.x release.
-- `Idempotency-Key` header — the NFE.io API does not support it today (confirmed 2026-05-13). The SDK does not expose a slot for it. When the API adds support, an additive minor release will add the option.
+## Helper de polling, Idempotency-Key e outras features adiadas
 
-## Detailed migration examples
+- `pollUntilComplete()` — adiado para uma release 3.x futura. Faça loop manual usando `retrieve()` + `FlowStatus::isTerminal()`.
+- Header `Idempotency-Key` — a API da NFE.io **não suporta** hoje (confirmado em 2026-05-13). O SDK não expõe slot para ele. Quando a API adicionar suporte, uma minor release aditiva incluirá o campo em `RequestOptions`.
 
-> _To be filled in during the c08-release-tooling change with at least: a vanilla
-> example, a Laravel example, and the WHMCS module pattern (`nfeio-whmcs-modulo`)._
+## Exemplos detalhados de migração
+
+> _A ser preenchido como parte do trabalho de release tooling: um exemplo
+> vanilla, um exemplo Laravel e o padrão do módulo WHMCS (`nfeio-whmcs-modulo`)._
