@@ -7,9 +7,6 @@ on:
         description: 'Motivo do run (vai pro log)'
         required: false
         default: 'manual'
-  schedule:
-    # 03:00 UTC nightly = 00:00 BRT
-    - cron: '0 3 * * *'
 
 permissions:
   contents: read

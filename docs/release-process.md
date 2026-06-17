@@ -68,8 +68,17 @@ O script para antes do push **intencionalmente** — você revisa o commit + tag
 ```bash
 git log -1
 git show v3.0.0-rc.1
+```
 
-# tudo certo? então
+**Recomendado antes do push**: rode a integration suite manualmente para validar que o sandbox NFE.io responde como esperado. É o único momento em que vale gastar cota da API.
+
+```bash
+gh workflow run integration.yml --ref v3 -f reason="pre-release v3.0.0-rc.1"
+gh run watch  # aguarda concluir
+```
+
+```bash
+# tudo certo? então pusha
 git push origin v3
 git push origin v3.0.0-rc.1
 ```
