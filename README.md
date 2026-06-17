@@ -115,7 +115,445 @@ $nfe->legalEntityLookup->getBasicInfo('12.345.678/0001-90');
 | `$nfe->taxCodes` | Códigos fiscais (NBS / CNAE) |
 | `$nfe->stateTaxes` | Inscrição estadual |
 
-## Verificação de assinatura de webhook
+## Exemplos por recurso
+
+Os blocos abaixo cobrem os usos mais comuns de cada família. Os tipos de retorno declarados em cada método são a fonte da verdade — IDEs com PHP 8.2+ resolvem tudo via type hints.
+
+<details>
+<summary><strong>Notas de Serviço (NFS-e) — <code>$nfe->serviceInvoices</code></strong></summary>
+
+```php
+// Emitir nota (assíncrono — retorna Pending|Issued)
+$result = $nfe->serviceInvoices->create($companyId, [
+    'borrower' => [
+        'federalTaxNumber' => 12345678901,
+        'name'             => 'João da Silva',
+        'email'            => 'joao@example.com',
+    ],
+    'cityServiceCode' => '10677',
+    'description'     => 'Consultoria',
+    'servicesAmount'  => 1500.00,
+]);
+
+// Listar com filtros e paginação
+$lista = $nfe->serviceInvoices->list($companyId, [
+    'pageCount' => 50,
+    'pageIndex' => 0,
+    'issuedBegin' => '2026-01-01',
+    'issuedEnd'   => '2026-01-31',
+]);
+foreach ($lista->data as $nota) {
+    echo "{$nota->id} → {$nota->flowStatus}\n";
+}
+
+// Consultar, status, cancelar, reenviar por email
+$nota   = $nfe->serviceInvoices->retrieve($companyId, $invoiceId);
+$status = $nfe->serviceInvoices->getStatus($companyId, $invoiceId);
+$nfe->serviceInvoices->cancel($companyId, $invoiceId);
+$nfe->serviceInvoices->sendEmail($companyId, $invoiceId); // envia para o email do tomador
+
+// Baixar PDF e XML (retornam bytes brutos)
+file_put_contents('nota.pdf', $nfe->serviceInvoices->downloadPdf($companyId, $invoiceId));
+file_put_contents('nota.xml', $nfe->serviceInvoices->downloadXml($companyId, $invoiceId));
+```
+
+</details>
+
+<details>
+<summary><strong>Notas de Produto (NF-e) — <code>$nfe->productInvoices</code></strong></summary>
+
+Ciclo completo: emissão, listagem, consulta, cancelamento, carta de correção (CC-e) e inutilização de faixa.
+
+```php
+// Emitir NF-e (assíncrono)
+$result = $nfe->productInvoices->create($companyId, [
+    'operationNature' => 'Venda de mercadoria',
+    'operationType'   => 'Outgoing',
+    'buyer' => ['name' => 'Empresa LTDA', 'federalTaxNumber' => 12345678000190],
+    'items' => [[
+        'code' => 'PROD-001',
+        'description' => 'Produto X',
+        'quantity' => 1,
+        'unitAmount' => 100.00,
+    ]],
+]);
+
+// Listar (environment obrigatório: Production | Development)
+$lista = $nfe->productInvoices->list($companyId, [
+    'environment' => 'Production',
+    'pageCount'   => 10,
+]);
+
+// Carta de correção (CC-e) — razão entre 15 e 1000 caracteres
+$nfe->productInvoices->sendCorrectionLetter(
+    $companyId,
+    $invoiceId,
+    'Correcao do endereco do destinatario conforme novo cadastro',
+);
+
+// Inutilizar faixa de numeração
+$nfe->productInvoices->disableRange($companyId, [
+    'environment' => 'Production',
+    'serie'       => 1,
+    'state'       => 'SP',
+    'beginNumber' => 100,
+    'lastNumber'  => 110,
+]);
+
+// Downloads
+$pdf = $nfe->productInvoices->downloadPdf($companyId, $invoiceId);
+$xml = $nfe->productInvoices->downloadXml($companyId, $invoiceId);
+$ccePdf = $nfe->productInvoices->downloadCorrectionLetterPdf($companyId, $invoiceId);
+```
+
+> Emissão, cancelamento, CC-e e inutilização são assíncronos (HTTP 202/204). A conclusão chega via webhook.
+
+</details>
+
+<details>
+<summary><strong>Notas ao Consumidor (NFC-e) — <code>$nfe->consumerInvoices</code></strong></summary>
+
+NFC-e segue o mesmo padrão de NF-e (emissão assíncrona, downloads, cancelamento, inutilização).
+
+```php
+$result = $nfe->consumerInvoices->create($companyId, $payload);
+$lista  = $nfe->consumerInvoices->list($companyId, ['environment' => 'Production']);
+$nota   = $nfe->consumerInvoices->retrieve($companyId, $invoiceId);
+$nfe->consumerInvoices->cancel($companyId, $invoiceId);
+
+// Downloads (retornam bytes)
+file_put_contents('nfce.pdf', $nfe->consumerInvoices->downloadPdf($companyId, $invoiceId));
+file_put_contents('nfce.xml', $nfe->consumerInvoices->downloadXml($companyId, $invoiceId));
+
+// Inutilizar faixa
+$nfe->consumerInvoices->disableRange($companyId, [
+    'environment' => 'Production',
+    'serie'       => 1,
+    'state'       => 'SP',
+    'beginNumber' => 1000,
+    'lastNumber'  => 1010,
+]);
+```
+
+</details>
+
+<details>
+<summary><strong>CT-e — <code>$nfe->transportationInvoices</code></strong></summary>
+
+Consulta de CT-e via Distribuição DFe. Requer certificado A1 válido na empresa.
+
+```php
+// Ativar busca automática
+$settings = $nfe->transportationInvoices->enable($companyId, [
+    'startFromNsu' => 12345, // opcional
+]);
+
+// Verificar configuração atual / desativar
+$config = $nfe->transportationInvoices->getSettings($companyId);
+$nfe->transportationInvoices->disable($companyId);
+
+// Consultar CT-e por chave (44 dígitos)
+$accessKey = '35240112345678000190570010000001231234567890';
+$cte = $nfe->transportationInvoices->retrieve($companyId, $accessKey);
+echo "Remetente: {$cte->nameSender}, valor: {$cte->totalInvoiceAmount}";
+
+// Baixar XML
+file_put_contents('cte.xml',
+    $nfe->transportationInvoices->downloadXml($companyId, $accessKey),
+);
+
+// Evento + XML do evento
+$evento = $nfe->transportationInvoices->getEvent($companyId, $accessKey, $eventKey);
+$eventoXml = $nfe->transportationInvoices->downloadEventXml($companyId, $accessKey, $eventKey);
+```
+
+</details>
+
+<details>
+<summary><strong>NF-e de Entrada (Distribuição) — <code>$nfe->inboundProductInvoices</code></strong></summary>
+
+Recebe NF-e emitidas contra a empresa via Distribuição DFe.
+
+```php
+// Ativar busca automática
+$nfe->inboundProductInvoices->enableAutoFetch($companyId, [
+    'environmentSEFAZ' => 'Production',
+    'webhookVersion'   => '2',
+]);
+
+// Consultar NF-e por chave (formato webhook v2 — recomendado)
+$accessKey = '35240112345678000190550010000001231234567890';
+$nota = $nfe->inboundProductInvoices->getProductInvoiceDetails($companyId, $accessKey);
+echo "Emissor: {$nota['issuer']['name']}";
+
+// Baixar XML, PDF (DANFE) e JSON
+file_put_contents('nfe.xml', $nfe->inboundProductInvoices->getXml($companyId, $accessKey));
+file_put_contents('nfe.pdf', $nfe->inboundProductInvoices->getPdf($companyId, $accessKey));
+$json = $nfe->inboundProductInvoices->getJson($companyId, $accessKey);
+
+// Manifestação (Ciência da Operação por padrão = 210210)
+$nfe->inboundProductInvoices->manifest($companyId, $accessKey);
+$nfe->inboundProductInvoices->manifest($companyId, $accessKey, 210220); // Confirmação da Operação
+
+// Reprocessar um webhook entregue
+$nfe->inboundProductInvoices->reprocessWebhook($companyId, $accessKey);
+```
+
+| Código | Evento de manifestação |
+|---|---|
+| `210210` | Ciência da Operação (padrão) |
+| `210220` | Confirmação da Operação |
+| `210240` | Operação não Realizada |
+
+</details>
+
+<details>
+<summary><strong>Consulta de NF-e na SEFAZ — <code>$nfe->productInvoiceQuery</code></strong></summary>
+
+Consulta NF-e diretamente na SEFAZ pela chave de acesso. Read-only, sem escopo de empresa. Usa `dataApiKey` quando configurada.
+
+```php
+$accessKey = '35240112345678000190550010000001231234567890';
+
+$nota   = $nfe->productInvoiceQuery->retrieve($accessKey);
+$pdf    = $nfe->productInvoiceQuery->downloadPdf($accessKey);
+$xml    = $nfe->productInvoiceQuery->downloadXml($accessKey);
+$eventos = $nfe->productInvoiceQuery->listEvents($accessKey);
+```
+
+</details>
+
+<details>
+<summary><strong>Consulta de CFe-SAT / NFC-e na SEFAZ — <code>$nfe->consumerInvoiceQuery</code></strong></summary>
+
+```php
+$accessKey = '35240112345678000190590000000012341234567890';
+
+$cupom = $nfe->consumerInvoiceQuery->retrieve($accessKey);
+file_put_contents('cfe.xml', $nfe->consumerInvoiceQuery->downloadXml($accessKey));
+```
+
+</details>
+
+<details>
+<summary><strong>Empresas — <code>$nfe->companies</code></strong></summary>
+
+```php
+// CRUD
+$empresa = $nfe->companies->create([
+    'federalTaxNumber' => 12345678000190,
+    'name'             => 'Minha Empresa LTDA',
+    'email'            => 'empresa@example.com',
+    // ... endereço, regime tributário, etc.
+]);
+
+$lista     = $nfe->companies->list();
+$todas     = $nfe->companies->listAll(); // sem paginação — itera tudo
+$empresa   = $nfe->companies->retrieve($companyId);
+$atualizada = $nfe->companies->update($companyId, ['email' => 'novo@example.com']);
+$nfe->companies->remove($companyId);
+
+// Buscas
+$empresa = $nfe->companies->findByTaxNumber('12345678000190');
+$matches = $nfe->companies->findByName('Minha Empresa');
+
+// Certificado A1
+$status = $nfe->companies->getCertificateStatus($companyId);
+if ($status->hasCertificate && $status->isExpiringSoon) {
+    echo "Expira em {$status->daysUntilExpiration} dia(s)\n";
+}
+
+// Painel de certificados (filtros prontos)
+$comCert     = $nfe->companies->getCompaniesWithCertificates();
+$expirando   = $nfe->companies->getCompaniesWithExpiringCertificates(thresholdDays: 30);
+```
+
+</details>
+
+<details>
+<summary><strong>Pessoas (PJ e PF) — <code>$nfe->legalPeople</code> / <code>$nfe->naturalPeople</code></strong></summary>
+
+Ambos os recursos têm a mesma forma. Exemplo com PJ:
+
+```php
+$pj = $nfe->legalPeople->create($companyId, [
+    'federalTaxNumber' => '12345678000190',
+    'name'             => 'Cliente PJ',
+    'email'            => 'pj@example.com',
+]);
+
+$lista     = $nfe->legalPeople->list($companyId);
+$pj        = $nfe->legalPeople->retrieve($companyId, $legalPersonId);
+$atualizada = $nfe->legalPeople->update($companyId, $legalPersonId, ['email' => 'novo@x.com']);
+$nfe->legalPeople->delete($companyId, $legalPersonId);
+
+// Buscar por documento
+$pj = $nfe->legalPeople->findByTaxNumber($companyId, '12345678000190');
+
+// Criação em lote
+$nfe->legalPeople->createBatch($companyId, [
+    ['federalTaxNumber' => '11111111000111', 'name' => 'PJ 1', 'email' => 'a@x.com'],
+    ['federalTaxNumber' => '22222222000122', 'name' => 'PJ 2', 'email' => 'b@x.com'],
+]);
+```
+
+Para pessoas físicas (`$nfe->naturalPeople`), troque `federalTaxNumber` (CPF de 11 dígitos) e use os mesmos métodos.
+
+</details>
+
+<details>
+<summary><strong>Inscrições Estaduais — <code>$nfe->stateTaxes</code></strong></summary>
+
+Necessário para emitir NF-e de produto.
+
+```php
+$lista = $nfe->stateTaxes->list($companyId);
+
+$ie = $nfe->stateTaxes->create($companyId, [
+    'taxNumber'       => '123456789',
+    'serie'           => 1,
+    'number'          => 1,
+    'code'            => 'SP',
+    'environmentType' => 'production',
+    'type'            => 'nFe',
+]);
+
+$ie = $nfe->stateTaxes->retrieve($companyId, $stateTaxId);
+$nfe->stateTaxes->update($companyId, $stateTaxId, ['serie' => 2]);
+$nfe->stateTaxes->delete($companyId, $stateTaxId);
+```
+
+</details>
+
+<details>
+<summary><strong>Consulta de CEP — <code>$nfe->addresses</code></strong></summary>
+
+```php
+// Por CEP (8 dígitos, com ou sem hífen)
+$resultado = $nfe->addresses->lookupByPostalCode('01310-100');
+foreach ($resultado->addresses as $end) {
+    echo "{$end['street']}, {$end['city']['name']}/{$end['state']}\n";
+}
+
+// Por termo (rua, bairro, etc.)
+$resultado = $nfe->addresses->lookupByTerm('Paulista');
+
+// Filtro OData
+$resultado = $nfe->addresses->search(['filter' => "city.name eq 'São Paulo'"]);
+```
+
+</details>
+
+<details>
+<summary><strong>Consulta de CNPJ — <code>$nfe->legalEntityLookup</code></strong></summary>
+
+```php
+// Dados cadastrais (Receita Federal)
+$result = $nfe->legalEntityLookup->getBasicInfo('12.345.678/0001-90');
+$pj = $result->legalEntity;
+echo "Razão Social: {$pj['name']}, Status: {$pj['status']}";
+
+// Com opções (atualizar endereço/código IBGE via Correios)
+$result = $nfe->legalEntityLookup->getBasicInfo('12345678000190', [
+    'updateAddress'  => false,
+    'updateCityCode' => true,
+]);
+
+// IE por estado
+$ieSP = $nfe->legalEntityLookup->getStateTaxInfo('SP', '12345678000190');
+
+// Avaliar IE para emissão de nota
+$avaliacao = $nfe->legalEntityLookup->getStateTaxForInvoice('MG', '12345678000190');
+
+// Melhor IE sugerida
+$sugestao = $nfe->legalEntityLookup->getSuggestedStateTaxForInvoice('SP', '12345678000190');
+```
+
+</details>
+
+<details>
+<summary><strong>Consulta de CPF — <code>$nfe->naturalPersonLookup</code></strong></summary>
+
+```php
+// CPF + data de nascimento (string YYYY-MM-DD ou DateTimeImmutable)
+$result = $nfe->naturalPersonLookup->getStatus('123.456.789-01', '1990-01-15');
+echo "Nome: {$result->name}, Situação: {$result->status}";
+
+// DateTimeImmutable também funciona
+$result = $nfe->naturalPersonLookup->getStatus(
+    '12345678901',
+    new DateTimeImmutable('1990-01-15'),
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Cálculo de Impostos — <code>$nfe->taxCalculation</code></strong></summary>
+
+Engine de cálculo ICMS / ICMS-ST / PIS / COFINS / IPI / II.
+
+```php
+$resultado = $nfe->taxCalculation->calculate($tenantId, [
+    'operationType' => 'Outgoing',
+    'issuer'    => ['state' => 'SP', 'taxRegime' => 'RealProfit'],
+    'recipient' => ['state' => 'RJ'],
+    'items' => [[
+        'id'            => 'item-1',
+        'operationCode' => 121,
+        'origin'        => 'National',
+        'ncm'           => '61091000',
+        'quantity'      => 10,
+        'unitAmount'    => 100.00,
+    ]],
+]);
+
+foreach ($resultado['items'] ?? [] as $item) {
+    echo "Item {$item['id']}: CFOP={$item['cfop']}\n";
+    echo "  ICMS: CST={$item['icms']['cst']}, valor={$item['icms']['vICMS']}\n";
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Códigos auxiliares — <code>$nfe->taxCodes</code></strong></summary>
+
+```php
+$operacoes        = $nfe->taxCodes->listOperationCodes(['pageIndex' => 1, 'pageCount' => 20]);
+$finalidades      = $nfe->taxCodes->listAcquisitionPurposes();
+$perfisEmissor    = $nfe->taxCodes->listIssuerTaxProfiles();
+$perfisDestinatario = $nfe->taxCodes->listRecipientTaxProfiles();
+
+foreach ($operacoes->items as $cod) {
+    echo "{$cod['code']} — {$cod['description']}\n";
+}
+```
+
+</details>
+
+## Webhooks
+
+### Configurar um webhook
+
+```php
+$webhook = $nfe->webhooks->create($companyId, [
+    'url'    => 'https://meuapp.com.br/api/webhooks/nfe',
+    'events' => ['invoice.issued', 'invoice.cancelled', 'invoice.error'],
+    'active' => true,
+]);
+
+// Listar / atualizar / remover / testar
+$lista = $nfe->webhooks->list($companyId);
+$nfe->webhooks->update($companyId, $webhookId, ['events' => ['invoice.issued']]);
+$nfe->webhooks->delete($companyId, $webhookId);
+$nfe->webhooks->test($companyId, $webhookId);
+
+// Listar eventos suportados pela API
+$eventos = $nfe->webhooks->getAvailableEvents();
+```
+
+### Verificar assinatura no endpoint
 
 O SDK fornece um helper estático alinhado ao esquema canônico usado pela NFE.io (HMAC-SHA1 sobre `X-Hub-Signature`):
 
@@ -129,11 +567,21 @@ try {
         sigHeader: $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '',
         secret:    $_ENV['NFE_WEBHOOK_SECRET'],
     );
-    // $event é um WebhookEvent tipado
+    // $event é um WebhookEvent tipado: $event->type, $event->data, $event->id, $event->createdAt
 } catch (SignatureVerificationException $e) {
     http_response_code(403);
     exit;
 }
+
+// Roteamento por tipo de evento
+match ($event->type) {
+    'invoice.issued'    => emitidaHandler($event->data),
+    'invoice.cancelled' => canceladaHandler($event->data),
+    'invoice.error'     => erroHandler($event->data),
+    default             => null,
+};
+
+http_response_code(200);
 ```
 
 ## Polling (manual na v3.0)
@@ -191,6 +639,78 @@ try {
 ```
 
 Cada exceção expõe `$statusCode`, `$responseBody`, `$responseHeaders` e `$errorCode` para diagnóstico.
+
+## Opções de configuração avançadas
+
+Quando você precisa de mais controle (timeout, retry, transporte customizado, logger), construa um `Config` explícito:
+
+```php
+use Nfe\Client;
+use Nfe\Config;
+use Nfe\Environment;
+use Nfe\Http\RetryPolicy;
+use Psr\Log\LoggerInterface;
+
+$config = new Config(
+    apiKey:     $_ENV['NFE_API_KEY'],
+    dataApiKey: $_ENV['NFE_DATA_API_KEY'] ?? null,
+    environment: Environment::Production,
+    timeout: 60, // segundos
+    retry: new RetryPolicy(
+        maxRetries: 3,
+        baseDelay: 1.0,  // segundos
+        maxDelay: 30.0,  // segundos
+        jitter: 0.3,     // ±30%
+    ),
+    logger: $myPsr3Logger,            // opcional, qualquer LoggerInterface
+    transport: $myCustomTransport,    // opcional, ex.: adaptador PSR-18
+    userAgentSuffix: 'MeuApp/1.2.3',  // sufixo identificador no User-Agent
+);
+
+$nfe = new Client(config: $config);
+```
+
+| Campo | Padrão | Descrição |
+|---|---|---|
+| `apiKey` | obrigatório | Chave principal (emissão, empresas, webhooks). |
+| `dataApiKey` | `null` | Chave separada para serviços de dados. Quando `null`, faz fallback para `apiKey`. |
+| `environment` | `Production` | `Production` ou `Sandbox`. |
+| `timeout` | `60` | Timeout HTTP por requisição (segundos). |
+| `retry` | `new RetryPolicy()` | Backoff exponencial com jitter simétrico. Use `RetryPolicy::none()` para desabilitar. |
+| `transport` | `CurlTransport` | Implementação de `Nfe\Http\Transport` (ex.: adaptador PSR-18). |
+| `logger` | `null` | Qualquer `Psr\Log\LoggerInterface`. PSR-3 **não** é dependência em runtime. |
+| `userAgentSuffix` | `null` | Identificador do integrador (ex.: `WHMCS/8.10`). |
+
+### Override por chamada
+
+`RequestOptions` sobrescreve `apiKey`, `baseUrl` e `timeout` em uma chamada específica — útil em integrações multi-tenant:
+
+```php
+use Nfe\Http\RequestOptions;
+
+$nota = $nfe->serviceInvoices->retrieve(
+    $companyId,
+    $invoiceId,
+    options: new RequestOptions(apiKey: $chaveDoCliente, timeout: 120),
+);
+```
+
+## Variáveis de ambiente
+
+O SDK **não lê variáveis de ambiente automaticamente** — você passa as chaves no construtor. Convenção sugerida (compatível com o SDK Node):
+
+| Variável | Uso |
+|---|---|
+| `NFE_API_KEY` | Chave principal. |
+| `NFE_DATA_API_KEY` | Chave separada para CEP/CNPJ/CPF/NF-e query. |
+| `NFE_WEBHOOK_SECRET` | Segredo HMAC do webhook. |
+
+```php
+$nfe = new Client(
+    apiKey:     getenv('NFE_API_KEY') ?: throw new RuntimeException('NFE_API_KEY ausente'),
+    dataApiKey: getenv('NFE_DATA_API_KEY') ?: null,
+);
+```
 
 ## Migrando da v2
 
