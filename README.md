@@ -1,5 +1,23 @@
 # Cliente PHP para emissão de notas fiscais - NFe.io
 
+> ⚠️ **Esta branch (`master`) está congelada na v2.5.** Não recebe novas
+> atualizações nem correções. Para integrações novas, use a **v3** —
+> reescrita moderna em PHP 8.2+, paridade com o SDK Node.js, zero
+> dependências em runtime:
+>
+> ```bash
+> composer require nfe/client-php
+> ```
+>
+> Acesse a [branch v3](https://github.com/nfe/client-php/tree/v3) para
+> o código atualizado, [README pt-BR](https://github.com/nfe/client-php/blob/v3/README.md),
+> [guia de migração v2 → v3](https://github.com/nfe/client-php/blob/v3/MIGRATION.md)
+> e exemplos runnable em [`samples/`](https://github.com/nfe/client-php/tree/v3/samples).
+>
+> O conteúdo abaixo descreve a v2 legada, mantido para integrações antigas.
+
+---
+
 ## Onde acessar a documentação da API?
 
 > Acesse a [nossa documentação](https://nfe.io/doc/rest-api/nfe-v1) para mais detalhes e referências.
