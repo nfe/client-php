@@ -107,3 +107,38 @@ jobs:
 
       - name: Verify generated types match specs
         run: composer generate:check
+
+  coverage:
+    name: Coverage (informativo)
+    runs-on: ubuntu-latest
+    # Métrica informativa — não bloqueia o merge. Threshold será habilitado
+    # em uma release futura. Cobertura mede `src/` excluindo `src/Generated/`
+    # (configuração em phpunit.xml.dist).
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP (Xdebug para coverage)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, json, mbstring
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Pest com coverage
+        run: vendor/bin/pest --coverage --coverage-text=coverage.txt --colors=never
+
+      - name: Publica resumo no job
+        if: always()
+        run: |
+          {
+            echo '## Cobertura de testes'
+            echo ''
+            echo '```'
+            tail -n 30 coverage.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
