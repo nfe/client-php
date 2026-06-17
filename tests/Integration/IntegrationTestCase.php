@@ -43,7 +43,7 @@ abstract class IntegrationTestCase extends TestCase
         }
 
         $this->nfe = new Client(
-            apiKey:     $apiKey,
+            apiKey: $apiKey,
             dataApiKey: getenv('NFE_SDK_E2E_DATA_API_KEY') ?: null,
         );
         $this->companyId = $companyId;
