@@ -164,5 +164,141 @@ A maioria das famílias usa os DTOs gerados em `src/Generated/`. Algumas famíli
 
 ## Exemplos detalhados de migração
 
-> _A ser preenchido como parte do trabalho de release tooling: um exemplo
-> vanilla, um exemplo Laravel e o padrão do módulo WHMCS (`nfeio-whmcs-modulo`)._
+### Vanilla PHP — emissão e listagem de NFS-e
+
+Um wrapper típico em v2 ficava mais ou menos assim:
+
+```php
+// v2 — wrapper antigo
+require_once 'vendor/autoload.php';
+
+NFe_io::setApiKey(getenv('NFE_API_KEY'));
+
+function emitirNfse($companyId, $dados) {
+    $invoice = NFe_ServiceInvoice::create($companyId, $dados);
+    if (isset($invoice->errors)) {
+        error_log('Erro: ' . json_encode($invoice->errors));
+        return null;
+    }
+    return $invoice->id ?? null;
+}
+
+function listarUltimas($companyId) {
+    return NFe_ServiceInvoice::all($companyId, ['pageCount' => 10]);
+}
+```
+
+Migrado para v3:
+
+```php
+// v3 — Stripe-style + exceções tipadas + resposta discriminada
+declare(strict_types=1);
+
+require_once 'vendor/autoload.php';
+
+use Nfe\Client;
+use Nfe\Environment;
+use Nfe\Exception\ApiErrorException;
+use Nfe\Response\Pending;
+use Nfe\Util\FlowStatus;
+
+$nfe = new Client(
+    apiKey:     getenv('NFE_API_KEY') ?: throw new RuntimeException('NFE_API_KEY ausente'),
+    environment: Environment::Production,
+);
+
+function emitirNfse(Client $nfe, string $companyId, array $dados): ?string
+{
+    try {
+        $result = $nfe->serviceInvoices->create($companyId, $dados);
+
+        if ($result instanceof Pending) {
+            // 202 — a API aceitou e está processando. Polling manual abaixo.
+            $invoiceId = $result->invoiceId();
+            do {
+                sleep(2);
+                $invoice = $nfe->serviceInvoices->retrieve($companyId, $invoiceId);
+            } while (!FlowStatus::isTerminal($invoice->flowStatus));
+
+            return $invoice->flowStatus === 'Issued' ? $invoice->id : null;
+        }
+
+        // 201 — nota emitida imediatamente
+        return $result->resource()->id;
+    } catch (ApiErrorException $e) {
+        error_log("Erro {$e->statusCode}: {$e->getMessage()}");
+        return null;
+    }
+}
+
+function listarUltimas(Client $nfe, string $companyId): array
+{
+    $lista = $nfe->serviceInvoices->list($companyId, ['pageCount' => 10]);
+    return $lista->data;
+}
+```
+
+**Diferenças-chave**:
+- `$invoice->errors` desapareceu. A v3 lança `Nfe\Exception\ApiErrorException` (ou subclasse). Tente o catch específico (`AuthenticationException`, `AuthorizationException`, etc.) quando quiser recuperar de forma direcionada.
+- A resposta de `create()` é discriminada: `Pending` (202) ou `Issued` (201). O polling é manual hoje — veja [Polling](README.md#polling-manual-na-v30).
+- `NFe_ServiceInvoice::all()` virou `$nfe->serviceInvoices->list()`, que retorna um `ListResponse<T>` com `->data` (lista hidratada) e `->page` (metadados de paginação).
+
+### Laravel — service container + facade-friendly
+
+Registre o cliente uma única vez no `AppServiceProvider`:
+
+```php
+// app/Providers/AppServiceProvider.php
+use Illuminate\Support\ServiceProvider;
+use Nfe\Client;
+use Nfe\Environment;
+use Nfe\Config;
+use Nfe\Http\RetryPolicy;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->singleton(Client::class, fn() => new Client(config: new Config(
+            apiKey:     config('services.nfeio.api_key'),
+            dataApiKey: config('services.nfeio.data_api_key'),
+            environment: app()->environment('production')
+                ? Environment::Production
+                : Environment::Sandbox,
+            timeout: 30,
+            retry: new RetryPolicy(maxRetries: 3),
+            logger: $this->app->make(\Psr\Log\LoggerInterface::class),
+            userAgentSuffix: 'Laravel/' . app()->version(),
+        )));
+    }
+}
+```
+
+Em `config/services.php`:
+
+```php
+'nfeio' => [
+    'api_key'      => env('NFE_API_KEY'),
+    'data_api_key' => env('NFE_DATA_API_KEY'),
+],
+```
+
+Injete em qualquer controller / job / command:
+
+```php
+public function emitir(Client $nfe, EmissaoRequest $request)
+{
+    $result = $nfe->serviceInvoices->create($request->companyId(), $request->validated());
+    // ...
+}
+```
+
+### Módulo WHMCS — `nfeio-whmcs-modulo`
+
+O módulo WHMCS v3.2.0+ já consome o SDK v3 nativamente. A integração antiga via `nfe/nfe` foi substituída por:
+
+1. `composer require nfe/client-php` em vez de `nfe/nfe`.
+2. Instanciar `new Nfe\Client(apiKey: $config['ApiKey'])` em `nfeio.php` no lugar de `NFe_io::setApiKey(...)`.
+3. Verificação de webhook agora usa `Nfe\Webhook::constructEvent()` com `X-Hub-Signature` (HMAC-SHA1) — algoritmo canônico confirmado com a API NFE.io em 2026-05-13.
+
+Detalhes completos em `nfeio-whmcs-modulo/CHANGELOG.md` (v3.2.0 release notes).
