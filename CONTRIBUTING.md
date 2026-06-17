@@ -99,6 +99,44 @@ docs(readme): document discriminated 202 response
 chore(deps): bump phpstan to 2.1
 ```
 
+## Release cadence
+
+The v3 line follows semver strictly:
+
+| Tipo | Janela mínima de RC/beta | Notas |
+|---|---|---|
+| Patch (`x.y.Z`) | sem RC | corta direto após CI verde + revisão |
+| Minor (`x.Y.0`) | 7 dias de RC se feature pequena; 14 se feature substancial | tag `vX.Y.0-rc.N` |
+| Major (`X.0.0`) | 14 dias de RC mínimo | tag `vX.0.0-rc.N`, anunciar interno |
+
+### Cutting a release
+
+Use o script interativo:
+
+```bash
+# dry-run primeiro para ver o que aconteceria
+scripts/release.sh --version 3.0.0-rc.1 --dry-run
+
+# vai pra valer
+scripts/release.sh --version 3.0.0-rc.1
+```
+
+O script faz pre-flight (branch correta, working tree limpo, CI verde via `gh`),
+bumpa `src/Version.php`, move a seção `[Unreleased]` do CHANGELOG para a versão
+nomeada, roda os testes, faz commit `chore(release): vX.Y.Z` e cria a tag
+anotada com a mensagem extraída do CHANGELOG. **O push é manual** — você
+revisa antes:
+
+```bash
+git push origin v3
+git push origin v3.0.0-rc.1
+```
+
+Quando a tag chega no remoto, `.github/workflows/release.yml` valida a matrix
+(8.2/8.3/8.4 + PHPStan + CS + OpenAPI sync + consistência Version.php↔tag) e
+cria a GitHub Release com as notas do CHANGELOG. Tags `vX.Y.Z-(rc|beta|alpha).N`
+são publicadas como prerelease.
+
 ## Reporting issues
 
 Open an issue at https://github.com/nfe/client-php/issues. For security-sensitive
