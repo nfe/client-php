@@ -16,13 +16,28 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 $envFile = __DIR__ . '/.env';
 if (file_exists($envFile)) {
-    $env = parse_ini_file($envFile, false, INI_SCANNER_RAW);
-    if ($env === false) {
-        throw new RuntimeException('Falha ao ler samples/.env');
-    }
-    foreach ($env as $k => $v) {
-        if (getenv($k) === false) {
-            putenv("{$k}={$v}");
+    // Parser simples para evitar problemas do parse_ini_file com caracteres
+    // especiais nos valores (parênteses, ?, &, etc. — comuns em chaves de API).
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines ?: [] as $line) {
+        $line = ltrim($line);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+        $eq = strpos($line, '=');
+        if ($eq === false) {
+            continue;
+        }
+        $key = trim(substr($line, 0, $eq));
+        $value = trim(substr($line, $eq + 1));
+        // Aceita "value", 'value' ou value sem aspas.
+        if (strlen($value) >= 2
+            && (($value[0] === '"' && $value[-1] === '"') || ($value[0] === "'" && $value[-1] === "'"))
+        ) {
+            $value = substr($value, 1, -1);
+        }
+        if ($key !== '' && getenv($key) === false) {
+            putenv("{$key}={$value}");
         }
     }
 }

@@ -74,7 +74,7 @@ it('cancel is DELETE on /{invoiceId}', function (): void {
 it('list hits the right path with consumerInvoices wrapper', function (): void {
     $payload = json_encode([
         'consumerInvoices' => [['id' => 'a'], ['id' => 'b']],
-        'pageIndex' => 0,
+        'pageIndex' => 1,
         'pageCount' => 50,
     ]);
     $mock = (new MockTransport())->push(new Response(200, [], (string) $payload));

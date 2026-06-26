@@ -63,7 +63,8 @@ final class ServiceInvoicesResource extends AbstractResource
      * Lista as NFS-e de uma empresa com paginação.
      *
      * @param array<string, scalar|array<int, scalar>> $options
-     *        Aceita: `pageIndex`, `pageCount`, `issuedBegin`, `issuedEnd`, etc.
+     *        Aceita: `pageIndex` (**1-based**), `pageCount`, `issuedBegin`,
+     *        `issuedEnd`, etc.
      * @return ListResponse<ServiceInvoice>
      */
     public function list(

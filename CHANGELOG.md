@@ -7,6 +7,18 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased] — v3 (em desenvolvimento)
 
+### Corrigido
+
+- `CompaniesResource::listAll()` agora começa em `pageIndex = 1`. A API da
+  NFE.io usa paginação **1-based** (`pageIndex >= 1`); o valor antigo `0`
+  causava HTTP 400 (`"pageIndex must be greater or equal to 1"`) na primeira
+  chamada. Descoberto via smoke test contra sandbox real.
+- `CompaniesResource::listAll()` usa `pageSize = 50` (era 100). A API rejeita
+  `pageCount > 50` com HTTP 400 (`"pageCount must be between 1 and 50"`).
+- Exemplos do README e `samples/service-invoice-list.php` atualizados para
+  refletir a paginação 1-based. Docblocks de `list()` em `CompaniesResource`
+  e `ServiceInvoicesResource` agora documentam explicitamente o valor mínimo.
+
 ### Adicionado
 
 #### Fundação e tooling

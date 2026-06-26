@@ -46,7 +46,11 @@ final class CompaniesResource extends AbstractResource
     }
 
     /**
+     * Lista empresas com paginação.
+     *
      * @param array<string, scalar|array<int, scalar>> $options
+     *        Aceita: `pageIndex` (**1-based**, default da API = 1), `pageCount`
+     *        (default da API = 50).
      * @return ListResponse<Company>
      */
     public function list(array $options = [], ?RequestOptions $reqOptions = null): ListResponse
@@ -60,6 +64,9 @@ final class CompaniesResource extends AbstractResource
     /**
      * Auto-paginates over `list()` until exhausted.
      *
+     * `pageIndex` is **1-based** na API da NFE.io; este loop começa em 1 e
+     * incrementa até a página vir parcial.
+     *
      * **Caveat**: loads all companies into memory at once. For accounts with
      * thousands of companies, prefer manual pagination.
      *
@@ -68,8 +75,8 @@ final class CompaniesResource extends AbstractResource
     public function listAll(?RequestOptions $options = null): array
     {
         $all = [];
-        $pageIndex = 0;
-        $pageSize = 100;
+        $pageIndex = 1;
+        $pageSize = 50; // máximo aceito pela API NFE.io (HTTP 400 acima disso)
         do {
             $page = $this->list(['pageIndex' => $pageIndex, 'pageCount' => $pageSize], $options);
             foreach ($page->data as $company) {

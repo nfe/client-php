@@ -19,9 +19,10 @@ $pageCount = (int) ($argv[1] ?? 10);
 
 echo "Listando últimas {$pageCount} NFS-e da empresa {$companyId}...\n";
 
+// pageIndex é 1-based na API da NFE.io. Use 1 para a primeira página.
 $lista = $nfe->serviceInvoices->list($companyId, [
     'pageCount' => $pageCount,
-    'pageIndex' => 0,
+    'pageIndex' => 1,
 ]);
 
 if (count($lista->data) === 0) {

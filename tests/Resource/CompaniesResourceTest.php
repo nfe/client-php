@@ -42,7 +42,7 @@ it('list hydrates the companies array', function (): void {
             ['id' => 'a', 'name' => 'Acme'],
             ['id' => 'b', 'name' => 'Beta'],
         ],
-        'pageIndex' => 0,
+        'pageIndex' => 1,
         'pageCount' => 100,
     ]);
     $mock = (new MockTransport())->push(new Response(200, [], (string) $payload));
@@ -50,7 +50,7 @@ it('list hydrates the companies array', function (): void {
 
     expect($list->data)->toHaveCount(2);
     expect($list->data[0]->id)->toBe('a');
-    expect($list->page->pageIndex)->toBe(0);
+    expect($list->page->pageIndex)->toBe(1);
 });
 
 it('remove returns deleted=true on 2xx', function (): void {

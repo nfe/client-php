@@ -135,10 +135,10 @@ $result = $nfe->serviceInvoices->create($companyId, [
     'servicesAmount'  => 1500.00,
 ]);
 
-// Listar com filtros e paginação
+// Listar com filtros e paginação (pageIndex é 1-based)
 $lista = $nfe->serviceInvoices->list($companyId, [
     'pageCount' => 50,
-    'pageIndex' => 0,
+    'pageIndex' => 1,
     'issuedBegin' => '2026-01-01',
     'issuedEnd'   => '2026-01-31',
 ]);

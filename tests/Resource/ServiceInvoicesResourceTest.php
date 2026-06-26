@@ -114,7 +114,7 @@ it('list returns ListResponse hydrated from serviceInvoices wrapper', function (
             ['id' => 'a', 'flowStatus' => 'Issued'],
             ['id' => 'b', 'flowStatus' => 'WaitingSend'],
         ],
-        'pageIndex' => 0,
+        'pageIndex' => 1,
         'pageCount' => 2,
     ]);
     $mock = (new MockTransport())->push(new Response(200, [], (string) $payload));
@@ -124,6 +124,6 @@ it('list returns ListResponse hydrated from serviceInvoices wrapper', function (
 
     expect($list->data)->toHaveCount(2);
     expect($list->data[0]->id)->toBe('a');
-    expect($list->page->pageIndex)->toBe(0);
+    expect($list->page->pageIndex)->toBe(1);
     expect($list->page->pageCount)->toBe(2);
 });
