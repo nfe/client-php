@@ -139,6 +139,7 @@ it('TaxCodes uses page-style pagination 1-based', function (): void {
     $url = $mock->lastRequest()?->url() ?? '';
     expect($url)->toContain('pageIndex=2');
     expect($url)->toContain('pageCount=10');
+    expect($mock->lastRequest()?->path)->toBe('/tax-codes/operation-code'); // singular, paridade com Node SDK
 });
 
 it('ProductInvoiceQuery routes to nfe.api.nfe.io v2', function (): void {

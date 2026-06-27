@@ -31,7 +31,7 @@ final class TaxCodesResource extends AbstractResource
      */
     public function listOperationCodes(array $opts = [], ?RequestOptions $options = null): TaxCodePaginatedResponse
     {
-        return $this->listEndpoint('/tax-rules/operation-codes', $opts, $options);
+        return $this->listEndpoint('/tax-codes/operation-code', $opts, $options);
     }
 
     /**
@@ -39,7 +39,7 @@ final class TaxCodesResource extends AbstractResource
      */
     public function listAcquisitionPurposes(array $opts = [], ?RequestOptions $options = null): TaxCodePaginatedResponse
     {
-        return $this->listEndpoint('/tax-rules/acquisition-purposes', $opts, $options);
+        return $this->listEndpoint('/tax-codes/acquisition-purpose', $opts, $options);
     }
 
     /**
@@ -47,7 +47,7 @@ final class TaxCodesResource extends AbstractResource
      */
     public function listIssuerTaxProfiles(array $opts = [], ?RequestOptions $options = null): TaxCodePaginatedResponse
     {
-        return $this->listEndpoint('/tax-rules/issuer-tax-profiles', $opts, $options);
+        return $this->listEndpoint('/tax-codes/issuer-tax-profile', $opts, $options);
     }
 
     /**
@@ -57,7 +57,7 @@ final class TaxCodesResource extends AbstractResource
         array $opts = [],
         ?RequestOptions $options = null,
     ): TaxCodePaginatedResponse {
-        return $this->listEndpoint('/tax-rules/recipient-tax-profiles', $opts, $options);
+        return $this->listEndpoint('/tax-codes/recipient-tax-profile', $opts, $options);
     }
 
     /**

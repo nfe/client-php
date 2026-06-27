@@ -9,6 +9,19 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ### Corrigido
 
+- `TaxCodesResource` apontava para `/tax-rules/...` (plural); a API expõe
+  esses endpoints em `/tax-codes/...` (singular, paridade com o SDK Node).
+  Todos os quatro métodos (`listOperationCodes`, `listAcquisitionPurposes`,
+  `listIssuerTaxProfiles`, `listRecipientTaxProfiles`) retornavam 404.
+  Descoberto via smoke real e corrigido em 2026-06-27.
+- `AbstractResource::download()` agora segue HTTP 302/303/307 com header
+  `Location` em uma segunda requisição cURL plain, **sem** enviar
+  `Authorization` ao CDN. A API NFE.io responde 302 + Location para o S3
+  pré-assinado em todos os downloads de PDF/XML; antes, o SDK tratava o
+  3xx como falha e lançava `InvalidRequestException`.
+- `AbstractResource::send()` agora só auto-throwa em `>= 400`. 3xx flui
+  para o caller, permitindo que `download()` siga o redirect manualmente.
+  2xx (incluindo 202) continua fluindo como antes.
 - `CompaniesResource::listAll()` agora começa em `pageIndex = 1`. A API da
   NFE.io usa paginação **1-based** (`pageIndex >= 1`); o valor antigo `0`
   causava HTTP 400 (`"pageIndex must be greater or equal to 1"`) na primeira

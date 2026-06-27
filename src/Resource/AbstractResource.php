@@ -6,6 +6,7 @@ namespace Nfe\Resource;
 
 use JsonException;
 use Nfe\Client;
+use Nfe\Exception\ApiConnectionException;
 use Nfe\Exception\ErrorFactory;
 use Nfe\Exception\InvalidRequestException;
 use Nfe\Http\Request;
@@ -79,20 +80,66 @@ abstract class AbstractResource
     }
 
     /**
-     * Issue a GET and return the raw response body as bytes.
+     * Baixa bytes brutos (PDF/XML) de um endpoint de download.
      *
-     * Used by PDF/XML download methods. Any non-2xx response is mapped to the
-     * appropriate exception via {@see ErrorFactory}.
+     * A API NFE.io frequentemente responde com HTTP 302/303 + header `Location`
+     * apontando para o CDN/S3 onde o documento está armazenado. Este helper
+     * segue o redirect explicitamente em uma segunda requisição **sem** o
+     * header `Authorization`, evitando vazar a API key para o host de destino.
      *
      * @param array<string, scalar|array<int, scalar>> $query
      */
     protected function download(string $path, array $query = [], ?RequestOptions $options = null): string
     {
         $response = $this->httpGet($path, $query, $options);
+
+        if ($response->statusCode === 302 || $response->statusCode === 303 || $response->statusCode === 307) {
+            $location = $response->header('location');
+            if (is_string($location) && $location !== '') {
+                return $this->followDownloadRedirect($location);
+            }
+        }
+
         if (!$response->isSuccess()) {
             throw ErrorFactory::fromResponse($response);
         }
         return $response->body;
+    }
+
+    /**
+     * Segue um redirect de download via cURL plain, sem credenciais.
+     *
+     * O CDN da NFE.io não exige `Authorization` (a URL pré-assinada já carrega
+     * o token de acesso na query string). Reusar o transport completo do SDK
+     * aqui incluiria `Authorization` automaticamente, expondo a chave para um
+     * host fora do controle da NFE.io. Por isso usamos cURL direto e plain.
+     */
+    private function followDownloadRedirect(string $url): string
+    {
+        if ($url === '') {
+            throw new ApiConnectionException('Redirect com Location vazio.');
+        }
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curl, CURLOPT_MAXREDIRS, 3);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Accept: */*']);
+
+        $body = curl_exec($curl);
+        $err = curl_error($curl);
+        $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($body === false || $err !== '') {
+            throw new ApiConnectionException("Falha ao baixar arquivo do CDN: {$err}");
+        }
+        if ($status < 200 || $status >= 300) {
+            throw new ApiConnectionException("CDN retornou HTTP {$status} ao baixar o arquivo.");
+        }
+        return (string) $body;
     }
 
     /**
@@ -308,12 +355,12 @@ abstract class AbstractResource
 
         $response = $this->client->send($request, $effectiveOptions);
 
-        // Auto-map non-2xx responses to typed exceptions. 2xx (including 202) flows
-        // through to the caller; 202 specifically is then discriminated by
-        // handleAsyncResponse() when the calling resource expects async semantics.
-        // Resources that need to inspect raw failure responses can catch the
-        // resulting ApiErrorException and read its $statusCode / $responseBody.
-        if (!$response->isSuccess()) {
+        // Auto-map 4xx/5xx responses to typed exceptions. 2xx (incluindo 202)
+        // e 3xx fluem para o caller — 202 é discriminado por handleAsyncResponse()
+        // e 3xx é seguido manualmente por download() (sem vazar Authorization
+        // para o CDN). Resources que precisam inspecionar respostas brutas de
+        // falha podem capturar a exceção e ler $statusCode / $responseBody.
+        if ($response->statusCode >= 400) {
             throw ErrorFactory::fromResponse($response);
         }
 

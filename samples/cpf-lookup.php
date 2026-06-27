@@ -17,13 +17,14 @@ use Nfe\Exception\NotFoundException;
 
 $nfe = require __DIR__ . '/_bootstrap.php';
 
-if (($argv[1] ?? '') === '' || ($argv[2] ?? '') === '') {
+$cpf = $argv[1] ?? getenv('CPF_SAMPLER');
+$nascimento = $argv[2] ?? getenv('BIRTHDAY_SAMPLER');
+
+if (!$cpf || !$nascimento) {
     fwrite(STDERR, "Uso: php samples/cpf-lookup.php <CPF> <YYYY-MM-DD>\n");
+    fwrite(STDERR, "Ou defina CPF_SAMPLER e BIRTHDAY_SAMPLER em samples/.env\n");
     exit(2);
 }
-
-$cpf = $argv[1];
-$nascimento = $argv[2];
 
 echo "Consultando CPF {$cpf} (nascido em {$nascimento})...\n";
 
