@@ -5,7 +5,9 @@ Todas as mudanças relevantes deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/spec/v2.0.0.html).
 
-## [Unreleased] — v3 (em desenvolvimento)
+## [Unreleased]
+
+## [3.0.0-rc.1] — 2026-06-30
 
 ### Corrigido
 
