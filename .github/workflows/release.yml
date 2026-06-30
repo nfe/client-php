@@ -73,10 +73,14 @@ jobs:
         id: notes
         run: |
           version="${GITHUB_REF_NAME#v}"
-          awk "/^## \[${version}\]/,/^## \[/" CHANGELOG.md \
-              | sed '$d' \
-              | sed '1d' \
-              > release-notes.md
+          # Flag-based extraction. O range `/A/,/B/` do awk degenera quando
+          # A e B são o mesmo pattern (a primeira linha casa ambos), por
+          # isso usamos uma flag explícita.
+          awk -v ver="$version" '
+              $0 ~ "^## \\[" ver "\\]" { f=1; next }
+              /^## \[/ { if (f) exit }
+              f { print }
+          ' CHANGELOG.md > release-notes.md
           if [ ! -s release-notes.md ]; then
             echo "::warning::Sem notas no CHANGELOG para [$version]. Release será publicada sem corpo."
             echo "Release $version" > release-notes.md

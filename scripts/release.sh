@@ -141,9 +141,15 @@ if [ $SKIP_GIT -eq 0 ]; then
     run "git add src/Version.php CHANGELOG.md"
     run "git commit -m 'chore(release): v$VERSION'"
 
-    # Mensagem da tag = bloco [VERSION] do CHANGELOG
+    # Mensagem da tag = bloco [VERSION] do CHANGELOG.
+    # Usa flag-based extraction porque o range `/A/,/B/` do awk degenera
+    # quando A e B são o mesmo pattern (a primeira linha casa ambos).
     if [ $DRY_RUN -eq 0 ]; then
-        notes=$(awk "/^## \[$VERSION\]/,/^## \[/" CHANGELOG.md | sed '$d')
+        notes=$(awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { f=1; next }
+            /^## \[/ { if (f) exit }
+            f { print }
+        ' CHANGELOG.md)
         printf '%s\n' "$notes" | git tag -a "v$VERSION" -F -
     else
         echo "  \033[1;33mdry-run:\033[0m git tag -a v$VERSION (mensagem extraída do CHANGELOG)"
