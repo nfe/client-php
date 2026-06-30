@@ -25,6 +25,7 @@ openspec/
 client-nodejs
 nfeio-docs
 nfeio-whmcs-modulo
+client-ruby
 
 # Local-only notes (Teams comms, decision logs, etc.)
 .notes/
