@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # criar GitHub Release
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verifica matrix antes de liberar
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, json, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Pest
+        run: composer test
+
+      - name: PHPStan
+        if: matrix.php == '8.2'
+        run: composer stan
+
+      - name: PHP-CS-Fixer
+        if: matrix.php == '8.2'
+        run: composer cs
+
+      - name: OpenAPI sync
+        if: matrix.php == '8.2'
+        run: composer generate:check
+
+      - name: Version.php matches tag
+        if: matrix.php == '8.2'
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          file_version=$(grep -oP "public const CURRENT = '\K[^']+" src/Version.php)
+          echo "tag: $tag_version | Version.php: $file_version"
+          if [ "$tag_version" != "$file_version" ]; then
+            echo "::error::Tag ($tag_version) divergente de src/Version.php ($file_version). Use scripts/release.sh."
+            exit 1
+          fi
+
+  release:
+    name: Cria GitHub Release
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extrai notas do CHANGELOG
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # Flag-based extraction. O range `/A/,/B/` do awk degenera quando
+          # A e B são o mesmo pattern (a primeira linha casa ambos), por
+          # isso usamos uma flag explícita.
+          awk -v ver="$version" '
+              $0 ~ "^## \\[" ver "\\]" { f=1; next }
+              /^## \[/ { if (f) exit }
+              f { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::warning::Sem notas no CHANGELOG para [$version]. Release será publicada sem corpo."
+            echo "Release $version" > release-notes.md
+          fi
+          cat release-notes.md
+
+      - name: Determina se é prerelease
+        id: prerelease
+        run: |
+          if [[ "${GITHUB_REF_NAME}" =~ -(rc|beta|alpha)\. ]]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publica release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+              --title "${GITHUB_REF_NAME}" \
+              --notes-file release-notes.md \
+              --prerelease=${{ steps.prerelease.outputs.value }}

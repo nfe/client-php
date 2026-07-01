@@ -1,0 +1,13 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        analyseAndScan:
+            - src/Generated/*
+    treatPhpDocTypesAsCertain: false
+    # Tests are excluded from level 8 analysis because Pest's `$this->property`
+    # pattern in beforeEach/afterEach blocks is not understood by PHPStan's
+    # default rule set, and most of the errors there are noise rather than bugs.
+    # If we later want stricter test analysis we can add a dedicated phpstan
+    # config for tests at a lower level.

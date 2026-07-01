@@ -1,0 +1,77 @@
+swagger: "2.0"
+host: nfe.api.nfe.io
+schemes:
+  - https
+info:
+  title: Consulta de Notas Fiscais
+  version: v3
+  x-displayName: Introdução
+  description: "# Consulta de Nota Fiscal — V3 (Consulta Irrestrita)\nA V3 da Consulta Irrestrita devolve o XML da NF-e exatamente como o provedor SERPRO entrega, SEM normalização para o esquema canônico camelCase da NFE.io.\n\nUse quando precisar preservar a autenticidade do payload original do provedor — auditoria fiscal, repasse legal ou sistemas legados que esperam o XML SERPRO original.\n\nPara a maioria das integrações (JSON normalizado, XML traduzido e DANFE em PDF), prefira a [V2](/docs/desenvolvedores/rest-api/consulta-de-nota-fiscal/v2/).\n\n# Autenticação\nInforme sua Chave de Dados no header `Authorization` (sem prefixo `Bearer`) ou via query string `apikey`.\n\nDocumentação funcional: [Consulta Irrestrita](/docs/documentacao/consultas/notas-fiscais/consulta-irrestrita/).\n"
+tags:
+  - name: Irrestrita
+    x-displayName: Consulta Irrestrita
+    description: Consulta Irrestrita da NFE.io — fonte nacional unificada de NF-e autorizadas. A V3 retorna o XML cru entregue pelo provedor SERPRO, sem tradução de campos.
+paths:
+  /v3/productinvoices/serpro/{accessKey}.xml:
+    get:
+      tags:
+        - Irrestrita
+      summary: Consulta Irrestrita de NF-e por Chave de Acesso (XML)
+      description: "Retorna o XML da NF-e exatamente como o provedor SERPRO entrega, SEM normalização para o esquema canônico camelCase da NFE.io. Use a Chave de Dados no header `Authorization` SEM prefixo `Bearer`. Indicado para auditoria fiscal, repasse legal e sistemas legados que esperam o XML original do provedor. Para a maioria das integrações, prefira a V2."
+      operationId: V3ProductinvoicesSerproByAccessKey}.xmlGet
+      consumes: []
+      produces:
+        - application/xml
+      parameters:
+        - name: accessKey
+          in: path
+          description: Chave de Acesso (44 dígitos numéricos)
+          required: true
+          type: string
+        - name: X-Client-Timeout-Seconds
+          in: header
+          description: Timeout customizado em segundos para a consulta ao provedor SERPRO. Default 180.
+          required: false
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Sucesso na requisição. O corpo é o XML cru entregue pelo provedor SERPRO (nfeProc), sem tradução de campos.
+          schema:
+            type: string
+        "400":
+          description: Algum parametro informado não é válido
+          schema:
+            type: string
+        "401":
+          description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+        "403":
+          description: Accesso proibido
+        "404":
+          description: Nota Fiscal não foi encontrada
+          schema:
+            type: string
+        "500":
+          description: Erro no processamento
+          schema:
+            type: string
+        "504":
+          description: Timeout ao consultar o provedor SERPRO. Tente novamente, opcionalmente aumentando o header X-Client-Timeout-Seconds.
+          schema:
+            type: string
+      security:
+        - Authorization_Header:
+            - apiKey
+        - Authorization_QueryParam:
+            - apiKey
+securityDefinitions:
+  Authorization_Header:
+    name: Authorization
+    in: header
+    type: apiKey
+    description: 'Autenticar usando o Cabeçalho HTTP Authorization com sua API Key'
+  Authorization_QueryParam:
+    name: apikey
+    in: query
+    type: apiKey
+    description: 'Autenticar usando o Parametro na URL, exemplo: "/?apikey={APIKEY_TOKEN}"'

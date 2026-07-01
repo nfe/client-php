@@ -1,0 +1,66 @@
+# Docker-based dev environment for the NFE.io PHP SDK.
+#
+# Quick start:
+#   cp .env.docker.example .env       # one-time, sets UID/GID
+#   docker compose build              # build all three matrix images
+#   docker compose run --rm php composer install
+#   docker compose run --rm php composer test
+#   docker compose run --rm php composer generate
+#
+# The `php` service is the primary one (PHP 8.2 — the project floor).
+# Use `php83` and `php84` to reproduce the CI matrix locally:
+#   docker compose run --rm php83 composer test
+#   docker compose run --rm php84 composer test
+
+x-php-defaults: &php-defaults
+  volumes:
+    - .:/app
+    - composer-cache:/home/app/.composer
+  working_dir: /app
+  init: true
+  tty: true
+  # Forward .env into the container so SDK env vars (NFEIO_API_KEY, NFEIO_COMPANY_ID,
+  # NFE_SDK_E2E, etc.) are available to PHP scripts running inside the container.
+  # The file is loaded at runtime (docker compose run/exec); build args still come
+  # from the host shell or `.env` interpolation in `args:`.
+  env_file:
+    - path: .env
+      required: false
+
+services:
+  php:
+    <<: *php-defaults
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        PHP_VERSION: "8.2"
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    image: nfe-client-php:8.2
+
+  php83:
+    <<: *php-defaults
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        PHP_VERSION: "8.3"
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    image: nfe-client-php:8.3
+
+  php84:
+    <<: *php-defaults
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    image: nfe-client-php:8.4
+
+volumes:
+  composer-cache:
+    driver: local

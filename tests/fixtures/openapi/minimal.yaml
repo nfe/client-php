@@ -1,0 +1,64 @@
+openapi: 3.0.3
+info:
+  title: Minimal Fixture
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Address:
+      type: object
+      description: Postal address used in tests.
+      required:
+        - street
+        - city
+      properties:
+        street:
+          type: string
+        number:
+          type: string
+          nullable: true
+        city:
+          type: string
+        postalCode:
+          type: string
+          nullable: true
+    Borrower:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        federalTaxNumber:
+          type: integer
+          format: int64
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        address:
+          $ref: '#/components/schemas/Address'
+    FlowStatus:
+      type: string
+      description: Lifecycle of an invoice.
+      enum:
+        - WaitingDefineRpsNumber
+        - Issued
+        - Cancelled
+        - Error
+    Invoice:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/FlowStatus'
+        items:
+          type: array
+          items:
+            type: string
+        servicesAmount:
+          type: number
+          nullable: true
