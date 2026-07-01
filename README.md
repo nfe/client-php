@@ -438,17 +438,12 @@ $nfe->stateTaxes->delete($companyId, $stateTaxId);
 <summary><strong>Consulta de CEP — <code>$nfe->addresses</code></strong></summary>
 
 ```php
-// Por CEP (8 dígitos, com ou sem hífen)
+// Por CEP (8 dígitos, com ou sem hífen). O host address.api.nfe.io/v2
+// suporta apenas consulta por CEP.
 $resultado = $nfe->addresses->lookupByPostalCode('01310-100');
 foreach ($resultado->addresses as $end) {
     echo "{$end['street']}, {$end['city']['name']}/{$end['state']}\n";
 }
-
-// Por termo (rua, bairro, etc.)
-$resultado = $nfe->addresses->lookupByTerm('Paulista');
-
-// Filtro OData
-$resultado = $nfe->addresses->search(['filter' => "city.name eq 'São Paulo'"]);
 ```
 
 </details>

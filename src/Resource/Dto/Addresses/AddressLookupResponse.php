@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Nfe\Resource\Dto\Addresses;
 
 /**
- * Address lookup response (CEP / search / term).
+ * Resposta da consulta de endereço por CEP.
  *
- * The actual NFE.io API returns either a single `address` object or an
- * `addresses` array, depending on the endpoint. We expose `addresses` as a
- * normalised list for uniform consumption.
+ * A API real de `address.api.nfe.io/v2` devolve um único endereço envelopado
+ * como `{ "address": { … } }`. Desembrulhamos esse objeto e o expomos em
+ * `$addresses` como uma lista normalizada (tipicamente com 1 elemento) para
+ * consumo uniforme; `$raw` mantém o payload original decodificado.
  */
 final readonly class AddressLookupResponse
 {

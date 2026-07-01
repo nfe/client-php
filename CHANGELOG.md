@@ -7,6 +7,25 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+### Removido
+
+- **BREAKING:** `AddressesResource::search()` e `AddressesResource::lookupByTerm()`
+  foram removidos. O host `address.api.nfe.io/v2` suporta **apenas** consulta por
+  CEP; os endpoints `GET /addresses` (busca) e `GET /addresses/{termo}` não
+  existem (retornam 404), então os métodos nunca funcionaram. Paridade com o
+  SDK Node (`fix-address-lookup-api-mismatch`). Use `lookupByPostalCode()`.
+
+### Corrigido
+
+- `AddressesResource::lookupByPostalCode()` agora desembrulha o envelope real
+  `{ "address": { … } }` retornado pela API. Antes, `extractAddresses()`
+  procurava a chave `addresses` (plural) — que a API nunca retorna — e caía num
+  fallback que expunha o envelope inteiro, deixando `->addresses[0]['street']`
+  como `null` (quebra silenciosa). Agora os campos do endereço ficam legíveis
+  diretamente em `->addresses[0]`.
+- `openapi/consulta-endereco-v3.yaml` enxugado para conter só a operação de CEP,
+  alinhando o spec à API real (as operações de busca/termo eram fantasmas).
+
 ## [3.0.0-rc.2] — 2026-07-01
 
 ### Corrigido

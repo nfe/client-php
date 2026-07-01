@@ -20,7 +20,7 @@ function buildLookupClient(MockTransport $mock): Client
 }
 
 it('Addresses routes to address.api.nfe.io/v2 (version embedded)', function (): void {
-    $mock = (new MockTransport())->push(new Response(200, [], '{"addresses":[]}'));
+    $mock = (new MockTransport())->push(new Response(200, [], '{"address":{}}'));
     buildLookupClient($mock)->addresses->lookupByPostalCode('01310-100');
 
     $sent = $mock->lastRequest();
@@ -28,29 +28,25 @@ it('Addresses routes to address.api.nfe.io/v2 (version embedded)', function (): 
     expect($sent?->path)->toBe('/addresses/01310100');
 });
 
-it('Addresses returns AddressLookupResponse with addresses array', function (): void {
+it('Addresses unwraps the real { address } envelope', function (): void {
+    // A API real devolve `{ "address": { … } }` (objeto único envelopado).
     $mock = (new MockTransport())->push(new Response(
         200,
         [],
-        '{"addresses":[{"street":"Av. Paulista","city":"São Paulo"}]}',
+        '{"address":{"street":"Av. Paulista","city":{"name":"São Paulo"},"state":"SP"}}',
     ));
     $result = buildLookupClient($mock)->addresses->lookupByPostalCode('01310100');
 
     expect($result)->toBeInstanceOf(AddressLookupResponse::class);
     expect($result->addresses)->toHaveCount(1);
+    // Campos legíveis diretamente — não o envelope.
     expect($result->addresses[0]['street'])->toBe('Av. Paulista');
+    expect($result->addresses[0]['state'])->toBe('SP');
+    expect($result->addresses[0])->not->toHaveKey('address');
 });
 
-it('Addresses search forwards OData filter as $filter query', function (): void {
-    $mock = (new MockTransport())->push(new Response(200, [], '{"addresses":[]}'));
-    buildLookupClient($mock)->addresses->search(['filter' => "city eq 'São Paulo'"]);
-
-    $url = $mock->lastRequest()?->url() ?? '';
-    expect($url)->toContain('%24filter=city');
-});
-
-it('Addresses rejects empty term', function (): void {
-    expect(fn() => buildLookupClient(new MockTransport())->addresses->lookupByTerm('   '))
+it('Addresses rejects CEP with invalid length synchronously', function (): void {
+    expect(fn() => buildLookupClient(new MockTransport())->addresses->lookupByPostalCode('123'))
         ->toThrow(InvalidRequestException::class);
 });
 
