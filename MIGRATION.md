@@ -8,9 +8,9 @@
 
 | v2 | v3 |
 |---|---|
-| `composer require nfe/nfe` | `composer require nfe/client-php` |
+| `composer require nfe/nfe:^2.0` | `composer require "nfe/nfe:^3.0"` (após GA) ou `composer require "nfe/nfe:^3.0.0-rc" --stability=RC` (RC atual) |
 
-`nfe/nfe` e `nfe/client-php` são pacotes Packagist distintos e podem coexistir temporariamente no mesmo projeto durante a migração. Quando seu código estiver inteiramente na v3, remova o `nfe/nfe`.
+O slug Packagist é o mesmo (`nfe/nfe`). A v3 é uma major release com breaking changes, mas o Composer resolve cada constraint para a major correta automaticamente. Para migrar, atualize o constraint no `composer.json` de `^2.0` para `^3.0` (ou `^3.0.0-rc` durante a janela de RC) e rode `composer update nfe/nfe`.
 
 ## Versão do PHP
 
@@ -295,9 +295,9 @@ public function emitir(Client $nfe, EmissaoRequest $request)
 
 ### Módulo WHMCS — `nfeio-whmcs-modulo`
 
-O módulo WHMCS v3.2.0+ já consome o SDK v3 nativamente. A integração antiga via `nfe/nfe` foi substituída por:
+O módulo WHMCS v3.2.0+ já consome o SDK v3 nativamente. A integração antiga via `nfe/nfe:^2.0` foi substituída por:
 
-1. `composer require nfe/client-php` em vez de `nfe/nfe`.
+1. Constraint do Composer atualizada para `"nfe/nfe": "^3.0"` (mesmo slug, major nova).
 2. Instanciar `new Nfe\Client(apiKey: $config['ApiKey'])` em `nfeio.php` no lugar de `NFe_io::setApiKey(...)`.
 3. Verificação de webhook agora usa `Nfe\Webhook::constructEvent()` com `X-Hub-Signature` (HMAC-SHA1) — algoritmo canônico confirmado com a API NFE.io em 2026-05-13.
 

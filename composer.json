@@ -1,6 +1,6 @@
 {
-    "name": "nfe/client-php",
-    "description": "Official NFE.io PHP SDK — modern PHP 8.2+, zero runtime dependencies, parity with the Node.js SDK.",
+    "name": "nfe/nfe",
+    "description": "SDK PHP oficial da NFE.io — PHP 8.2+, zero dependências em runtime, paridade com o SDK Node.js.",
     "homepage": "https://nfe.io",
     "type": "library",
     "keywords": [

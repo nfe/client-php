@@ -7,6 +7,14 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+### Corrigido
+
+- `composer.json` `name` voltou a ser `nfe/nfe` (a `v3.0.0-rc.1` shipou
+  com `nfe/client-php` por engano). A v3 mantém o **mesmo slug Packagist**
+  da v2 — Composer resolve `^2.0` e `^3.0` para a major correta. Não há
+  pacote `nfe/client-php` no Packagist; a `v3.0.0-rc.1` foi indexada
+  corretamente sob `nfe/nfe`. README e MIGRATION alinhados.
+
 ## [3.0.0-rc.1] — 2026-06-30
 
 ### Corrigido
@@ -40,8 +48,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 - Baseline em PHP 8.2+. Encerra suporte às versões 5.4 até 8.1.
 - Autoload PSR-4 com namespace raiz `Nfe\` em `src/`.
-- Pacote Composer renomeado: `nfe/client-php` (antes `nfe/nfe`). Os dois
-  podem coexistir durante a migração. O `nfe/nfe` está congelado na v2.5.
+- Mesmo pacote Composer da v2 (`nfe/nfe`), agora servindo a major 3.
+  A v2 permanece disponível via constraint `^2.0`; a v3 via `^3.0`.
 - `declare(strict_types=1)` em todos os arquivos-fonte.
 - Pest 3, PHPStan nível 8 e PHP-CS-Fixer (PER-CS 2.0 + PHP 8.2 migration)
   configurados em `require-dev` e impostos pelo CI.

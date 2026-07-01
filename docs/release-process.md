@@ -4,27 +4,24 @@ Runbook completo para cortar uma release da branch `v3`. Use a primeira vez para
 
 ## Pré-requisitos uma única vez (admin do repo + Packagist)
 
-### 1. Registrar `nfe/client-php` no Packagist
+### 1. Packagist — pacote `nfe/nfe` (já existe)
 
-Sem isso, `composer require nfe/client-php` falha 404. Hoje o pacote **ainda não existe** no Packagist.
+A v3 **reusa o mesmo pacote da v2**: [`nfe/nfe`](https://packagist.org/packages/nfe/nfe). Não há novo pacote a submeter. O Packagist já indexa as majors 1, 2 e 3 sob o mesmo slug; o Composer resolve cada constraint (`^2.0`, `^3.0`) para a major correta.
 
-1. Acesse https://packagist.org/packages/submit
-2. Cole `https://github.com/nfe/client-php`
-3. Confirme — Packagist crawla o `composer.json` e cria o pacote
-4. Anote o **API token** em `Profile → Show API token` (precisa do passo 2)
+Confirmado em 2026-06-30: a tag `v3.0.0-rc.1` foi indexada automaticamente sob `nfe/nfe` assim que chegou no remoto.
 
-### 2. Configurar webhook GitHub → Packagist
+### 2. Webhook GitHub → Packagist (já configurado)
 
-Pra que cada `git push --tags` atualize o Packagist em ≤ 5 min:
+O webhook do repo `nfe/client-php` (GitHub) aponta para o pacote `nfe/nfe` no Packagist e dispara em cada `git push --tags`, atualizando em ≤ 5 min. Configuração para referência:
 
-1. Repo `nfe/client-php` no GitHub → `Settings → Webhooks → Add webhook`
-2. Payload URL: `https://packagist.org/api/github?username=<seu-user-packagist>`
+1. Repo `nfe/client-php` no GitHub → `Settings → Webhooks`
+2. Payload URL: `https://packagist.org/api/github?username=<user-packagist>`
 3. Content type: `application/json`
-4. Secret: o API token do passo 1
-5. Eventos: marcar **Push** e **Release**
+4. Secret: o API token do Packagist (`Profile → Show API token`)
+5. Eventos: **Push**
 6. Active: ✓
 
-Validar: criar um commit dummy em `v3`, push, e em poucos segundos checar `https://packagist.org/packages/nfe/client-php` — `dev-v3` deve aparecer.
+Validar: após pushar uma tag, checar `https://packagist.org/packages/nfe/nfe` — a nova versão deve aparecer em minutos.
 
 ### 3. Configurar secrets para o workflow de integration
 
@@ -94,12 +91,12 @@ Quando a tag chega no remote, dois automatismos disparam:
 # Tag publicada no GitHub Release?
 gh release view v3.0.0-rc.1
 
-# Packagist indexou?
-curl -s https://repo.packagist.org/p2/nfe/client-php.json | jq '.packages."nfe/client-php" | keys[]' | head
+# Packagist indexou? (map de versões -> commit)
+curl -s https://repo.packagist.org/p2/nfe/nfe.json | jq '.packages."nfe/nfe" | map(.version)'
 
 # Instalação real funciona?
 mkdir -p /tmp/install-test && cd /tmp/install-test
-composer init --no-interaction --name=test/install --require="nfe/client-php:3.0.0-rc.1" --stability=RC
+composer init --no-interaction --name=test/install --require="nfe/nfe:3.0.0-rc.1" --stability=RC
 composer install --quiet
 php -r "require 'vendor/autoload.php'; echo Nfe\\Version::CURRENT . PHP_EOL;"
 ```
