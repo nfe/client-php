@@ -7,6 +7,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.0.0] — 2026-07-01
+
 ### Removido
 
 - **BREAKING:** `AddressesResource::search()` e `AddressesResource::lookupByTerm()`
