@@ -7,6 +7,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.0.0-rc.2] — 2026-07-01
+
 ### Corrigido
 
 - `composer.json` `name` voltou a ser `nfe/nfe` (a `v3.0.0-rc.1` shipou
