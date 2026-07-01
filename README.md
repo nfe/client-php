@@ -35,6 +35,21 @@ composer require nfe/nfe:^3.0
 composer require nfe/nfe:^2.0
 ```
 
+### Skill para agentes de IA
+
+Além do pacote de código, este repositório publica uma **skill de agente** (`nfeio-php-sdk`)
+que ensina assistentes de IA (Claude Code, Cursor, Copilot, etc.) a usar o SDK corretamente.
+São **dois canais distintos**:
+
+| Canal | Comando | O quê |
+|---|---|---|
+| Código (Composer / Packagist) | `composer require nfe/nfe` | O SDK PHP |
+| Skill de agente ([skills.sh](https://www.skills.sh/)) | `npx skills add https://github.com/nfe/client-php --skill nfeio-php-sdk` | O guia de uso para agentes |
+
+O atalho `npx skills add nfe/client-php` também funciona. A skill é lida da árvore do
+GitHub (slug `nfe/client-php`); ela **não** é baixada pelo `composer require` (fica fora
+do dist via `.gitattributes` `export-ignore`).
+
 ## Início rápido (API alvo da v3)
 
 ```php

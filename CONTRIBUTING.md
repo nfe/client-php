@@ -137,6 +137,17 @@ Quando a tag chega no remoto, `.github/workflows/release.yml` valida a matrix
 cria a GitHub Release com as notas do CHANGELOG. Tags `vX.Y.Z-(rc|beta|alpha).N`
 são publicadas como prerelease.
 
+## Agent skill (`skills/nfeio-php-sdk`)
+
+The repo ships a hand-authored **agent skill** (`skills/nfeio-php-sdk/SKILL.md` + `references/`)
+discovered by [skills.sh](https://www.skills.sh/) directly from the GitHub tree
+(`npx skills add https://github.com/nfe/client-php --skill nfeio-php-sdk`). It is **not**
+shipped in the Composer dist (excluded via `.gitattributes` `export-ignore`).
+
+It is maintained **by hand** — keep it faithful to `src/`. When you change a resource's
+public surface (methods, signatures, return types, pagination, error behaviour), update the
+skill in the same PR. See the release checklist in `docs/release-process.md`.
+
 ## Reporting issues
 
 Open an issue at https://github.com/nfe/client-php/issues. For security-sensitive

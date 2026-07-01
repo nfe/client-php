@@ -1,3 +1,22 @@
 # Mark generated code so GitHub collapses it in diffs and language stats ignore it.
 src/Generated/** linguist-generated=true
 src/Generated/**/*.php linguist-generated=true
+
+# Dist hygiene: keep the following in the GitHub tree (skills.sh reads the skill from
+# there) but exclude them from the Composer dist (`composer require nfe/nfe`), which is
+# built from `git archive`. Consumers get only runtime + consumer docs.
+/skills                 export-ignore
+/tests                  export-ignore
+/samples                export-ignore
+/scripts                export-ignore
+/docs                   export-ignore
+/openapi                export-ignore
+/docker                 export-ignore
+/.github                export-ignore
+/Makefile               export-ignore
+/docker-compose.yml     export-ignore
+/.env.docker.example    export-ignore
+/phpstan.neon.dist      export-ignore
+/phpunit.xml.dist       export-ignore
+/.php-cs-fixer.dist.php  export-ignore
+/CONTRIBUTING.md        export-ignore

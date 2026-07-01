@@ -40,6 +40,11 @@ Validar: após pushar uma tag, checar `https://packagist.org/packages/nfe/nfe` �
 
 ### Para cada release
 
+**Antes de cortar (manual):** revise a skill de agente `skills/nfeio-php-sdk` contra `src/`
+— se a superfície pública de algum resource mudou (métodos, assinaturas, tipos de retorno,
+paginação, erros), atualize o `SKILL.md` e as `references/`. A skill é empacotada pelo mesmo
+`git archive` da tag, então uma skill defasada seria publicada junto com o release.
+
 A operação é **um comando** depois dos pré-requisitos:
 
 ```bash
