@@ -2,18 +2,16 @@
 
 [![Licença](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Versão PHP](https://img.shields.io/badge/php-%5E8.2-787CB5)](composer.json)
-[![Status](https://img.shields.io/badge/v3-em--desenvolvimento-orange)](https://github.com/nfe/client-php/tree/v3)
+[![Última versão estável](https://img.shields.io/packagist/v/nfe/nfe.svg)](https://packagist.org/packages/nfe/nfe)
 
 SDK PHP oficial da API [NFE.io](https://nfe.io). PHP 8.2+ moderno, zero dependências em runtime, projetado em paridade com o [SDK Node.js](https://github.com/nfe/client-nodejs).
 
-> **Você está lendo a branch v3.** A v3 é uma reescrita completa e está em RC. Para a versão estável v2, veja a [branch `master`](https://github.com/nfe/client-php/tree/master). A v2 está congelada e não receberá novas atualizações.
-
 ## Status
 
-| Branch | Versões no Packagist (`nfe/nfe`) | Situação |
+| Linha | Constraint Composer (`nfe/nfe`) | Situação |
 |---|---|---|
-| `v3` | `^3.0` (atualmente `v3.0.0-rc.x`) | 🚧 **Em RC** — feedback bem-vindo |
-| `master` | `^2.0` (congelado em `2.5`) | ❄️ Congelado, sem novas atualizações |
+| v3 | `^3.0` (atualmente `v3.0.0`) | ✅ **Estável (GA)** — desenvolvimento na branch canônica `master` |
+| v2 | `^2.0` (congelada em `2.5`) | ❄️ Congelada — preservada nas branches `v2` / `v2-legacy`, sem novas atualizações |
 
 A v2 e a v3 compartilham o mesmo slug Packagist (`nfe/nfe`). Composer resolve cada constraint para a major correta automaticamente.
 
@@ -25,10 +23,7 @@ A v2 e a v3 compartilham o mesmo slug Packagist (`nfe/nfe`). Composer resolve ca
 ## Instalação
 
 ```bash
-# v3 RC (atual)
-composer require "nfe/nfe:^3.0.0-rc" --stability=RC
-
-# v3 estável (após GA)
+# v3 estável (atual)
 composer require nfe/nfe:^3.0
 
 # v2 legada (congelada)

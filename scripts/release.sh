@@ -10,7 +10,7 @@
 #   scripts/release.sh --version 3.0.0 --skip-tests
 #
 # Pre-condições:
-#  - branch atual = v3
+#  - branch atual = master (canônica desde a GA v3.0.0)
 #  - working tree limpo
 #  - CI verde no último commit (verificado via gh quando disponível)
 #  - tag pretendida ainda não existe
@@ -49,10 +49,10 @@ run()  { if [ $DRY_RUN -eq 1 ]; then echo "  \033[1;33mdry-run:\033[0m $*"; else
 info "Pre-flight checks"
 
 current_branch=$(git symbolic-ref --short HEAD)
-if [ "$current_branch" != "v3" ]; then
-    fail "Branch atual é '$current_branch'. Releases saem da 'v3'."
+if [ "$current_branch" != "master" ]; then
+    fail "Branch atual é '$current_branch'. Releases saem da 'master' (canônica desde a GA v3.0.0)."
 fi
-ok "branch = v3"
+ok "branch = master"
 
 if ! git diff-index --quiet HEAD --; then
     fail "Working tree sujo. Faça commit ou stash antes."
@@ -60,7 +60,7 @@ fi
 ok "working tree limpo"
 
 if command -v gh >/dev/null 2>&1; then
-    last_run=$(gh run list --branch v3 --workflow ci.yml --limit 1 --json conclusion --jq '.[0].conclusion' 2>/dev/null || echo "")
+    last_run=$(gh run list --branch master --workflow ci.yml --limit 1 --json conclusion --jq '.[0].conclusion' 2>/dev/null || echo "")
     case "$last_run" in
         success) ok "CI verde no último commit" ;;
         "")      info "(gh CLI presente mas não foi possível confirmar CI — siga com cuidado)" ;;
@@ -156,7 +156,7 @@ if [ $SKIP_GIT -eq 0 ]; then
     fi
 
     info "Próximos passos (manual):"
-    echo "  git push origin v3"
+    echo "  git push origin master"
     echo "  git push origin v$VERSION"
     echo ""
     echo "Quando a tag chegar no remoto, o workflow .github/workflows/release.yml"
