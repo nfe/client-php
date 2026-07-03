@@ -72,7 +72,7 @@ $event = Webhook::constructEvent(
     secret: $_ENV['NFE_WEBHOOK_SECRET'],
 );
 
-$event->type;       // ex.: "invoice.issued" (a chave `action` do envelope v2)
+$event->type;       // ex.: "service_invoice.issued_successfully" (a chave `action` do envelope v2)
 $event->data;       // array com o payload (a chave `payload` do envelope)
 $event->id;         // id estável para deduplicação, ou null
 $event->createdAt;  // timestamp ISO-8601 da entrega, ou null

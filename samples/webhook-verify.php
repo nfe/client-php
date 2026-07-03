@@ -33,14 +33,15 @@ try {
     exit;
 }
 
-// Eventos típicos: invoice.issued, invoice.cancelled, invoice.error
+// Eventos no padrão resource.event_action — a lista viva vem de
+// $nfe->webhooks->fetchEventTypes() (ex.: service_invoice.*, product_invoice.*).
 error_log("Webhook ok: type={$event->type}, id=" . ($event->id ?? '-'));
 
 match ($event->type) {
-    'invoice.issued'    => error_log('  -> nota emitida'),
-    'invoice.cancelled' => error_log('  -> nota cancelada'),
-    'invoice.error'     => error_log('  -> nota com erro'),
-    default             => error_log("  -> evento não tratado: {$event->type}"),
+    'service_invoice.issued_successfully'    => error_log('  -> nota emitida'),
+    'service_invoice.cancelled_successfully' => error_log('  -> nota cancelada'),
+    'service_invoice.issued_error'           => error_log('  -> nota com erro'),
+    default                                  => error_log("  -> evento não tratado: {$event->type}"),
 };
 
 http_response_code(200);
