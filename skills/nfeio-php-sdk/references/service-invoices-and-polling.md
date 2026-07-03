@@ -100,16 +100,27 @@ findByTaxNumber(string $companyId, string|int $taxNumber, ?RequestOptions $optio
 - **`federalTaxNumber` DTO type**: `LegalPerson` = `?int`, `NaturalPerson` = `?string`. No create-side validation/coercion.
 - `createBatch` runs sequentially (no parallelism).
 
-## `$nfe->webhooks` (CRUD — Company-scoped)
+## `$nfe->webhooks` (CRUD — Account-scoped, `/v2/webhooks`)
+
+Webhooks are registered per **account** — every company of the account fires to the same targets; use `filters` to select events.
 
 ```php
-list(string $companyId, ?RequestOptions $options = null): ListResponse
-create(string $companyId, array $data, ?RequestOptions $options = null): Webhook
-retrieve(string $companyId, string $webhookId, ?RequestOptions $options = null): Webhook
-update(string $companyId, string $webhookId, array $data, ?RequestOptions $options = null): Webhook
-delete(string $companyId, string $webhookId, ?RequestOptions $options = null): void
-test(string $companyId, string $webhookId, ?RequestOptions $options = null): array
-getAvailableEvents(): array   // hard-coded list, no API call
+listAccountWebhooks(?RequestOptions $options = null): ListResponse            // unwraps {webHooks: [...]}
+createAccountWebhook(array $data, ?RequestOptions $options = null): AccountWebhook
+retrieveAccountWebhook(string $webhookId, ?RequestOptions $options = null): AccountWebhook
+updateAccountWebhook(string $webhookId, array $data, ?RequestOptions $options = null): AccountWebhook
+deleteAccountWebhook(string $webhookId, ?RequestOptions $options = null): void
+deleteAllAccountWebhooks(?RequestOptions $options = null): void  // DESTRUCTIVE: removes ALL account webhooks
+pingAccountWebhook(string $webhookId, ?RequestOptions $options = null): void  // PUT /v2/webhooks/{id}/pings
+fetchEventTypes(?RequestOptions $options = null): array          // live list<string> of event ids
 ```
+
+`AccountWebhook` DTO fields: `id`, `uri`, `contentType` (string on the wire, e.g. `"json"`), `secret` (32–64 chars; echoed on create, omitted on reads), `filters`, `insecureSsl`, `headers`, `properties`, `status` (`"Active"`/`"Inactive"`), `createdOn`, `modifiedOn`, `raw`.
+
+- The SDK wraps create/update bodies in the mandatory `{"webHook": {...}}` envelope and unwraps enveloped responses — pass the plain `$data` array, not a pre-wrapped one.
+- **Create pings the `uri`** with an HTTP POST and requires a 2xx — a dead endpoint fails the create.
+- **Update is a full PUT replacement**: omitted fields reset to defaults; omitting `status` deactivates the webhook. Build the body from a fresh `retrieveAccountWebhook()`.
+- Event ids follow `resource.event_action` (`service_invoice.issued_successfully`, `product_invoice.*`, `consumer_invoice.*`) — use `fetchEventTypes()` for the live list.
+- Deprecated (route 404s on the live API; kept for BC only): company-scoped `list`/`create`/`retrieve`/`update`/`delete`/`test($companyId, …)` and the hard-coded `getAvailableEvents()`.
 
 **Signature validation is NOT here** — it lives on the static `Nfe\Webhook` class (see `error-handling-and-patterns.md`).

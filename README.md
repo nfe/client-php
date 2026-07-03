@@ -550,22 +550,40 @@ foreach ($operacoes->items as $cod) {
 
 ### Configurar um webhook
 
+Webhooks são registrados por **conta** (`/v2/webhooks`) — todas as empresas da
+conta disparam para os mesmos alvos. Na criação, a NFE.io **pinga a URL** e
+exige resposta 2xx.
+
 ```php
-$webhook = $nfe->webhooks->create($companyId, [
-    'url'    => 'https://meuapp.com.br/api/webhooks/nfe',
-    'events' => ['invoice.issued', 'invoice.cancelled', 'invoice.error'],
-    'active' => true,
+$webhook = $nfe->webhooks->createAccountWebhook([
+    'uri'         => 'https://meuapp.com.br/api/webhooks/nfe',
+    'contentType' => 'json',
+    'secret'      => $_ENV['NFE_WEBHOOK_SECRET'], // 32–64 caracteres
+    'filters'     => ['service_invoice.issued_successfully'],
 ]);
 
-// Listar / atualizar / remover / testar
-$lista = $nfe->webhooks->list($companyId);
-$nfe->webhooks->update($companyId, $webhookId, ['events' => ['invoice.issued']]);
-$nfe->webhooks->delete($companyId, $webhookId);
-$nfe->webhooks->test($companyId, $webhookId);
+// Listar / consultar / remover / testar
+$lista = $nfe->webhooks->listAccountWebhooks();
+$hook  = $nfe->webhooks->retrieveAccountWebhook($webhook->id);
+$nfe->webhooks->pingAccountWebhook($webhook->id);
+$nfe->webhooks->deleteAccountWebhook($webhook->id);
 
-// Listar eventos suportados pela API
-$eventos = $nfe->webhooks->getAvailableEvents();
+// Atualizar: PUT é substituição INTEGRAL — campos omitidos voltam ao padrão
+// (um update sem `status` desativa o webhook). Parta sempre do retrieve:
+$atual = $nfe->webhooks->retrieveAccountWebhook($webhookId);
+$nfe->webhooks->updateAccountWebhook($webhookId, [
+    'uri'         => 'https://meuapp.com.br/api/webhooks/nfe/v2',
+    'contentType' => $atual->contentType,
+    'status'      => $atual->status,
+    'filters'     => $atual->filters,
+]);
+
+// Listar os event types suportados (lista viva da API):
+$eventos = $nfe->webhooks->fetchEventTypes();
 ```
+
+> Os métodos por empresa (`list($companyId)`, `create($companyId, …)`, …) estão
+> **deprecated**: a rota `/v1/companies/{id}/webhooks` retorna 404 na API atual.
 
 ### Verificar assinatura no endpoint
 
@@ -587,12 +605,13 @@ try {
     exit;
 }
 
-// Roteamento por tipo de evento
+// Roteamento por tipo de evento (padrão resource.event_action —
+// a lista viva vem de $nfe->webhooks->fetchEventTypes())
 match ($event->type) {
-    'invoice.issued'    => emitidaHandler($event->data),
-    'invoice.cancelled' => canceladaHandler($event->data),
-    'invoice.error'     => erroHandler($event->data),
-    default             => null,
+    'service_invoice.issued_successfully' => emitidaHandler($event->data),
+    'service_invoice.cancelled_successfully' => canceladaHandler($event->data),
+    'service_invoice.issued_error'        => erroHandler($event->data),
+    default                               => null,
 };
 
 http_response_code(200);

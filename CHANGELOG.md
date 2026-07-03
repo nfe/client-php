@@ -7,6 +7,48 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-07-03
+
+### Adicionado
+
+- Métodos account-scoped em `WebhooksResource`, alinhados ao contrato real da
+  API (`/v2/webhooks`, confirmado por sondas ao vivo em 3 contas,
+  2026-07-02/03): `listAccountWebhooks()`, `createAccountWebhook()`,
+  `retrieveAccountWebhook()`, `updateAccountWebhook()`,
+  `deleteAccountWebhook()`, `deleteAllAccountWebhooks()` (destrutivo — remove
+  TODOS os webhooks da conta), `pingAccountWebhook()` e `fetchEventTypes()`
+  (lista viva de event types). Create/update enviam o envelope obrigatório
+  `{"webHook": {...}}` e as respostas envelopadas são desembrulhadas
+  (`fix-account-webhooks-contract`).
+- Novo DTO `Nfe\Resource\Dto\Webhooks\AccountWebhook` com o shape real do
+  recurso: `id`, `uri`, `contentType`, `secret` (32–64 chars; ecoado no
+  create, omitido nas leituras), `filters`, `insecureSsl`, `headers`,
+  `properties`, `status`, `createdOn`, `modifiedOn`, `raw`. Nota de contrato:
+  o spec OpenAPI declara `contentType`/`status` como enum int, mas a API
+  serializa strings (`"json"`, `"Active"`) — o DTO segue o fio, e um teste de
+  alinhamento YAML↔DTO pina o desvio.
+
+### Depreciado
+
+- Os métodos company-scoped de `WebhooksResource` (`list`, `create`,
+  `retrieve`, `update`, `delete`, `test`): a rota
+  `/v1/companies/{id}/webhooks` retorna **404 incondicional** na API atual
+  (o contrato havia sido herdado de alucinação do SDK Node). Comportamento
+  inalterado; use os equivalentes `*AccountWebhook*`. Remoção na próxima
+  major.
+- `WebhooksResource::getAvailableEvents()`: os literais `invoice.*` não
+  existem na API — os ids reais seguem `service_invoice.*` /
+  `product_invoice.*` / `consumer_invoice.*`. Use `fetchEventTypes()`.
+- DTO `Nfe\Resource\Dto\Webhooks\Webhook` (`url`/`events`): shape rejeitado
+  pela API (`400 "The Uri field is required"`). Use `AccountWebhook`.
+
+### Documentação
+
+- Gotchas do contrato real documentados no phpdoc, README e
+  `docs/(recursos/)webhooks.md`: a NFE.io **pinga a `uri` na criação** e
+  exige resposta 2xx; `PUT` de update é **substituição integral** (update sem
+  `status` desativa o webhook — monte o corpo a partir do retrieve).
+
 ## [3.0.0] — 2026-07-01
 
 ### Removido

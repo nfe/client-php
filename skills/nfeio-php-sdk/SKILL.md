@@ -65,7 +65,7 @@ All 17 resources are bound eagerly as `public readonly` properties on `Nfe\Clien
 | `$nfe->companies` | Companies | api.nfe.io /v1 | Account |
 | `$nfe->legalPeople` | Legal people (PJ) | api.nfe.io /v1 | Company |
 | `$nfe->naturalPeople` | Natural people (PF) | api.nfe.io /v1 | Company |
-| `$nfe->webhooks` | Webhooks CRUD | api.nfe.io /v1 | Company |
+| `$nfe->webhooks` | Webhooks CRUD | api.nfe.io /v2 | Account |
 | `$nfe->addresses` | Address lookup (CEP only) | address.api.nfe.io/v2 | Global |
 | `$nfe->legalEntityLookup` | CNPJ lookup | legalentity.api.nfe.io | Global |
 | `$nfe->naturalPersonLookup` | CPF lookup | naturalperson.api.nfe.io | Global |
@@ -218,7 +218,9 @@ Internally, downloads transparently follow a 302/303/307 redirect to the CDN in 
 
 ## Core Pattern: Webhooks
 
-CRUD lives on `$nfe->webhooks`; **signature validation lives on the static `Nfe\Webhook` class** (do not look for `$nfe->webhooks->verifySignature()` — it does not exist):
+CRUD lives on `$nfe->webhooks` and is **account-scoped** (`/v2/webhooks` — all companies of the account fire to the same targets): `listAccountWebhooks()`, `createAccountWebhook($data)`, `retrieveAccountWebhook($id)`, `updateAccountWebhook($id, $data)`, `deleteAccountWebhook($id)`, `deleteAllAccountWebhooks()` (destructive — removes ALL), `pingAccountWebhook($id)`, `fetchEventTypes()`. Gotchas: NFE.io **pings the `uri` on create and requires a 2xx**; `secret` is 32–64 chars, echoed only on create; **update is a full PUT replacement** — omitting `status` deactivates the hook, so build the body from a fresh retrieve. The company-scoped `list`/`create`/`retrieve`/`update`/`delete`/`test($companyId, …)` methods are `@deprecated` (their `/v1/companies/{id}/webhooks` route 404s on the live API).
+
+**Signature validation lives on the static `Nfe\Webhook` class** (do not look for `$nfe->webhooks->verifySignature()` — it does not exist):
 
 ```php
 use Nfe\Webhook;
@@ -232,7 +234,7 @@ $ok = Nfe\Webhook::verifySignature($payload, $signature, $secret); // bool; HMAC
 $event = Nfe\Webhook::constructEvent($payload, $signature, $secret); // Nfe\WebhookEvent
 ```
 
-`verifySignature()` accepts both prefixed (`sha1=…`) and bare hex, and takes an optional `$algo` (default `'sha1'`). `$nfe->webhooks->getAvailableEvents()` returns the hard-coded event list.
+`verifySignature()` accepts both prefixed (`sha1=…`) and bare hex, and takes an optional `$algo` (default `'sha1'`). Event-type ids follow `resource.event_action` (e.g. `service_invoice.issued_successfully`) — fetch the live list with `$nfe->webhooks->fetchEventTypes()`; the hard-coded `getAvailableEvents()` is `@deprecated` (its `invoice.*` literals do not exist on the live API).
 
 ## Critical Pitfalls
 
@@ -247,7 +249,7 @@ Verified against the SDK source. These are exactly where a Node-to-PHP port goes
 7. **`productInvoices->list()` requires `environment`** and its `$options` arg is mandatory (cursor pagination). `serviceInvoices`/`consumerInvoices` use page-style with optional `$options`.
 8. **`getStatus()` exists only on `serviceInvoices`** — not on product/consumer.
 9. **Downloads return `string` bytes**, not a Buffer/stream.
-10. **Deletion method names differ**: `companies->remove()` returns `array{deleted, id}`; `legalPeople`/`naturalPeople`/`stateTaxes`/`webhooks` use `delete(): void`.
+10. **Deletion method names differ**: `companies->remove()` returns `array{deleted, id}`; `legalPeople`/`naturalPeople`/`stateTaxes` use `delete(): void`; webhooks use `deleteAccountWebhook($id): void` — and `deleteAllAccountWebhooks()` wipes EVERY webhook on the account, so never confuse the two.
 11. **`federalTaxNumber` DTO type varies**: `Company` and `LegalPerson` = `?int`; `NaturalPerson` = `?string`. The SDK does no create-side validation/coercion — send the type the API expects (int for company/legal person).
 12. **`dataApiKey` only applies to `addresses`, `legalEntityLookup`, `naturalPersonLookup`, and NF-e/NFC-e query.** `taxCalculation`, `transportationInvoices`, `inboundProductInvoices` always use the main `apiKey` — porting Node code that relied on `dataApiKey` for `api.nfse.io` resources will silently send the main key.
 13. **Certificate upload is not implemented** — `companies` has only read-side cert helpers (`getCertificateStatus`, `checkCertificateExpiration`, `getCompaniesWith[Expiring]Certificates`). No `uploadCertificate`/`validateCertificate` (transport is JSON-only, no multipart).
@@ -273,7 +275,7 @@ Verified against the SDK source. These are exactly where a Node-to-PHP port goes
 | Calculate Brazilian taxes | `$nfe->taxCalculation->calculate($tenantId, $request)` |
 | Manage companies & read cert status | `$nfe->companies->*` |
 | Manage people (PJ/PF) | `$nfe->legalPeople->*` / `$nfe->naturalPeople->*` |
-| Set up webhook notifications | `$nfe->webhooks->create($companyId, $data)` |
+| Set up webhook notifications | `$nfe->webhooks->createAccountWebhook($data)` (account-scoped; API pings the `uri`, expects 2xx) |
 | Validate an incoming webhook | `Nfe\Webhook::verifySignature($rawBody, $sig, $secret)` |
 | Manage state tax registrations (IE) | `$nfe->stateTaxes->*` |
 | Cancel a service invoice | `$nfe->serviceInvoices->cancel($companyId, $invoiceId)` (synchronous; returns the DTO) |
