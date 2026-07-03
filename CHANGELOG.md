@@ -7,6 +7,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-07-03
+
 ### Adicionado
 
 - Métodos account-scoped em `WebhooksResource`, alinhados ao contrato real da
