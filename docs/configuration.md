@@ -81,10 +81,9 @@ $nfe = new Client(config: new Config(
 
 ## Retry (`Nfe\Http\RetryPolicy`)
 
-O transporte retenta automaticamente respostas **HTTP 429** e **5xx** com
-backoff exponencial e jitter. O padrão é `maxRetries: 3`, `baseDelay: 1.0`s,
-`maxDelay: 30.0`s, `jitter: 0.3` (±30%). Erros 4xx de negócio **não** são
-retentados.
+O transporte retenta automaticamente falhas transitórias com backoff exponencial
+e jitter. O padrão é `maxRetries: 3`, `baseDelay: 1.0`s, `maxDelay: 30.0`s,
+`jitter: 0.3` (±30%). Erros 4xx de negócio (exceto 429) **não** são retentados.
 
 ```php
 use Nfe\Http\RetryPolicy;
@@ -92,6 +91,30 @@ use Nfe\Http\RetryPolicy;
 // Desabilitar completamente:
 $config = new Nfe\Config(apiKey: $key, retry: RetryPolicy::none());
 ```
+
+### O retry é ciente do método HTTP
+
+Reexecutar um **POST** pode duplicar um efeito (emitir a mesma NFS-e duas vezes),
+então a decisão de retentar depende do método e da fase da falha, não só do
+status:
+
+| Método | 429 | 5xx | Falha de conexão (não chegou ao servidor) | Falha ambígua (pode ter chegado) |
+| --- | --- | --- | --- | --- |
+| `GET`/`PUT`/`DELETE`/`HEAD`/`OPTIONS` | retenta | retenta | retenta | retenta |
+| `POST` | retenta | **não** | retenta | **não** |
+| `POST` com header `Idempotency-Key` | retenta | retenta | retenta | retenta |
+
+A fase da falha vem classificada em `Nfe\Http\FailurePhase` (`ConnectionNotEstablished`
+vs `RequestMaybeSent`), exposta em `ApiConnectionException::$failurePhase`. A
+classificação é conservadora: na dúvida, assume-se que a requisição pode ter sido
+enviada (não retenta POST).
+
+:::warning Mudança de comportamento na v3.2.0
+Até a v3.1.x, um `POST` era retentado em 5xx como qualquer outra requisição.
+A partir da v3.2.0 isso **não** acontece mais — é uma correção de segurança
+(evita nota fiscal duplicada). Para emissão retry-safe, veja o padrão com
+`externalId` em [Notas de serviço](./recursos/service-invoices.md#emissão-idempotente-retry-seguro).
+:::
 
 ## Modelo de duas chaves
 
@@ -126,16 +149,25 @@ dados — informe uma `dataApiKey` provisionada. Veja
 ## Overrides por requisição (`Nfe\Http\RequestOptions`)
 
 Todo método de recurso aceita um `RequestOptions` opcional como último argumento
-para sobrescrever chave, host ou timeout **de uma única chamada** — útil em
-integrações multi-tenant:
+para sobrescrever chave, host, timeout ou **política de retry** de uma única
+chamada — útil em integrações multi-tenant e para desligar o retry numa emissão
+específica sem manter dois clients:
 
 ```php
 use Nfe\Http\RequestOptions;
+use Nfe\Http\RetryPolicy;
 
 $invoice = $nfe->serviceInvoices->retrieve(
     $companyId,
     $invoiceId,
     new RequestOptions(apiKey: $chaveDoTenant, timeout: 120),
+);
+
+// Desligar retry só nesta emissão (o resto do client mantém o padrão):
+$nota = $nfe->serviceInvoices->create(
+    $companyId,
+    $data,
+    new RequestOptions(retry: RetryPolicy::none()),
 );
 ```
 
@@ -144,11 +176,14 @@ $invoice = $nfe->serviceInvoices->retrieve(
 | `apiKey` | Substitui a chave resolvida para esta chamada. |
 | `baseUrl` | Aponta a chamada para outro host (mock, proxy, ambiente próprio). |
 | `timeout` | Timeout específico desta chamada, em segundos. |
+| `retry` | Política de retry só desta chamada (sobrepõe a do client, nos dois sentidos). |
 
 :::note Sem `idempotencyKey`
-A API da NFE.io não honra o header `Idempotency-Key` atualmente, então o
-`RequestOptions` não expõe esse campo. Quando a API adicionar suporte, ele
-entrará em uma release menor aditiva.
+A API da NFE.io não honra o header `Idempotency-Key` atualmente (reconfirmado
+por sonda ao vivo em 2026-07-05), então o `RequestOptions` não expõe esse campo.
+Enquanto isso, a emissão retry-safe se faz com `externalId` — veja
+[Notas de serviço](./recursos/service-invoices.md#emissão-idempotente-retry-seguro).
+Quando a API honrar o header, ele entrará em uma release menor aditiva.
 :::
 
 ## Sandbox vs. Produção

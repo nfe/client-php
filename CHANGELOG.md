@@ -7,6 +7,43 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.2.0] — 2026-07-06
+
+### ⚠️ Mudança de comportamento — retry de `POST`
+
+- O transporte **não retenta mais requisições `POST` em respostas HTTP 5xx** nem
+  em falhas de rede ambíguas (timeout após o envio). Reexecutar um `POST` pode
+  duplicar o efeito — na emissão de NFS-e, isso significa **nota fiscal
+  duplicada**. Sonda ao vivo (2026-07-06) reproduziu o risco: um `create()`
+  retornou `HTTP 500` e ainda assim emitiu a nota. `POST` só é retentado agora
+  em `429`, em falha comprovada de conexão (a requisição nunca chegou ao
+  servidor) ou quando carrega um header `Idempotency-Key`. Métodos idempotentes
+  (`GET`/`PUT`/`DELETE`/`HEAD`/`OPTIONS`) seguem retentando como antes.
+- **Rotas de escape**: para emissão retry-safe, envie um `externalId` e reconcilie
+  com `findByExternalId()` após uma falha ambígua (veja *Adicionado*); para
+  restaurar o retry por chamada, passe `RequestOptions(retry: ...)`.
+
+### Adicionado
+
+- Retry ciente de método/idempotência em `Nfe\Http\RetryingTransport` (tabela de
+  decisão por método × status × fase da falha × header `Idempotency-Key`)
+  (`add-safe-retry-idempotency`).
+- `Nfe\Http\FailurePhase` (`ConnectionNotEstablished` / `RequestMaybeSent`) e os
+  campos `failurePhase`/`curlErrno` em `Nfe\Exception\ApiConnectionException`:
+  `CurlTransport` classifica por allowlist de errnos (5/6/7/35 → conexão não
+  estabelecida) e `Psr18Transport` por `NetworkExceptionInterface`.
+- Override de retry por requisição: `Nfe\Http\RequestOptions` ganha o campo
+  `retry` (`?RetryPolicy`), permitindo ligar/desligar o retry de uma única
+  chamada sem manter dois clients. O decorator de retry passa a envolver sempre
+  o transporte base.
+- `ServiceInvoicesResource::findByExternalId($companyId, $externalId)` — recupera
+  a NFS-e pela chave do integrador via rota dedicada
+  `GET /v1/companies/{id}/serviceinvoices/external/{externalId}` (hit = envelope
+  de coleção; miss = `null`; confirmado ao vivo em 2026-07-06).
+- `ServiceInvoicesResource::isDuplicateExternalId(ApiErrorException $e): bool` —
+  reconhece a rejeição `400 "service invoice with external id (…) already exists"`.
+- Campo `externalId` no DTO `Nfe\Resource\Dto\ServiceInvoices\ServiceInvoice`.
+
 ## [3.1.0] — 2026-07-03
 
 ### Adicionado

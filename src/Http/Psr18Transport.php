@@ -7,6 +7,7 @@ namespace Nfe\Http;
 use Nfe\Exception\ApiConnectionException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
@@ -50,9 +51,17 @@ final class Psr18Transport implements Transport
         try {
             $psrResponse = $this->client->sendRequest($psrRequest);
         } catch (ClientExceptionInterface $e) {
+            // NetworkExceptionInterface means the request could not be delivered
+            // (PSR-18 contract) → safe to retry even a POST. Any other client
+            // exception is ambiguous: the request may already have been sent.
+            $phase = $e instanceof NetworkExceptionInterface
+                ? FailurePhase::ConnectionNotEstablished
+                : FailurePhase::RequestMaybeSent;
+
             throw new ApiConnectionException(
                 "PSR-18 transport failed: {$e->getMessage()}",
                 previous: $e,
+                failurePhase: $phase,
             );
         }
 

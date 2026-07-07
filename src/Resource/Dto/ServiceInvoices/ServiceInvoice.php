@@ -35,5 +35,8 @@ final readonly class ServiceInvoice
         public ?float $servicesAmount = null,
         public ?float $totalAmount = null,
         public ?array $raw = null,
+        // Appended last so it is purely additive to the constructor signature
+        // (hydration is by-name, so position is irrelevant to the SDK itself).
+        public ?string $externalId = null,
     ) {}
 }

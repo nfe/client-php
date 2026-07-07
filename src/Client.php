@@ -162,6 +162,7 @@ final class Client
             query: $request->query,
             body: $request->body,
             timeout: $request->timeout > 0 ? $request->timeout : $this->config->timeout,
+            retry: $request->retry,
         );
 
         return $this->transport->send($authoritative);
@@ -191,6 +192,7 @@ final class Client
             headers: [],
             query: $query,
             body: $body !== null ? json_encode($body, JSON_THROW_ON_ERROR) : null,
+            retry: $options->retry ?? null,
         );
         return $this->send($request, $options);
     }
@@ -198,9 +200,12 @@ final class Client
     private function buildTransport(Config $config): Transport
     {
         $base = $config->transport ?? new CurlTransport(defaultTimeout: $config->timeout);
-        if ($config->retry->maxRetries <= 0) {
-            return $base;
-        }
+
+        // The retry decorator always wraps the base transport, even when the
+        // client-level policy is `none()`: a per-request RequestOptions may
+        // *enable* retries on an otherwise zero-retry client, and vice versa.
+        // With maxRetries=0 and no override, the decorator makes exactly one
+        // attempt (cheap pass-through).
         return new RetryingTransport($base, $config->retry);
     }
 
