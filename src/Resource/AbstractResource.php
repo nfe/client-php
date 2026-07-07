@@ -336,6 +336,7 @@ abstract class AbstractResource
             apiKey: $apiKey,
             baseUrl: $baseUrl,
             timeout: $options->timeout ?? null,
+            retry: $options->retry ?? null,
         );
 
         $encodedBody = $body !== null ? json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : null;
@@ -351,6 +352,7 @@ abstract class AbstractResource
             query: $query,
             body: $encodedBody === false ? null : $encodedBody,
             timeout: $effectiveOptions->timeout ?? 0,
+            retry: $effectiveOptions->retry,
         );
 
         $response = $this->client->send($request, $effectiveOptions);

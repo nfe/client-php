@@ -7,11 +7,13 @@ namespace Nfe\Http;
 /**
  * Configuration for retry behavior on transient failures.
  *
- * The policy is applied by {@see RetryingTransport} as a decorator over any
- * other {@see Transport}. Retries trigger on:
- *   - HTTP 429 (Too Many Requests)
- *   - HTTP 5xx (Server errors)
- *   - Network-level failures wrapped in ApiConnectionException
+ * The policy is a value object; {@see RetryingTransport} decides *whether* a
+ * given failure is retried, based on the HTTP method and failure phase (see its
+ * decision table). In short: idempotent methods retry on 429, 5xx, and any
+ * network failure; POST retries only on 429 or a `ConnectionNotEstablished`
+ * network failure — never on 5xx or an ambiguous failure — unless it carries an
+ * `Idempotency-Key` header. This object only governs *how many* times and *how
+ * long* to wait between attempts.
  *
  * Delays follow exponential backoff with bounded jitter to avoid thundering herd:
  *

@@ -29,6 +29,8 @@ recurso de nota que usa o host `api.nfe.io`; os demais usam `api.nfse.io`.
 | `create($companyId, $data)` | Emite a NFS-e. | `ServiceInvoicePending\|ServiceInvoiceIssued` |
 | `list($companyId, $options = [])` | Lista paginada (page-style, `pageIndex` 1-based) com filtros de data. | `ListResponse` |
 | `retrieve($companyId, $invoiceId)` | Consulta uma NFS-e por id. | `ServiceInvoice` |
+| `findByExternalId($companyId, $externalId)` | Recupera a NFS-e pelo `externalId` do integrador (rota dedicada). | `?ServiceInvoice` |
+| `isDuplicateExternalId($e)` *(estático)* | Reconhece a rejeição `400 "already exists"` de `externalId` duplicado. | `bool` |
 | `cancel($companyId, $invoiceId)` | Cancela (síncrono) e devolve o modelo atualizado. | `ServiceInvoice` |
 | `sendEmail($companyId, $invoiceId)` | Reenvia a nota por e-mail ao tomador. | `array` (típico: `{sent, message}`) |
 | `downloadPdf($companyId, $invoiceId)` | PDF da nota. | `string` (bytes crus) |
@@ -96,6 +98,63 @@ if ($flow === 'Issued') {
 :::warning Terminal ≠ sucesso
 `isTerminal()` também é `true` para `IssueFailed`/`CancelFailed`. Compare o
 status concreto. Veja [Emissão assíncrona e polling](../async-and-polling.md).
+:::
+
+## Emissão idempotente (retry seguro)
+
+Emitir NFS-e é um `POST` que cria efeito fiscal. Se a rede falhar de forma
+ambígua (5xx ou timeout após o envio), você não sabe se a nota foi criada — e
+**reexecutar cegamente pode duplicá-la**. Sonda ao vivo (2026-07-06) confirmou o
+caso: um `create()` retornou `HTTP 500` e mesmo assim emitiu a nota.
+
+Por isso o SDK **não** retenta `POST` em 5xx (veja
+[a tabela de retry por método](../configuration.md#o-retry-é-ciente-do-método-http)).
+Para emissão retry-safe, envie um `externalId` — a API o trata como **chave
+única** (uma segunda emissão com o mesmo valor é recusada com
+`400 "service invoice with external id (…) already exists"`) — e feche o ciclo:
+
+```php
+use Nfe\Exception\ApiErrorException;
+use Nfe\Exception\ServerException;
+use Nfe\Resource\ServiceInvoicesResource;
+
+$companyId  = '55df4dc6b6cd9007e4f13ee8';
+$externalId = $pedidoId; // estável entre tentativas (ex.: id do pedido)
+
+try {
+    $result = $nfe->serviceInvoices->create($companyId, [
+        'externalId'      => $externalId,
+        'cityServiceCode' => '2690',
+        'description'     => 'Manutenção e suporte técnico',
+        'servicesAmount'  => 100.0,
+        'borrower'        => ['federalTaxNumber' => 191, 'name' => 'Banco do Brasil SA'],
+    ]);
+} catch (ApiErrorException $e) {
+    // Duplicata (retry já processado) OU 5xx ambíguo (pode ter criado): reconcilie.
+    if (ServiceInvoicesResource::isDuplicateExternalId($e) || $e instanceof ServerException) {
+        $result = $nfe->serviceInvoices->findByExternalId($companyId, $externalId);
+        // Pode ser null se a nota realmente não foi criada — aí é seguro reemitir.
+    } else {
+        throw $e;
+    }
+}
+```
+
+`findByExternalId()` usa a rota dedicada `GET …/serviceinvoices/external/{externalId}`
+e devolve `?ServiceInvoice` (`null` quando nenhuma nota carrega esse id).
+
+:::note Lag de indexação
+Logo após um `202` (pending), a nota pode levar alguns segundos para aparecer na
+rota de busca. Se `findByExternalId()` retornar `null` imediatamente após uma
+falha ambígua, reconsulte com um pequeno backoff antes de concluir que a nota não
+existe. A rejeição `400 "already exists"` (via `isDuplicateExternalId()`), por
+outro lado, é imediata.
+:::
+
+:::tip Um único client
+Com a emissão retry-safe acima, não é mais necessário manter dois `Nfe\Client`
+(um sem retry para escrita, outro com retry para leitura): deixe o retry ligado
+para tudo e use `externalId` na emissão.
 :::
 
 ## Baixar PDF e XML (bytes crus)

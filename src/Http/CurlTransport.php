@@ -16,6 +16,21 @@ use Nfe\Exception\ApiConnectionException;
 final class CurlTransport implements Transport
 {
     /**
+     * cURL error codes that prove the request never reached the server
+     * (DNS/proxy resolution, TCP connect, TLS handshake). Any other errno —
+     * notably CURLE_OPERATION_TIMEDOUT (28), which does not distinguish a
+     * connect-timeout from a read-timeout — is treated as ambiguous.
+     *
+     * @var list<int>
+     */
+    private const CONNECTION_NOT_ESTABLISHED_ERRNOS = [
+        5,  // CURLE_COULDNT_RESOLVE_PROXY
+        6,  // CURLE_COULDNT_RESOLVE_HOST
+        7,  // CURLE_COULDNT_CONNECT
+        35, // CURLE_SSL_CONNECT_ERROR
+    ];
+
+    /**
      * @param int $defaultTimeout Used when {@see Request::$timeout} is 0 (default).
      */
     public function __construct(
@@ -27,7 +42,10 @@ final class CurlTransport implements Transport
     {
         $curl = curl_init();
         if ($curl === false) {
-            throw new ApiConnectionException('Failed to initialise cURL handle.');
+            throw new ApiConnectionException(
+                'Failed to initialise cURL handle.',
+                failurePhase: FailurePhase::ConnectionNotEstablished,
+            );
         }
 
         $headers = $this->serializeHeaders($request->headers);
@@ -37,7 +55,10 @@ final class CurlTransport implements Transport
         $url = $request->url();
         $method = strtoupper($request->method);
         if ($url === '' || $method === '') {
-            throw new ApiConnectionException('Cannot send request with empty URL or method.');
+            throw new ApiConnectionException(
+                'Cannot send request with empty URL or method.',
+                failurePhase: FailurePhase::ConnectionNotEstablished,
+            );
         }
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -66,9 +87,15 @@ final class CurlTransport implements Transport
             $msg = curl_error($curl);
             curl_close($curl);
 
+            $phase = in_array($errno, self::CONNECTION_NOT_ESTABLISHED_ERRNOS, true)
+                ? FailurePhase::ConnectionNotEstablished
+                : FailurePhase::RequestMaybeSent;
+
             throw new ApiConnectionException(
                 "Network error talking to NFE.io ({$errno}): {$msg}",
                 previous: null,
+                failurePhase: $phase,
+                curlErrno: $errno,
             );
         }
 

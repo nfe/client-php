@@ -23,6 +23,10 @@ final readonly class Request
      * @param array<string, scalar|array<int, scalar>> $query   Query parameters. Arrays are sent as repeated keys.
      * @param string|null           $body    Pre-encoded request body. JSON-encoding is the caller's responsibility.
      * @param int                   $timeout Per-request timeout in seconds. 0 = use transport default.
+     * @param RetryPolicy|null       $retry   Per-request retry override. When set, {@see RetryingTransport}
+     *                                        uses it instead of the client-level policy for this call. Travels
+     *                                        on the immutable request so it applies consistently across every
+     *                                        retry attempt. Null = use the client-level policy.
      */
     public function __construct(
         public string $method,
@@ -32,6 +36,7 @@ final readonly class Request
         public array $query = [],
         public ?string $body = null,
         public int $timeout = 0,
+        public ?RetryPolicy $retry = null,
     ) {}
 
     /**
