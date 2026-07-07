@@ -7,6 +7,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.2.0] — 2026-07-06
+
 ### ⚠️ Mudança de comportamento — retry de `POST`
 
 - O transporte **não retenta mais requisições `POST` em respostas HTTP 5xx** nem
