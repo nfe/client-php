@@ -373,10 +373,22 @@ paths:
                     type: integer
         "400":
           description: Algum parametro informado não é válido, verificar resposta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -979,12 +991,28 @@ paths:
                         type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "409":
           description: Já existe uma empresa com o CNPJ informado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -1307,10 +1335,22 @@ paths:
                         type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -1914,10 +1954,22 @@ paths:
                         type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       parameters:
         - name: company_id
           in: path
@@ -1962,12 +2014,28 @@ paths:
                 type: object
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: empresa não foi encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2012,14 +2080,34 @@ paths:
                 type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Empresa não foi encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "415":
           description: Nenhum arquivo foi encontrado na requisição
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       parameters:
         - name: company_id
           in: path
@@ -2087,10 +2175,22 @@ paths:
                           type: string
         "400":
           description: Algum parametro informado não é válido, verificar resposta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2155,10 +2255,22 @@ paths:
                         type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2189,12 +2301,28 @@ paths:
                 type: object
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: empresa não foi encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2273,12 +2401,28 @@ paths:
                         type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "409":
           description: Já existe uma empresa com o CNPJ informado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2313,6 +2457,10 @@ paths:
                           type: string
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2521,10 +2669,22 @@ paths:
                     type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2742,10 +2902,22 @@ paths:
                         type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2864,10 +3036,22 @@ paths:
                     type: integer
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -2978,10 +3162,22 @@ paths:
                     type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -3704,10 +3900,22 @@ paths:
                     type: integer
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -3732,14 +3940,20 @@ paths:
             schema:
               description: Emissão de nota fiscal de serviço
               required:
-                - borrower
                 - cityServiceCode
                 - description
                 - servicesAmount
               type: object
               properties:
                 borrower:
-                  description: Tomador dos serviços
+                  description: |
+                    Tomador dos serviços.
+
+                    **Opcional**: o grupo `borrower` pode ser omitido. Quando informado, aplicam-se validações condicionais aos seus campos:
+                    - `name`: se informado, no máximo 115 caracteres;
+                    - `federalTaxNumber`: se informado (diferente de zero), deve ser um CNPJ/CPF válido e coerente com o `type` (`NaturalPerson` → CPF; `LegalEntity` → CNPJ). Para tomador no exterior (`address.country` ≠ `BRA`), não é validado;
+                    - `phoneNumber`: se informado, entre 7 e 20 dígitos;
+                    - `address`: opcional, mas se um endereço **brasileiro** for parcialmente preenchido, passam a ser obrigatórios `postalCode`, `street`, `city.code` (código IBGE de 7 dígitos), `city.name` e `state` (UF de 2 letras), que devem ser consistentes entre si.
                   required: []
                   type: object
                   properties:
@@ -4130,7 +4344,10 @@ paths:
                   description: Indica se é uma nota fiscal de pagamento parcelado antecipado, realizado antes do fornecimento do serviço.
                   type: boolean
                 intermediary:
-                  description: Grupo de informações relativas ao intermediário do serviço (interm). Possui a mesma estrutura do `borrower`.
+                  description: |
+                    Grupo de informações relativas ao intermediário do serviço (interm). Possui a mesma estrutura do `borrower`.
+
+                    **Opcional**: envie apenas quando houver intermediário na operação (por exemplo, quando a retenção do ISS é feita pelo intermediário). Quando informado, os campos básicos de identificação são `type`, `federalTaxNumber` (CNPJ/CPF/NIF) e `name`.
                   type: object
                   properties:
                     type:
@@ -6129,12 +6346,24 @@ paths:
                     type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "408":
           description: Tempo de reposta do servidor excedeu o limite (60s)
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -6783,10 +7012,22 @@ paths:
                     type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7435,10 +7676,22 @@ paths:
                     type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7470,12 +7723,24 @@ paths:
                 type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "408":
           description: Tempo de reposta do servidor excedeu o limite (60s)
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7508,12 +7773,24 @@ paths:
                 type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "408":
           description: Tempo de reposta do servidor excedeu o limite (60s)
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7546,14 +7823,30 @@ paths:
                 type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Não foi possivel o download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "408":
           description: Tempo de reposta do servidor excedeu o limite (60s)
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7586,14 +7879,30 @@ paths:
                 type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Não foi possivel o download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "408":
           description: Tempo de reposta do servidor excedeu o limite (60s)
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7626,12 +7935,28 @@ paths:
                 type: string
         "400":
           description: Algum parametro informado não é válido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "401":
           description: API Key da conta não é valida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Não há XML de evento de cancelamento para esta nota (provedor legado, ambiente não Nacional ou nota ainda não cancelada)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
       security:
         - Authorization_Header: []
           Authorization_QueryParam: []
@@ -7792,8 +8117,16 @@ paths:
                           type: string
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -7972,10 +8305,22 @@ paths:
                           type: string
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Webhook não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -8011,8 +8356,16 @@ paths:
           description: Sucesso na exclusão dos WebHooks
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -8140,10 +8493,22 @@ paths:
                           type: string
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Webhook não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -8332,10 +8697,22 @@ paths:
                           type: string
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Webhook não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -8400,10 +8777,22 @@ paths:
                           type: string
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Webhook não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -8469,10 +8858,22 @@ paths:
                           type: string
         "401":
           description: Não autorizado, verificar o cabeçalho do HTTP Authorization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "403":
           description: Accesso proibido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "404":
           description: Webhook não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorsResource"
         "500":
           description: Erro no processamento
           content:
@@ -8499,6 +8900,25 @@ paths:
         - Authorization_Header: []
           Authorization_QueryParam: []
 components:
+  schemas:
+    ErrorsResource:
+      description: Lista de Erros
+      type: object
+      properties:
+        errors:
+          description: Lista de Erros
+          type: array
+          items:
+            description: Erro
+            type: object
+            properties:
+              code:
+                format: int32
+                description: Código do erro
+                type: integer
+              message:
+                description: Mensagem contendo os detalhes do erro
+                type: string
   securitySchemes:
     Authorization_Header:
       name: Authorization
