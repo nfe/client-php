@@ -157,6 +157,40 @@ Com a emissão retry-safe acima, não é mais necessário manter dois `Nfe\Clien
 para tudo e use `externalId` na emissão.
 :::
 
+## Campos da nota (DTO `ServiceInvoice`)
+
+O `ServiceInvoice` é **deliberadamente parcial**: os campos de alto valor são tipados; qualquer
+outro campo que a API devolva fica acessível via `->raw` (sempre populado).
+
+```php
+$invoice = $nfe->serviceInvoices->retrieve($companyId, $invoiceId);
+
+// Tipados (autocomplete + tipo):
+$invoice->number;          // ?int    — número fiscal da nota
+$invoice->checkCode;       // ?string — código de verificação
+$invoice->description;     // ?string
+$invoice->cityServiceCode; // ?string
+$invoice->issRate;         // ?float  — alíquota de ISS
+$invoice->issTaxAmount;    // ?float  — valor de ISS
+$invoice->baseTaxAmount;   // ?float
+$invoice->amountNet;       // ?float
+$invoice->servicesAmount;  // ?float
+
+// Tomador tipado (DTO aninhado Nfe\Resource\Dto\ServiceInvoices\Borrower):
+$invoice->borrower->name;
+$invoice->borrower->federalTaxNumber;  // int|string|null (CPF ou CNPJ)
+
+// Qualquer outro campo do fio — via raw (ex.: prestador, retenções):
+$invoice->raw['provider']['tradeName'];
+$invoice->raw['inssAmountWithheld'];
+```
+
+:::note `raw` é o fallback; campos tipados são a via preferida
+`raw` carrega o payload cru completo (forward-compat). Para os campos tipados acima, prefira as
+propriedades. O `provider` (objeto pesado) fica só no `raw`. `totalAmount` é `@deprecated`
+(a API nunca o retorna — use `servicesAmount`/`amountNet`).
+:::
+
 ## Baixar PDF e XML (bytes crus)
 
 Os downloads retornam uma `string` com os bytes do arquivo — grave com

@@ -14,6 +14,8 @@ use Nfe\Http\RequestOptions;
 use Nfe\Http\Response;
 use Nfe\Response\InvoiceResponse;
 use ReflectionClass;
+use ReflectionNamedType;
+use ReflectionType;
 
 /**
  * Base class for every resource.
@@ -275,11 +277,20 @@ abstract class AbstractResource
             return $instance;
         }
 
+        // Forward-compat escape hatch: DTOs that declare a `raw` constructor
+        // parameter get the full decoded payload injected there, so every field
+        // the API returns stays reachable via `$dto->raw['field']` even when not
+        // typed. Skipped when the caller already provided `raw` explicitly
+        // (e.g. WebhooksResource passes the unwrapped envelope).
+        $rawSnapshot = $data;
+
         $args = [];
         foreach ($constructor->getParameters() as $param) {
             $name = $param->getName();
-            if (array_key_exists($name, $data)) {
-                $args[] = $data[$name];
+            if ($name === 'raw' && !array_key_exists('raw', $data)) {
+                $args[] = $rawSnapshot;
+            } elseif (array_key_exists($name, $data)) {
+                $args[] = $this->hydrateValue($param->getType(), $data[$name]);
             } elseif ($param->isDefaultValueAvailable()) {
                 $args[] = $param->getDefaultValue();
             } else {
@@ -290,6 +301,28 @@ abstract class AbstractResource
         /** @var T $instance */
         $instance = $reflection->newInstanceArgs($args);
         return $instance;
+    }
+
+    /**
+     * Recursively hydrate a nested DTO when a constructor parameter is typed as
+     * a `Nfe\` class and the value is an associative array. Everything else
+     * (scalars, arrays for `?array` params, unions, already-built objects) is
+     * passed through unchanged.
+     */
+    private function hydrateValue(?ReflectionType $type, mixed $value): mixed
+    {
+        if (
+            is_array($value)
+            && $type instanceof ReflectionNamedType
+            && !$type->isBuiltin()
+            && str_starts_with($type->getName(), 'Nfe\\')
+            && class_exists($type->getName())
+        ) {
+            /** @var array<string, mixed> $value */
+            return $this->hydrate($type->getName(), $value);
+        }
+
+        return $value;
     }
 
     /**

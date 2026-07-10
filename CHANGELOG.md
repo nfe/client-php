@@ -7,6 +7,35 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.3.0] — 2026-07-09
+
+### Adicionado
+
+- Campos tipados de alto valor no DTO `ServiceInvoice` (NFS-e): `number` (número
+  fiscal), `checkCode` (código de verificação), `description`, `cityServiceCode`,
+  `baseTaxAmount`, `issRate`, `issTaxAmount`, `amountNet` — anexados ao fim do
+  construtor (aditivo) (`expand-service-invoice-dto`).
+- DTO aninhado `Nfe\Resource\Dto\ServiceInvoices\Borrower`, exposto em
+  `ServiceInvoice::$borrower`. `federalTaxNumber` é `int|string|null` (tolerante a
+  CPF/CNPJ; desvio deliberado vs. o `integer` do spec, pinado por teste de
+  alinhamento). O `provider` (objeto pesado) permanece acessível via `raw`.
+- `AbstractResource::hydrate()` passa a **popular o campo `raw`** de qualquer DTO
+  que o declare, com o payload decodificado completo — o escape-hatch de
+  forward-compat agora é consistente em todo o SDK (antes, só `WebhooksResource` e
+  os lookups o preenchiam à mão). Efeito: todo campo que a API retorna fica
+  acessível via `$dto->raw['campo']`, mesmo sem tipo. Também passa a hidratar DTOs
+  aninhados (`Nfe\...`) recursivamente.
+- Teste de alinhamento YAML↔DTO para a resposta de NFS-e
+  (`ServiceInvoiceSpecAlignmentTest`), ancorado pelo **path**
+  `/serviceinvoices/{id}` (o `operationId` `ServiceInvoices_idGet` colide com a
+  rota `/external/{id}`).
+
+### Depreciado
+
+- `ServiceInvoice::$totalAmount` — a API **nunca** o retorna (sempre `null`;
+  confirmado ao vivo). Use `servicesAmount`/`amountNet`, ou `raw` para outros
+  valores. Comportamento inalterado; remoção na próxima major.
+
 ## [3.2.0] — 2026-07-06
 
 ### ⚠️ Mudança de comportamento — retry de `POST`
