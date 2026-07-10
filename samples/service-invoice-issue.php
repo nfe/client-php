@@ -62,7 +62,9 @@ try {
     } while (!FlowStatus::isTerminal($invoice->flowStatus));
 
     if ($invoice->flowStatus === 'Issued') {
-        echo "✓ Nota emitida: id={$invoice->id}, número={$invoice->number}\n";
+        echo "✓ Nota emitida: id={$invoice->id}, número={$invoice->number}, código={$invoice->checkCode}\n";
+        // Campos não tipados continuam acessíveis via ->raw (ex.: tributos):
+        echo "  ISS: base={$invoice->baseTaxAmount} alíquota={$invoice->issRate} valor={$invoice->issTaxAmount}\n";
         exit(0);
     }
 
