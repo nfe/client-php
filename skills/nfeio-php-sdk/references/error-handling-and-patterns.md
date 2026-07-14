@@ -13,7 +13,7 @@ RuntimeException
     ├── NotFoundException            (404)
     ├── RateLimitException           (429)
     ├── ServerException              (5xx)
-    ├── ApiConnectionException       (network/cURL failure)
+    ├── ApiConnectionException       (network/cURL failure; adds ->failurePhase, ->curlErrno)
     └── SignatureVerificationException (webhook signature mismatch)
 ```
 
@@ -40,19 +40,41 @@ try {
 
 ## Retry (`Nfe\Http\RetryPolicy`)
 
-- Default (via `Config`): `maxRetries = 3`, `baseDelay = 1.0s`, `maxDelay = 30.0s`, `jitter = 0.3`.
+- Default (via `Config`): `maxRetries = 3`, `baseDelay = 1.0s`, `maxDelay = 30.0s`, `jitter = 0.3`. The `RetryPolicy` signature is unchanged since v3.0.
 - Disable with `Nfe\Http\RetryPolicy::none()`.
-- Transports return a `Response` for HTTP 4xx/5xx (the resource layer decides what to throw); only genuine connection failures raise `ApiConnectionException`. Retries apply to transient conditions, not 4xx.
+- Transports return a `Response` for HTTP 4xx/5xx (the resource layer decides what to throw); only genuine connection failures raise `ApiConnectionException`. Retries apply to transient conditions, not to ordinary 4xx client errors — 429 (rate limiting) is the sole 4xx that is retried (see the table below).
+- Retry is **method-aware** (`Nfe\Http\RetryingTransport`, since v3.2.0): retrying an idempotent request is always safe, but re-sending a POST can duplicate an NFS-e, so POST is retried far more narrowly.
+
+| Method | 429 | 5xx | network `ConnectionNotEstablished` | network `RequestMaybeSent` / unclassified |
+|---|---|---|---|---|
+| GET / PUT / DELETE / HEAD / OPTIONS | retry | retry | retry | retry |
+| POST | retry | **no** | retry | **no** |
+| POST + `Idempotency-Key` header | retry | retry | retry | retry |
+
+- **Behavior change vs v3.1 and earlier:** POST no longer retries on 5xx (it used to). A 5xx can mean the server already issued the note, so re-POSTing would duplicate it — this is a safety fix. 429 is still retried for POST (a rate-limited request is rejected before processing).
+- A POST carrying an `Idempotency-Key` request header is treated as idempotent (retried like a GET). Forward-compat only: **the API does not honor the header yet**, so it merely unlocks the retry — it does not make the server dedupe. For safe emission today, send an `externalId` and reconcile after an ambiguous failure (see `service-invoices-and-polling.md`).
+- `Retry-After` response header is honored (integer seconds only; HTTP-date form is not).
+
+**Failure phase (`Nfe\Http\FailurePhase`).** Network failures carry a phase on `ApiConnectionException->failurePhase` (plus the raw `->curlErrno`) so the retry layer can tell a safe-to-resend POST from an unsafe one:
+
+- `ConnectionNotEstablished` — the request provably never reached the server (DNS, TCP connect, TLS handshake; cURL errnos 5/6/7/35, or PSR-18 `NetworkExceptionInterface`). Safe to retry any method, including POST.
+- `RequestMaybeSent` — the server may have received/processed it (e.g. read timeout after send; errno 28). Unsafe for POST. Unclassified failures (`failurePhase === null`) are treated the same, conservatively.
+
+**Per-request retry override (`RequestOptions->retry`, since v3.2.0).** Every resource method accepts a `RequestOptions` whose optional `retry` (a `RetryPolicy`) overrides the client-level policy for that single call — in both directions. This removes the old two-client workaround (one retrying client for reads, one non-retrying for writes).
 
 ```php
 use Nfe\Client;
 use Nfe\Config;
+use Nfe\Http\RequestOptions;
 use Nfe\Http\RetryPolicy;
 
 $nfe = new Client(config: new Config(
     apiKey: $key,
     retry: new RetryPolicy(maxRetries: 5, baseDelay: 0.5, maxDelay: 20.0, jitter: 0.3),
 ));
+
+// Disable retry for one call only (the rest of the client keeps retrying):
+$nfe->serviceInvoices->create($companyId, $data, new RequestOptions(retry: RetryPolicy::none()));
 ```
 
 ## Webhook signature validation — the static `Nfe\Webhook`

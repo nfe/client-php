@@ -1,6 +1,6 @@
 ---
 name: nfeio-php-sdk
-description: "NFE.io PHP SDK integration expert (Composer package: nfe/nfe, namespace Nfe\\). MUST trigger when: composer.json requires 'nfe/nfe' or code has `use Nfe\\Client`, `new Nfe\\Client(`, or references the Nfe\\ namespace; user mentions NFE.io, NFS-e, NF-e, NFC-e, CT-e, CFe-SAT, nota fiscal, nota fiscal eletronica, nota fiscal de servico, Brazilian invoice, fiscal document, electronic invoice Brazil, CNPJ lookup, CPF lookup, consulta CEP, service invoice, product invoice, consumer invoice, transportation invoice, tax calculation Brazilian taxes, SEFAZ, emissao de nota; user builds Brazilian electronic fiscal document automation or tax compliance in PHP/Laravel/Symfony/WHMCS/WooCommerce; user mentions polling for invoice status, async invoice processing, webhook signature validation, or certificate management for Brazilian fiscal documents. Covers all 17 SDK resources, async invoice creation via native union return types (instanceof), MANUAL polling (there is no createAndWait), the Nfe\\Exception hierarchy, 1-based pagination, string-byte downloads, the static Nfe\\Webhook signature helper, dual API keys (dataApiKey), CNPJ/CPF/CEP lookups, and tax calculation. Use this skill even if the user doesn't name the SDK -- if they build Brazilian fiscal document automation in PHP, it applies. Note: this is the PHP SDK; its idioms differ from the Node SDK (nfe-io) -- do NOT port Node patterns blindly."
+description: "NFE.io PHP SDK integration expert (Composer package: nfe/nfe, namespace Nfe\\). MUST trigger when: composer.json requires 'nfe/nfe' or code has `use Nfe\\Client`, `new Nfe\\Client(`, or references the Nfe\\ namespace; user mentions NFE.io, NFS-e, NF-e, NFC-e, CT-e, CFe-SAT, nota fiscal, nota fiscal eletronica, nota fiscal de servico, Brazilian invoice, fiscal document, electronic invoice Brazil, CNPJ lookup, CPF lookup, consulta CEP, service invoice, product invoice, consumer invoice, transportation invoice, tax calculation Brazilian taxes, SEFAZ, emissao de nota; user builds Brazilian electronic fiscal document automation or tax compliance in PHP/Laravel/Symfony/WHMCS/WooCommerce; user mentions polling for invoice status, async invoice processing, webhook signature validation, or certificate management for Brazilian fiscal documents. Covers all 17 SDK resources, async invoice creation via native union return types (instanceof), MANUAL polling (there is no createAndWait), method-aware retry (POST is NOT retried on 5xx — safety vs duplicate emission), idempotent NFS-e emission via externalId + findByExternalId reconciliation, typed ServiceInvoice fields (number/checkCode/borrower) with populated raw, the Nfe\\Exception hierarchy, 1-based pagination, string-byte downloads, the static Nfe\\Webhook signature helper, dual API keys (dataApiKey), CNPJ/CPF/CEP lookups, and tax calculation. Use this skill even if the user doesn't name the SDK -- if they build Brazilian fiscal document automation in PHP, it applies. Note: this is the PHP SDK; its idioms differ from the Node SDK (nfe-io) -- do NOT port Node patterns blindly."
 ---
 
 # NFE.io PHP SDK Integration Guide
@@ -45,7 +45,7 @@ $nfe = new Nfe\Client(
 
 Auth: the SDK sends `Authorization: Basic <apiKey>` on every request.
 
-For full control, build a `Nfe\Config` and pass it as `config:` (overrides the convenience args). `Config` also accepts a `Nfe\Http\RetryPolicy` (default: 3 retries, base 1s, max 30s, jitter 0.3) and a PSR-3 `logger`.
+For full control, build a `Nfe\Config` and pass it as `config:` (overrides the convenience args). `Config` also accepts a `Nfe\Http\RetryPolicy` (default: 3 retries, base 1s, max 30s, jitter 0.3) and a PSR-3 `logger`. Retry is **method-aware**: idempotent methods (GET/PUT/DELETE/HEAD/OPTIONS) retry on 429/5xx/network failures, but **POST is not retried on 5xx** (re-emitting could duplicate an NFS-e — see Pitfall #17). A per-request `Nfe\Http\RequestOptions` can also override the policy for a single call (`retry: Nfe\Http\RetryPolicy::none()` to disable, or a policy to enable it) — see the error-handling reference.
 
 **Dual API keys**: data-service resources (`addresses`, `legalEntityLookup`, `naturalPersonLookup`, `productInvoiceQuery`/`consumerInvoiceQuery`) use `dataApiKey`, falling back to `apiKey` when it is null. **Only those four families honor `dataApiKey`** — see Pitfall #12.
 
@@ -167,7 +167,7 @@ Every API error extends **`Nfe\Exception\ApiErrorException`** (which extends `Ru
 | `NotFoundException` | 404 |
 | `RateLimitException` | 429 |
 | `ServerException` | 5xx |
-| `ApiConnectionException` | network/cURL failure |
+| `ApiConnectionException` | network/cURL failure — also carries `?failurePhase` (`Nfe\Http\FailurePhase`) + `?curlErrno` (both null when unclassified) |
 | `SignatureVerificationException` | webhook signature mismatch |
 
 ```php
@@ -256,12 +256,17 @@ Verified against the SDK source. These are exactly where a Node-to-PHP port goes
 14. **`addresses` is CEP-only** — `lookupByPostalCode()` is the only method. `search()`/`lookupByTerm()` were removed (those endpoints 404). The response envelope `{ address }` is unwrapped into `->addresses` (a 1-element list).
 15. **`createBatch` (`legalPeople`/`naturalPeople`) is sequential** — slower than Node's concurrent batch for large lists.
 16. **Webhook signature validation is the static `Nfe\Webhook`** — pass the raw `php://input` body, not a re-encoded array.
+17. **Retry is method-aware — POST is NOT retried on 5xx** (nor on ambiguous/unclassified network failures). Idempotent methods (GET/PUT/DELETE/HEAD/OPTIONS) still retry on 429, 5xx, and any network failure; POST retries only on 429 or a provably-unsent connection failure (`Nfe\Http\FailurePhase::ConnectionNotEstablished`) — re-executing a POST could duplicate an NFS-e. For safe emission, send an `externalId` on `create()` and reconcile with `serviceInvoices->findByExternalId()` after an ambiguous failure (a 5xx, or a 400 "already exists" — see `ServiceInvoicesResource::isDuplicateExternalId()`). An `Idempotency-Key` request header restores full retry, but the API does not honor it yet (no server-side dedupe).
+18. **`RequestOptions` has a per-request `retry` override** (4th arg: `apiKey, baseUrl, timeout, retry`). `new Nfe\Http\RequestOptions(retry: RetryPolicy::none())` disables retry for a single call; passing a policy re-enables it on a `none()` client. This removes the old two-client workaround (one retrying client for reads, one non-retrying for writes) — keep retry on for everything and use `externalId` for safe emission.
+19. **`ServiceInvoice::$totalAmount` is a deprecated phantom — always `null`** (the live API never returns it). Use `servicesAmount`/`amountNet` instead. Since v3.3.0 the DTO exposes `number` (fiscal number), `checkCode`, `description`, `cityServiceCode`, core tax amounts, and a typed `borrower` (`Borrower`; `federalTaxNumber` is `int|string|null`) — and **`->raw` is populated** on every hydrated DTO (per list item too), so untyped fields like `provider` live in `$invoice->raw['provider']`.
 
 ## Decision Tree: "I want to…"
 
 | Goal | Resource & method |
 |------|-------------------|
-| Issue a service invoice (NFS-e) | `$nfe->serviceInvoices->create($companyId, $data)` + manual poll |
+| Issue a service invoice (NFS-e) | `$nfe->serviceInvoices->create($companyId, $data)` + manual poll (add an `externalId` for safe/idempotent emission — see Pitfall #17) |
+| Reconcile an NFS-e by externalId after an ambiguous failure | `$nfe->serviceInvoices->findByExternalId($companyId, $externalId)` (returns the note or `null` if it was never created) |
+| Read the fiscal number / verification code of an issued NFS-e | `$invoice->number` / `$invoice->checkCode` (typed since v3.3.0); untyped fields via `$invoice->raw[...]` |
 | Issue a product invoice (NF-e) | `$nfe->productInvoices->create($companyId, $data)` (+ webhook) |
 | Issue NF-e scoped to a state tax | `$nfe->productInvoices->createWithStateTax($companyId, $stateTaxId, $data)` |
 | Issue a consumer invoice (NFC-e) | `$nfe->consumerInvoices->create($companyId, $data)` |
@@ -288,7 +293,7 @@ Verified against the SDK source. These are exactly where a Node-to-PHP port goes
 
 Load these for full method signatures and per-resource detail:
 
-- **`references/service-invoices-and-polling.md`** — NFS-e (`serviceInvoices`), `companies` (Account scope, `remove()`, cert read helpers), `legalPeople`/`naturalPeople` (PJ/PF), `webhooks` CRUD, and the full `FlowStatus` terminal/non-terminal table + manual polling recipe.
+- **`references/service-invoices-and-polling.md`** — NFS-e (`serviceInvoices`, including `findByExternalId()` + the `externalId` idempotent-emission cycle, and the v3.3.0 `ServiceInvoice` DTO: typed `number`/`checkCode`/`borrower` + populated `raw`), `companies` (Account scope, `remove()`, cert read helpers), `legalPeople`/`naturalPeople` (PJ/PF), `webhooks` CRUD, and the full `FlowStatus` terminal/non-terminal table + manual polling recipe.
 - **`references/product-invoices-and-taxes.md`** — NF-e/NFC-e (`productInvoices`/`consumerInvoices`: union return, `createWithStateTax`, cursor pagination + required `environment`, CC-e, EPEC, `disable`/`disableRange`), `stateTaxes` (cursor, `{stateTax}` body envelope), `taxCalculation`, `taxCodes`, `transportationInvoices` (CT-e), `inboundProductInvoices`.
 - **`references/data-services-and-lookups.md`** — `legalEntityLookup` (CNPJ), `naturalPersonLookup` (CPF), `addresses` (CEP only), `productInvoiceQuery`/`consumerInvoiceQuery` (44-digit access key), the host map and the `dataApiKey` 4-family rule.
-- **`references/error-handling-and-patterns.md`** — the `Nfe\Exception\*` hierarchy, `ErrorFactory`, `RetryPolicy`, the static `Nfe\Webhook` (signature validation + `constructEvent`), and the complete manual-polling pattern.
+- **`references/error-handling-and-patterns.md`** — the `Nfe\Exception\*` hierarchy, `ErrorFactory`, `RetryPolicy` (+ method-aware retry, `Nfe\Http\FailurePhase`, and the per-request `RequestOptions` retry override), the static `Nfe\Webhook` (signature validation + `constructEvent`), and the complete manual-polling pattern.

@@ -13,6 +13,8 @@ sendEmail(string $companyId, string $invoiceId, ?RequestOptions $options = null)
 downloadPdf(string $companyId, string $invoiceId, ?RequestOptions $options = null): string       // raw bytes
 downloadXml(string $companyId, string $invoiceId, ?RequestOptions $options = null): string
 getStatus(string $companyId, string $invoiceId, ?RequestOptions $options = null): array           // {flowStatus, flowMessage, ...}
+findByExternalId(string $companyId, string $externalId, ?RequestOptions $options = null): ?ServiceInvoice   // dedicated /external route (v3.2.0)
+static isDuplicateExternalId(ApiErrorException $e): bool   // matches the 400 duplicate-externalId rejection (v3.2.0)
 ```
 
 - `create()` returns a **union** — discriminate with `instanceof Nfe\Response\Pending` / `Issued`. HTTP 202 → `Pending` (built from the `Location` header; no body). A 202 **without** `Location` throws `InvalidRequestException`. HTTP 201 → `Issued`; `$issued->resource()` is a `ServiceInvoice`.
@@ -20,6 +22,43 @@ getStatus(string $companyId, string $invoiceId, ?RequestOptions $options = null)
 - `cancel()` is synchronous and returns the updated `ServiceInvoice` DTO.
 - `getStatus()` is unique to service invoices (lightweight status endpoint). Product/consumer have none.
 - **No `createAndWait`, no `createBatch`** (deferred post-v3.0).
+
+### ServiceInvoice DTO (v3.3.0)
+
+Typed fields: `id`, `status`, `flowStatus`, `flowMessage`, `environment`, `rpsNumber`, `rpsSerialNumber`, `issuedOn`, `createdOn`, `modifiedOn`, `cancelledOn`, `servicesAmount`, `externalId`, plus (since v3.3.0) **`number`** (the fiscal invoice number, `?int`), **`checkCode`** (verification code), `description`, `cityServiceCode`, `baseTaxAmount`, `issRate`, `issTaxAmount`, `amountNet`, and **`borrower`** (a typed `Borrower` DTO).
+
+- **`raw` is populated** (since v3.3.0): every hydrated `ServiceInvoice` carries the full decoded payload in `->raw` — any field not typed above (e.g. `provider`, `paidAmount`, `rpsStatus`, the withheld-tax breakdown) is reachable as `$invoice->raw['field']`. This holds per item in `list()` results, and SDK-wide for every DTO that declares a `raw` param (webhooks, lookups, product/consumer…).
+- **`Borrower`** fields: `name`, `federalTaxNumber` (**`int|string|null`** — the borrower may be CPF or CNPJ; hydration is strict-typed, so the union tolerates both wire forms), `email`, `phoneNumber`, `id`, `parentId`, `address` (`?array`), `raw`.
+- **`provider` is NOT typed** — read it via `$invoice->raw['provider']`.
+- **`totalAmount` is a deprecated phantom** — the live API never returns it (always `null`). Use `servicesAmount`/`amountNet` or `raw`. Do NOT generate code that reads `->totalAmount`.
+- The DTO is pinned to `openapi/nf-servico-v1.yaml` by an alignment test (anchored by path — the spec's `operationId` collides between routes).
+
+### Idempotent emission via externalId (v3.2.0)
+
+`externalId` is a **unique key** on emission: a 2nd `create()` with the same `externalId` is rejected with `400 "service invoice with external id (…) already exists"`. Since POST is no longer retried on 5xx (see `error-handling-and-patterns.md`), the safe-emission cycle is:
+
+```php
+use Nfe\Exception\ApiErrorException;
+use Nfe\Exception\ServerException;
+use Nfe\Resource\ServiceInvoicesResource;
+
+$data['externalId'] = $orderId; // stable across attempts
+try {
+    $result = $nfe->serviceInvoices->create($companyId, $data);
+} catch (ApiErrorException $e) {
+    // duplicate rejection (a retry that was already processed) OR ambiguous 5xx
+    // (the API can return 500 and STILL create the note — live-confirmed):
+    if (ServiceInvoicesResource::isDuplicateExternalId($e) || $e instanceof ServerException) {
+        $invoice = $nfe->serviceInvoices->findByExternalId($companyId, $orderId);
+        // null → the note truly was not created; safe to re-emit
+    } else {
+        throw $e;
+    }
+}
+```
+
+- `findByExternalId()` uses the dedicated route `GET /v1/companies/{id}/serviceinvoices/external/{externalId}`. Wire contract: hit = 200 with a **collection envelope** `{"serviceInvoices":[...]}`; miss = **200 with an empty list** (not 404) → returns `null`.
+- **Indexing lag:** right after a 202-pending create, `findByExternalId()` may return `null` for a few seconds; re-query with a small backoff before concluding the note does not exist. The `400 "already exists"` rejection is immediate.
 
 ### Create payload (typical NFS-e)
 
