@@ -7,6 +7,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.3.1] — 2026-07-30
+
 ### Corrigido
 
 - **Inutilização de NF-e** (`fix-product-invoice-disablement-epec`): `disable()` e
