@@ -83,6 +83,29 @@ final class IdValidator
     }
 
     /**
+     * Normalise a 44-digit access key OR an NSU (1–15 digits).
+     *
+     * O endpoint de reprocessamento de webhook aceita `{access_key_or_nsu}`
+     * (spec consulta-dfe-distribuicao-v2): 44 dígitos são tratados como chave
+     * de acesso; qualquer outra contagem de 1 a 15 dígitos é aceita como NSU.
+     */
+    public static function accessKeyOrNsu(string $value): string
+    {
+        $digits = preg_replace('/\D+/', '', $value) ?? '';
+        $len = strlen($digits);
+        if ($len === 44 || ($len >= 1 && $len <= 15)) {
+            return $digits;
+        }
+        throw new InvalidRequestException(
+            sprintf(
+                'Chave de acesso ou NSU inválido: esperado 44 dígitos (chave) ou 1–15 dígitos (NSU), recebido %d (input: "%s").',
+                $len,
+                $value,
+            ),
+        );
+    }
+
+    /**
      * Normalise a CNPJ (14 digits). Strips punctuation; does not validate check digits.
      */
     public static function cnpj(string $value): string

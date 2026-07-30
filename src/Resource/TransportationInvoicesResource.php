@@ -41,7 +41,7 @@ final class TransportationInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): InboundSettings {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpPut("/companies/{$companyId}/cte/inbound", $data, $options);
+        $response = $this->httpPost("/companies/{$companyId}/inbound/transportationinvoices", $data, $options);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrate(InboundSettings::class, $payload);
@@ -50,7 +50,7 @@ final class TransportationInvoicesResource extends AbstractResource
     public function disable(string $companyId, ?RequestOptions $options = null): InboundSettings
     {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpDelete("/companies/{$companyId}/cte/inbound", $options);
+        $response = $this->httpDelete("/companies/{$companyId}/inbound/transportationinvoices", $options);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrate(InboundSettings::class, $payload);
@@ -59,7 +59,7 @@ final class TransportationInvoicesResource extends AbstractResource
     public function getSettings(string $companyId, ?RequestOptions $options = null): InboundSettings
     {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpGet("/companies/{$companyId}/cte/inbound", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/inbound/transportationinvoices", options: $options);
         $payload = $this->decodeBody($response->body);
 
         return $this->hydrate(InboundSettings::class, $payload);
@@ -77,7 +77,7 @@ final class TransportationInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
-        $response = $this->httpGet("/companies/{$companyId}/cte/{$accessKey}", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/inbound/{$accessKey}", options: $options);
 
         return $this->decodeBody($response->body);
     }
@@ -90,7 +90,7 @@ final class TransportationInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
 
-        return $this->download("/companies/{$companyId}/cte/{$accessKey}/xml", options: $options);
+        return $this->download("/companies/{$companyId}/inbound/{$accessKey}/xml", options: $options);
     }
 
     /**
@@ -106,7 +106,7 @@ final class TransportationInvoicesResource extends AbstractResource
         $accessKey = IdValidator::accessKey($accessKey);
         $eventKey = IdValidator::eventKey($eventKey);
         $response = $this->httpGet(
-            "/companies/{$companyId}/cte/{$accessKey}/events/{$eventKey}",
+            "/companies/{$companyId}/inbound/{$accessKey}/events/{$eventKey}",
             options: $options,
         );
 
@@ -124,7 +124,7 @@ final class TransportationInvoicesResource extends AbstractResource
         $eventKey = IdValidator::eventKey($eventKey);
 
         return $this->download(
-            "/companies/{$companyId}/cte/{$accessKey}/events/{$eventKey}/xml",
+            "/companies/{$companyId}/inbound/{$accessKey}/events/{$eventKey}/xml",
             options: $options,
         );
     }

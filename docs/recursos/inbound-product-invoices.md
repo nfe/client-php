@@ -33,8 +33,14 @@ dados — sempre usa a chave principal.
 | `getEventXml($companyId, $accessKey, $eventKey)` | XML de um evento. | `string` |
 | `getPdf($companyId, $accessKey)` | DANFE em PDF. | `string` |
 | `getJson($companyId, $accessKey)` | Representação JSON do documento. | `array` |
-| `manifest($companyId, $accessKey, $manifestType, $data = [])` | Manifestação do destinatário. | `array` |
-| `reprocessWebhook($companyId, $accessKey)` | Reenvia o webhook do documento. | `array` |
+| `manifest($companyId, $accessKey, $manifestType, $data = [])` | Manifestação do destinatário (`$manifestType` = código SEFAZ ou literal, ver abaixo). | `array` |
+| `reprocessWebhook($companyId, $accessKey)` | Reenvia o webhook do documento; aceita a chave de 44 dígitos **ou** o NSU (1–15 dígitos). | `array` |
+
+:::warning Corrigido na v3.4.0
+Até a v3.3.x este recurso apontava para rotas que **não existem** na API — todos
+os métodos retornavam 404/erro. A v3.4.0 migrou tudo para o contrato real
+`/inbound/…` (`consulta-dfe-distribuicao-v2`), mantendo nomes e assinaturas.
+:::
 
 ## Ativar a busca automática
 
@@ -61,22 +67,37 @@ file_put_contents('entrada.pdf', $nfe->inboundProductInvoices->getPdf($companyId
 
 ## Manifestação do destinatário
 
+A API espera o **código numérico SEFAZ** do evento (query `tpEvent`). O SDK
+aceita o código direto ou os literais equivalentes:
+
+| Código | Literal aceito | Evento |
+|---|---|---|
+| `210200` | `Confirmation` | Confirmação da Operação |
+| `210210` | `Acknowledgement` | Ciência da Operação |
+| `210220` | `Unknown` | Desconhecimento da Operação |
+| `210240` | `Refused` | Operação não Realizada |
+
 ```php
-// Ex.: confirmar a operação
-$nfe->inboundProductInvoices->manifest($companyId, $accessKey, 'Confirmation');
+// Ex.: ciência da operação (código direto)
+$nfe->inboundProductInvoices->manifest($companyId, $accessKey, '210210');
 
 // Ex.: desconhecer a operação, com justificativa no corpo
-$nfe->inboundProductInvoices->manifest($companyId, $accessKey, 'Ignorance', [
-    'reason' => 'Operação não reconhecida',
+$nfe->inboundProductInvoices->manifest($companyId, $accessKey, 'Unknown', [
+    'justification' => 'Operação não reconhecida',
 ]);
 ```
 
+Qualquer outro valor lança `Nfe\Exception\InvalidRequestException` antes de
+qualquer HTTP.
+
 ## Reprocessar o webhook
 
-Se a sua aplicação perdeu uma entrega, peça o reenvio do evento do documento:
+Se a sua aplicação perdeu uma entrega, peça o reenvio do evento do documento —
+pela chave de acesso ou pelo NSU:
 
 ```php
 $nfe->inboundProductInvoices->reprocessWebhook($companyId, $accessKey);
+$nfe->inboundProductInvoices->reprocessWebhook($companyId, '123456789'); // NSU
 ```
 
 ## Próximos passos

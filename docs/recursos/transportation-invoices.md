@@ -30,6 +30,13 @@ principal (não é família de dados).
 | `getEvent($companyId, $accessKey, $eventKey)` | Consulta um evento do CT-e. | `array` |
 | `downloadEventXml($companyId, $accessKey, $eventKey)` | XML de um evento. | `string` |
 
+:::warning Corrigido na v3.4.0
+Até a v3.3.x este recurso apontava para rotas `/cte/…` que **não existem** na
+API — todos os métodos retornavam 404/erro. A v3.4.0 migrou tudo para o
+contrato real `/inbound/…` (`consulta-dfe-distribuicao-v2`), mantendo nomes e
+assinaturas.
+:::
+
 ## Habilitar o recebimento
 
 ```php
