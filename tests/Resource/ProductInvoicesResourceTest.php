@@ -92,3 +92,54 @@ it('downloadEpecXml returns raw bytes', function (): void {
 
     expect($bytes)->toBe($xml);
 });
+
+it('downloadEpecXml is GET to the hyphenated /xml-epec route', function (): void {
+    // Sondado 2026-07-29: /xml/epec é 404 de rota inexistente; a rota viva é /xml-epec.
+    $mock = (new MockTransport())->push(new Response(200, [], '<EPEC/>'));
+    buildPiClient($mock)->productInvoices->downloadEpecXml('abc', 'inv-1');
+
+    expect($mock->lastRequest()?->method)->toBe('GET');
+    expect($mock->lastRequest()?->path)->toBe('/v2/companies/abc/productinvoices/inv-1/xml-epec');
+});
+
+it('downloadRejectionXml keeps the live /xml/rejection alias', function (): void {
+    $mock = (new MockTransport())->push(new Response(200, [], '<rej/>'));
+    buildPiClient($mock)->productInvoices->downloadRejectionXml('abc', 'inv-1');
+
+    expect($mock->lastRequest()?->path)->toBe('/v2/companies/abc/productinvoices/inv-1/xml/rejection');
+});
+
+it('disableRange is POST to /productinvoices/disablement', function (): void {
+    // Sondado 2026-07-29: PUT …/disable → 405; a rota viva é POST …/disablement.
+    $mock = (new MockTransport())->push(new Response(204, [], ''));
+    buildPiClient($mock)->productInvoices->disableRange('co-1', [
+        'serie' => 1,
+        'beginNumber' => 10,
+        'lastNumber' => 10,
+        'reason' => 'quebra de sequência',
+    ]);
+
+    expect($mock->lastRequest()?->method)->toBe('POST');
+    expect($mock->lastRequest()?->path)->toBe('/v2/companies/co-1/productinvoices/disablement');
+    $body = json_decode($mock->lastRequest()?->body ?? 'null', associative: true);
+    expect($body)->toMatchArray(['reason' => 'quebra de sequência', 'serie' => 1]);
+});
+
+it('disable is POST to /productinvoices/{id}/disablement with reason promoted to query', function (): void {
+    // Spec: no endpoint individual, `reason` é query param (não há request body declarado).
+    $mock = (new MockTransport())->push(new Response(204, [], ''));
+    buildPiClient($mock)->productInvoices->disable('co-1', 'inv-1', ['reason' => 'nota em duplicidade']);
+
+    $sent = $mock->lastRequest();
+    expect($sent?->method)->toBe('POST');
+    expect($sent?->path)->toBe('/v2/companies/co-1/productinvoices/inv-1/disablement?' . http_build_query(['reason' => 'nota em duplicidade']));
+    expect($sent?->body)->toBeNull();
+});
+
+it('disable without reason posts to /disablement with no query', function (): void {
+    $mock = (new MockTransport())->push(new Response(204, [], ''));
+    buildPiClient($mock)->productInvoices->disable('co-1', 'inv-1', []);
+
+    expect($mock->lastRequest()?->method)->toBe('POST');
+    expect($mock->lastRequest()?->path)->toBe('/v2/companies/co-1/productinvoices/inv-1/disablement');
+});

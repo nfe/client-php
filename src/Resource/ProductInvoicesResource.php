@@ -187,7 +187,7 @@ final class ProductInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
 
-        return $this->download("/companies/{$companyId}/productinvoices/{$invoiceId}/xml/epec", options: $options);
+        return $this->download("/companies/{$companyId}/productinvoices/{$invoiceId}/xml-epec", options: $options);
     }
 
     /**
@@ -232,7 +232,12 @@ final class ProductInvoicesResource extends AbstractResource
     }
 
     /**
-     * Inutiliza uma NF-e específica.
+     * Inutiliza uma NF-e específica (`POST …/{invoiceId}/disablement`).
+     *
+     * A spec declara `reason` como query param neste endpoint (não há request
+     * body); se `$data['reason']` for informado, é promovido à query string e
+     * o restante de `$data` segue como body. A API exige `reason` entre 15 e
+     * 255 caracteres (erro 40001).
      *
      * @param array<string, mixed> $data
      * @return array<string, mixed>
@@ -245,13 +250,23 @@ final class ProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $invoiceId = IdValidator::invoiceId($invoiceId);
-        $response = $this->httpPut("/companies/{$companyId}/productinvoices/{$invoiceId}/disable", $data, $options);
+        $path = "/companies/{$companyId}/productinvoices/{$invoiceId}/disablement";
+        $reason = $data['reason'] ?? null;
+        if (is_string($reason) && $reason !== '') {
+            unset($data['reason']);
+            $path .= '?' . http_build_query(['reason' => $reason]);
+        }
+        $response = $this->httpPost($path, $data === [] ? null : $data, $options);
 
         return $this->decodeBody($response->body);
     }
 
     /**
-     * Inutiliza uma faixa de numeração.
+     * Inutiliza uma faixa de numeração (`POST …/productinvoices/disablement`).
+     *
+     * `$data` segue o schema `DisablementResource` da spec: `serie`,
+     * `beginNumber`, `lastNumber`, `state`, `environment` e `reason` —
+     * a API rejeita a ausência de `reason` com `400 "The Reason field is required"`.
      *
      * @param array<string, mixed> $data
      * @return array<string, mixed>
@@ -262,7 +277,7 @@ final class ProductInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): array {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpPut("/companies/{$companyId}/productinvoices/disable", $data, $options);
+        $response = $this->httpPost("/companies/{$companyId}/productinvoices/disablement", $data, $options);
 
         return $this->decodeBody($response->body);
     }

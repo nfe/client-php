@@ -19,8 +19,8 @@ downloadEpecXml(string $companyId, string $invoiceId, ?RequestOptions $options =
 sendCorrectionLetter(string $companyId, string $invoiceId, string $correction, ?RequestOptions $options = null): array
 downloadCorrectionLetterPdf(string $companyId, string $invoiceId, ?RequestOptions $options = null): string
 downloadCorrectionLetterXml(string $companyId, string $invoiceId, ?RequestOptions $options = null): string
-disable(string $companyId, string $invoiceId, array $data, ?RequestOptions $options = null): array          // single: PUT .../{id}/disable
-disableRange(string $companyId, array $data, ?RequestOptions $options = null): array                        // range: PUT .../productinvoices/disable
+disable(string $companyId, string $invoiceId, array $data, ?RequestOptions $options = null): array          // single: POST .../{id}/disablement
+disableRange(string $companyId, array $data, ?RequestOptions $options = null): array                        // range: POST .../productinvoices/disablement
 ```
 
 - **`list()` requires `environment`** and its `$options` arg is mandatory (cursor pagination): `['environment' => 'Production', 'limit' => 25, 'startingAfter' => $id, 'q' => ...]`.
@@ -28,6 +28,7 @@ disableRange(string $companyId, array $data, ?RequestOptions $options = null): a
 - `cancel()` takes an optional `$reason` (appended as `?reason=`).
 - `sendCorrectionLetter()` throws `InvalidRequestException` locally if the text is empty/whitespace.
 - `listItems`/`listEvents` return raw associative arrays, not DTOs.
+- Inutilization: `disableRange()`'s `$data` follows the spec's `DisablementResource` (`serie`, `beginNumber`, `lastNumber`, `state`, `environment`, `reason`) — the API rejects a missing `reason` with `400 "The Reason field is required"`. In `disable()`, a `reason` key in `$data` is promoted to the query string (per-invoice endpoint has no request body in the spec).
 
 ## `$nfe->consumerInvoices` (NFC-e — Company-scoped)
 
@@ -46,7 +47,7 @@ disableRange(string $companyId, array $data, ?RequestOptions $options = null): a
 ```
 
 - NFC-e emission is webhook-driven. No `getStatus()`, no correction letter, no EPEC.
-- `disableRange()` here POSTs to `.../disablement` (different verb/path from product's `disable`). No per-invoice disable.
+- `disableRange()` POSTs to `.../consumerinvoices/disablement` (same verb/path shape as product's). No per-invoice disable.
 
 ## `$nfe->stateTaxes` (Inscrição Estadual / IE — Company-scoped, prerequisite for NF-e)
 
