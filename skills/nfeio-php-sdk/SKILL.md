@@ -37,7 +37,7 @@ use Nfe\Environment;
 $nfe = new Nfe\Client(
     apiKey: $_ENV['NFE_API_KEY'],        // required (unless you pass a Config)
     dataApiKey: $_ENV['NFE_DATA_API_KEY'] ?? null, // optional, for data services (see below)
-    environment: Environment::Production, // Environment::Production | Environment::Sandbox
+    environment: Environment::Production, // metadata only — never routes; Environment::Sandbox is deprecated (no sandbox host exists; isolate via dev-account key + company environment = Development)
     timeout: 60,                          // seconds (default 60)
     userAgentSuffix: 'my-integrator/1.0', // optional
 );

@@ -35,7 +35,7 @@ $nfe = new Client(
 | `apiKey` | `?string` | `null` | Chave principal. Obrigatória quando `config` não é informado. |
 | `dataApiKey` | `?string` | `null` | Chave dos serviços de dados (CEP/CNPJ/CPF/consultas). Fallback para `apiKey`. |
 | `config` | `?Nfe\Config` | `null` | Quando informado, **os demais argumentos de conveniência são ignorados**. |
-| `environment` | `Nfe\Environment` | `Environment::Production` | `Production` ou `Sandbox`. Reservado para uso futuro (sem efeito sobre os endpoints hoje). |
+| `environment` | `Nfe\Environment` | `Environment::Production` | Metadado declarativo — **nunca** altera endpoint ou chave. `Sandbox` está **deprecated** (emite `E_USER_DEPRECATED`); veja [Ambientes na NFE.io](#ambientes-na-nfeio). |
 | `timeout` | `int` | `60` | Timeout por requisição, em segundos (deve ser positivo). |
 | `transport` | `?Nfe\Http\Transport` | `null` | Transporte HTTP customizado (adaptador PSR-18, mock). `null` = cURL padrão. |
 | `userAgentSuffix` | `?string` | `null` | Sufixo anexado ao `User-Agent` do SDK. |
@@ -186,17 +186,28 @@ Enquanto isso, a emissão retry-safe se faz com `externalId` — veja
 Quando a API honrar o header, ele entrará em uma release menor aditiva.
 :::
 
-## Sandbox vs. Produção
+## Ambientes na NFE.io
 
-:::warning A separação produção vs. teste fica na conta, não no SDK
-A escolha entre **produção** e **teste (homologação)** é definida na
-configuração da sua conta em [app.nfe.io](https://app.nfe.io) (lado servidor) —
-**não** pela chave de API nem pelo SDK.
+:::danger `Environment::Sandbox` não isola nada — deprecated
+**Não existe host sandbox na plataforma NFE.io.** Selecionar
+`Environment::Sandbox` nunca redirecionou tráfego: toda requisição vai para os
+hosts de produção, e com uma chave de produção você **emite documento fiscal
+real**. Desde a v3.4.0 o case está `@deprecated` e emite `E_USER_DEPRECATED`
+na construção do `Config`; será removido na próxima major.
 :::
 
-O enum `Nfe\Environment` (`Production` / `Sandbox`) é aceito e validado, mas
-hoje **não altera** endpoints, chaves ou comportamento — está reservado para uso
-futuro.
+O isolamento entre produção e teste na NFE.io acontece em duas camadas — nenhuma
+delas é o SDK:
+
+1. **Escopo da chave**: use a chave de API de uma conta/ambiente de
+   desenvolvimento para testar.
+2. **Ambiente da empresa**: cada empresa cadastrada tem
+   `environment = Development | Production` (definido em
+   [app.nfe.io](https://app.nfe.io)); documentos emitidos por uma empresa
+   `Development` vão para homologação da SEFAZ/prefeitura.
+
+O enum `Nfe\Environment` permanece como metadado declarativo por
+compatibilidade — ele **não altera** endpoints, chaves ou comportamento.
 
 :::note Ambiente SEFAZ é outra coisa
 Os recursos de produto e consumidor (NF-e/NFC-e) aceitam um parâmetro

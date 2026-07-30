@@ -117,9 +117,12 @@ considerar a nota emitida. Veja
 :::
 
 :::warning Produção vs. teste
-A separação **produção vs. teste (homologação)** é definida na configuração da
-sua conta em [app.nfe.io](https://app.nfe.io) — **não** pela chave de API nem
-pelo SDK. O argumento `environment:` do cliente está reservado para uso futuro.
+A separação **produção vs. teste (homologação)** vem do escopo da sua chave e
+do ambiente da empresa (`Development`/`Production`, definido em
+[app.nfe.io](https://app.nfe.io)) — **nunca** do SDK. O argumento
+`environment:` do cliente é metadado sem efeito, e `Environment::Sandbox` está
+**deprecated** (não existe host sandbox; com chave de produção você emitiria
+documento real). Veja [Ambientes na NFE.io](./configuration.md#ambientes-na-nfeio).
 :::
 
 ## Próximos passos

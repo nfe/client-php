@@ -31,7 +31,9 @@ final readonly class Config
      *                                                (CEP/CNPJ/CPF/NF-e query). Falls back to
      *                                                $apiKey when null. Mirrors Node SDK
      *                                                resolveDataApiKey().
-     * @param Environment           $environment     Production or Sandbox routing.
+     * @param Environment           $environment     Declarative metadata only — nunca altera host
+     *                                                nem chave (ver {@see Environment}). `Sandbox`
+     *                                                é deprecated e emite E_USER_DEPRECATED.
      * @param int                   $timeout         Default per-request timeout in seconds.
      * @param RetryPolicy           $retry           Retry behavior for transient failures.
      * @param Transport|null        $transport       Override the default cURL transport. Null = use default.
@@ -56,6 +58,15 @@ final readonly class Config
         }
         if ($timeout <= 0) {
             throw new InvalidRequestException('Nfe\\Config: timeout must be positive.');
+        }
+        if ($environment === Environment::Sandbox) {
+            @trigger_error(
+                'Nfe\Environment::Sandbox está deprecated e NÃO isola tráfego: não existe host '
+                . 'sandbox na plataforma NFE.io — toda request vai para produção. Para testar sem '
+                . 'efeito fiscal, use uma chave de conta de desenvolvimento e uma empresa com '
+                . 'environment = Development. O case será removido na próxima major.',
+                E_USER_DEPRECATED,
+            );
         }
     }
 
