@@ -707,7 +707,7 @@ $nfe = new Client(config: $config);
 |---|---|---|
 | `apiKey` | obrigatório | Chave principal (emissão, empresas, webhooks). |
 | `dataApiKey` | `null` | Chave separada para serviços de dados. Quando `null`, faz fallback para `apiKey`. |
-| `environment` | `Production` | `Production` ou `Sandbox`. |
+| `environment` | `Production` | Metadado sem efeito em roteamento. `Sandbox` está **deprecated** (não há host sandbox — isole por chave + empresa `Development`). |
 | `timeout` | `60` | Timeout HTTP por requisição (segundos). |
 | `retry` | `new RetryPolicy()` | Backoff exponencial com jitter simétrico. Use `RetryPolicy::none()` para desabilitar. |
 | `transport` | `CurlTransport` | Implementação de `Nfe\Http\Transport` (ex.: adaptador PSR-18). |

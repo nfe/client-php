@@ -23,7 +23,7 @@ it('throws when neither apiKey nor config are provided', function (): void {
 });
 
 it('accepts a full Config object', function (): void {
-    $config = new Config(apiKey: 'k', environment: Environment::Sandbox, timeout: 120);
+    $config = new Config(apiKey: 'k', timeout: 120);
     $client = new Client(config: $config);
     expect($client->config)->toBe($config);
     expect($client->config->timeout)->toBe(120);

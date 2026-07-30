@@ -7,6 +7,24 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.4.0] — 2026-07-30
+
+### Depreciado
+
+- **`Environment::Sandbox`** (`fix-sandbox-environment-contract`): o case prometia
+  roteamento/isolamento que **nunca existiu** — não há host sandbox na plataforma
+  (o Node valida só `production|development`; a spec `client-core` já dizia que o
+  servidor distingue por credencial). `Config::baseUrlForApi()` nunca consultou o
+  environment: **todo tráfego sempre foi para produção**, e um integrador que
+  selecionava `Sandbox` com chave de produção emitia documento fiscal real
+  achando-se isolado. Agora selecionar `Sandbox` emite `E_USER_DEPRECATED` na
+  construção do `Config`, explicando o isolamento real (chave de conta de
+  desenvolvimento + empresa com `environment = Development`). Docblocks de
+  `Environment`/`Config`, docs (`configuration.md` ganhou a seção "Ambientes na
+  NFE.io", `getting-started.md`, README) e skill corrigidos. Nenhum comportamento
+  de rede muda (pinado por teste: URLs idênticas com `Production` e `Sandbox`).
+  Remoção do case na próxima major.
+
 ### Corrigido
 
 - **Domínio de documentos de entrada inteiro** (`fix-inbound-routes`): os 20 métodos
