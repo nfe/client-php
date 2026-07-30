@@ -37,7 +37,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): InboundSettings {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpPut("/companies/{$companyId}/productinvoices/inbound", $data, $options);
+        $response = $this->httpPost("/companies/{$companyId}/inbound/productinvoices", $data, $options);
 
         return $this->hydrate(InboundSettings::class, $this->decodeBody($response->body));
     }
@@ -45,7 +45,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     public function disableAutoFetch(string $companyId, ?RequestOptions $options = null): InboundSettings
     {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpDelete("/companies/{$companyId}/productinvoices/inbound", $options);
+        $response = $this->httpDelete("/companies/{$companyId}/inbound/productinvoices", $options);
 
         return $this->hydrate(InboundSettings::class, $this->decodeBody($response->body));
     }
@@ -53,7 +53,7 @@ final class InboundProductInvoicesResource extends AbstractResource
     public function getSettings(string $companyId, ?RequestOptions $options = null): InboundSettings
     {
         $companyId = IdValidator::companyId($companyId);
-        $response = $this->httpGet("/companies/{$companyId}/productinvoices/inbound", options: $options);
+        $response = $this->httpGet("/companies/{$companyId}/inbound/productinvoices", options: $options);
 
         return $this->hydrate(InboundSettings::class, $this->decodeBody($response->body));
     }
@@ -66,7 +66,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
         $response = $this->httpGet(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}",
+            "/companies/{$companyId}/inbound/{$accessKey}",
             options: $options,
         );
 
@@ -84,7 +84,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
         $response = $this->httpGet(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/productinvoice",
+            "/companies/{$companyId}/inbound/productinvoices/{$accessKey}",
             options: $options,
         );
 
@@ -104,7 +104,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $accessKey = IdValidator::accessKey($accessKey);
         $eventKey = IdValidator::eventKey($eventKey);
         $response = $this->httpGet(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/events/{$eventKey}",
+            "/companies/{$companyId}/inbound/{$accessKey}/events/{$eventKey}",
             options: $options,
         );
 
@@ -124,7 +124,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $accessKey = IdValidator::accessKey($accessKey);
         $eventKey = IdValidator::eventKey($eventKey);
         $response = $this->httpGet(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/events/{$eventKey}/productinvoice",
+            "/companies/{$companyId}/inbound/productinvoices/{$accessKey}/events/{$eventKey}",
             options: $options,
         );
 
@@ -137,7 +137,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $accessKey = IdValidator::accessKey($accessKey);
 
         return $this->download(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/xml",
+            "/companies/{$companyId}/inbound/{$accessKey}/xml",
             options: $options,
         );
     }
@@ -153,7 +153,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $eventKey = IdValidator::eventKey($eventKey);
 
         return $this->download(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/events/{$eventKey}/xml",
+            "/companies/{$companyId}/inbound/{$accessKey}/events/{$eventKey}/xml",
             options: $options,
         );
     }
@@ -164,7 +164,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $accessKey = IdValidator::accessKey($accessKey);
 
         return $this->download(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/pdf",
+            "/companies/{$companyId}/inbound/{$accessKey}/pdf",
             options: $options,
         );
     }
@@ -177,7 +177,7 @@ final class InboundProductInvoicesResource extends AbstractResource
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
         $response = $this->httpGet(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/json",
+            "/companies/{$companyId}/inbound/productinvoices/{$accessKey}/json",
             options: $options,
         );
 
@@ -185,7 +185,13 @@ final class InboundProductInvoicesResource extends AbstractResource
     }
 
     /**
-     * Manifestar o destinatário (ciência, confirmação, desconhecimento, refutação).
+     * Manifestar o destinatário (ciência, confirmação, desconhecimento, operação não realizada).
+     *
+     * A API espera o código numérico SEFAZ no query param `tpEvent` (sondado
+     * 2026-07-30: literais são rejeitados pelo binder). Aceita o código direto
+     * (`'210210'`) ou os literais legados deste SDK, mapeados assim:
+     * `Confirmation`→210200, `Acknowledgement`→210210, `Unknown`→210220,
+     * `Refused`→210240.
      *
      * @param array<string, mixed> $data Pode conter justification, etc. dependendo do tipo.
      * @return array<string, mixed>
@@ -199,11 +205,14 @@ final class InboundProductInvoicesResource extends AbstractResource
     ): array {
         $companyId = IdValidator::companyId($companyId);
         $accessKey = IdValidator::accessKey($accessKey);
-        if (trim($manifestType) === '') {
-            throw new \Nfe\Exception\InvalidRequestException('manifestType é obrigatório (Confirmation/Acknowledgement/Unknown/Refused).');
+        $tpEvent = self::MANIFEST_EVENT_CODES[trim($manifestType)] ?? trim($manifestType);
+        if (preg_match('/^\d{6}$/', $tpEvent) !== 1) {
+            throw new \Nfe\Exception\InvalidRequestException(
+                'manifestType inválido: use o código SEFAZ de 6 dígitos (210200/210210/210220/210240) ou Confirmation/Acknowledgement/Unknown/Refused.',
+            );
         }
-        $response = $this->httpPut(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/manifest/{$manifestType}",
+        $response = $this->httpPost(
+            "/companies/{$companyId}/inbound/{$accessKey}/manifest?" . http_build_query(['tpEvent' => $tpEvent]),
             $data,
             $options,
         );
@@ -212,7 +221,8 @@ final class InboundProductInvoicesResource extends AbstractResource
     }
 
     /**
-     * Reenvia o webhook para uma NF-e recebida.
+     * Reenvia o webhook para uma NF-e recebida, identificada pela chave de
+     * acesso (44 dígitos) OU pelo NSU (1–15 dígitos).
      *
      * @return array<string, mixed>
      */
@@ -222,12 +232,20 @@ final class InboundProductInvoicesResource extends AbstractResource
         ?RequestOptions $options = null,
     ): array {
         $companyId = IdValidator::companyId($companyId);
-        $accessKey = IdValidator::accessKey($accessKey);
+        $accessKey = IdValidator::accessKeyOrNsu($accessKey);
         $response = $this->httpPost(
-            "/companies/{$companyId}/productinvoices/received/{$accessKey}/webhook/reprocess",
+            "/companies/{$companyId}/inbound/productinvoices/{$accessKey}/processwebhook",
             options: $options,
         );
 
         return $this->decodeBody($response->body);
     }
+
+    /** Literais legados do SDK → código numérico SEFAZ do evento de manifestação. */
+    private const MANIFEST_EVENT_CODES = [
+        'Confirmation'    => '210200',
+        'Acknowledgement' => '210210',
+        'Unknown'         => '210220',
+        'Refused'         => '210240',
+    ];
 }

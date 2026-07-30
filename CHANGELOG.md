@@ -7,6 +7,38 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+### Corrigido
+
+- **Domínio de documentos de entrada inteiro** (`fix-inbound-routes`): os 20 métodos
+  de `InboundProductInvoicesResource` (13) e `TransportationInvoicesResource` (7)
+  usavam rotas (`/productinvoices/received/…`, `/productinvoices/inbound`, `/cte/…`)
+  que **nunca existiram na API** — desde a v3.0, todo o domínio retornava 404 de rota
+  (ou colidia com `/productinvoices/{id}`). Sondado ao vivo em 2026-07-29/30. Todas as
+  rotas migraram para o contrato real `/inbound/…` de
+  `openapi/consulta-dfe-distribuicao-v2.yaml`, **mantendo nomes e assinaturas dos 20
+  métodos** (pinado por teste de reflexão):
+  - Configuração: `POST|GET|DELETE /v2/companies/{id}/inbound/productinvoices`
+    (NF-e) e `…/inbound/transportationinvoices` (CT-e) — habilitar agora é `POST`
+    (era `PUT`).
+  - Consultas por chave: rotas genéricas `…/inbound/{accessKey}[/xml|/pdf|/events/…]`
+    e específicas `…/inbound/productinvoices/{accessKey}[/json|/events/…]`.
+  - `manifest()`: `POST …/inbound/{accessKey}/manifest?tpEvent={código}` — a API só
+    aceita o código numérico SEFAZ (sondado); o SDK aceita o código direto ou os
+    literais legados (`Confirmation`→210200, `Acknowledgement`→210210,
+    `Unknown`→210220, `Refused`→210240).
+  - `reprocessWebhook()`: `POST …/inbound/productinvoices/{key_or_nsu}/processwebhook`
+    — aceita chave de 44 dígitos **ou** NSU (1–15 dígitos).
+
+### Adicionado
+
+- `IdValidator::accessKeyOrNsu()` — normaliza chave de acesso (44 dígitos) ou NSU
+  (1–15 dígitos) para o reprocessamento de webhook.
+- Teste de alinhamento `InboundSpecAlignmentTest`: amarra as 20 rotas à spec DF-e v2
+  (verbo+path), pina a ausência dos esquemas de rota mortos e o tipo `integer` de
+  `tpEvent`; unit tests com verbo+path pinados por método. Rotas validadas ao vivo
+  com o SDK corrigido em 2026-07-30 (erros de domínio — settings/chave falsa/NSU —
+  nunca 404 de rota).
+
 ## [3.3.1] — 2026-07-30
 
 ### Corrigido

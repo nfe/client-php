@@ -95,6 +95,7 @@ downloadEventXml(string $companyId, string $accessKey, string $eventKey, ?Reques
 ```
 
 - **Does not use `dataApiKey`** — always the main `apiKey`.
+- Routes live under `/v2/companies/{id}/inbound/transportationinvoices` (config) and the generic `/inbound/{accessKey}…` (queries); `enable` is a POST. Fixed in v3.4.0 — before that, the resource hit dead `/cte/…` routes and every method 404'd.
 
 ## `$nfe->inboundProductInvoices` (Inbound NF-e / DFe distribution — Company-scoped)
 
@@ -115,3 +116,6 @@ reprocessWebhook(string $companyId, string $accessKey, ?RequestOptions $options 
 ```
 
 - `getXml`/`getEventXml`/`getPdf` return raw byte `string`. **Does not use `dataApiKey`** — always the main `apiKey`.
+- Routes live under `/v2/companies/{id}/inbound/…` (fixed in v3.4.0; the old `/productinvoices/received/…` and `/productinvoices/inbound` routes never existed on the API — every method 404'd until then). `enableAutoFetch` is a POST.
+- `manifest()` sends the SEFAZ numeric event code as query `tpEvent` (probed: the API rejects literals). Pass the code (`'210210'`) or a legacy literal, mapped as `Confirmation`→210200, `Acknowledgement`→210210, `Unknown`→210220, `Refused`→210240; anything else throws `InvalidRequestException` locally.
+- `reprocessWebhook()` accepts a 44-digit access key **or** a 1–15 digit NSU (`IdValidator::accessKeyOrNsu`), hitting `POST …/inbound/productinvoices/{key_or_nsu}/processwebhook`.

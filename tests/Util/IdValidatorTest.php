@@ -28,6 +28,21 @@ it('rejects access keys of wrong length', function (): void {
     expect(fn() => IdValidator::accessKey(str_repeat('1', 45)))->toThrow(InvalidRequestException::class);
 });
 
+it('accessKeyOrNsu accepts a 44-digit key or a 1–15 digit NSU', function (): void {
+    $key = '3526 1234 5678 9012 3456 7890 1234 5678 9012 3456 7890';
+    expect(IdValidator::accessKeyOrNsu($key))->toBe('35261234567890123456789012345678901234567890');
+    expect(IdValidator::accessKeyOrNsu('1'))->toBe('1');
+    expect(IdValidator::accessKeyOrNsu('000123456789'))->toBe('000123456789');
+    expect(IdValidator::accessKeyOrNsu(str_repeat('9', 15)))->toBe(str_repeat('9', 15));
+});
+
+it('accessKeyOrNsu rejects lengths that are neither key nor NSU', function (): void {
+    expect(fn() => IdValidator::accessKeyOrNsu(''))->toThrow(InvalidRequestException::class);
+    expect(fn() => IdValidator::accessKeyOrNsu(str_repeat('1', 16)))->toThrow(InvalidRequestException::class);
+    expect(fn() => IdValidator::accessKeyOrNsu(str_repeat('1', 43)))->toThrow(InvalidRequestException::class);
+    expect(fn() => IdValidator::accessKeyOrNsu(str_repeat('1', 45)))->toThrow(InvalidRequestException::class);
+});
+
 it('normalises CNPJ to 14 digits', function (): void {
     expect(IdValidator::cnpj('12.345.678/0001-90'))->toBe('12345678000190');
     expect(IdValidator::cnpj('12345678000190'))->toBe('12345678000190');
