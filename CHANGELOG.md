@@ -7,6 +7,27 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.3.1] — 2026-07-30
+
+### Corrigido
+
+- **Inutilização de NF-e** (`fix-product-invoice-disablement-epec`): `disable()` e
+  `disableRange()` de `ProductInvoicesResource` emitiam `PUT …/disable` — rota que
+  **não existe** na API (405/404, sondado ao vivo em 2026-07-29). Agora emitem
+  `POST …/{invoiceId}/disablement` e `POST …/productinvoices/disablement`, conforme
+  `openapi/nf-produto-v2.yaml`. Assinaturas públicas inalteradas.
+  - Em `disable()`, o `reason` de `$data` é promovido a query param (contrato do
+    endpoint individual); a API exige 15–255 caracteres (erro `40001`).
+  - Em `disableRange()`, o body segue o `DisablementResource` da spec; `reason` é
+    obrigatório (`400 "The Reason field is required"`).
+- **Download de EPEC**: `downloadEpecXml()` usava `GET …/xml/epec` (404 de rota
+  inexistente); agora usa a rota real `GET …/xml-epec`. `downloadRejectionXml()`
+  não muda (`/xml/rejection` e `/xml-rejection` são aliases vivos, sondado).
+- Testes: verbo+path dos três métodos pinados em unit tests; novo teste de
+  alinhamento `ProductInvoiceSpecAlignmentTest` amarra as rotas à spec (e pina a
+  ausência das rotas mortas). Rotas novas validadas ao vivo com o SDK corrigido
+  em 2026-07-30 (400 de validação / `40401 invoice not found` — nada inutilizado).
+
 ## [3.3.0] — 2026-07-09
 
 ### Adicionado

@@ -154,6 +154,14 @@ $nfe->productInvoices->disableRange($companyId, [
 ]);
 ```
 
+:::note `reason` é obrigatório na inutilização
+Em `disableRange()`, a API rejeita a ausência de `reason` com
+`400 "The Reason field is required"`. Em `disable()`, o `reason` informado em
+`$data` é enviado como parâmetro de query (contrato da API para o endpoint
+individual) e precisa ter entre 15 e 255 caracteres (erro `40001`). Para
+inutilizar um único número via faixa, use `beginNumber` igual a `lastNumber`.
+:::
+
 ## Próximos passos
 
 - [Notas de consumidor (NFC-e)](./consumer-invoices.md) — modelo 65.
