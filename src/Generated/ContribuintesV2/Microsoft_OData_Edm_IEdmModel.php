@@ -9,9 +9,9 @@ declare(strict_types=1);
 namespace Nfe\Generated\ContribuintesV2;
 
 /**
- * @param list<Microsoft.OData.Edm.IEdmSchemaElement>|null $schemaElements
- * @param list<Microsoft.OData.Edm.Vocabularies.IEdmVocabularyAnnotation>|null $vocabularyAnnotations
- * @param list<Microsoft.OData.Edm.IEdmModel>|null $referencedModels
+ * @param list<Microsoft_OData_Edm_IEdmSchemaElement>|null $schemaElements
+ * @param list<Microsoft_OData_Edm_Vocabularies_IEdmVocabularyAnnotation>|null $vocabularyAnnotations
+ * @param list<Microsoft_OData_Edm_IEdmModel>|null $referencedModels
  * @param list<string>|null $declaredNamespaces
  */
 final readonly class Microsoft_OData_Edm_IEdmModel
@@ -21,7 +21,7 @@ final readonly class Microsoft_OData_Edm_IEdmModel
         public ?array $vocabularyAnnotations = null,
         public ?array $referencedModels = null,
         public ?array $declaredNamespaces = null,
-        public ?Microsoft.OData.Edm.Vocabularies.IEdmDirectValueAnnotationsManager $directValueAnnotationsManager = null,
-        public ?Microsoft.OData.Edm.IEdmEntityContainer $entityContainer = null,
+        public ?Microsoft_OData_Edm_Vocabularies_IEdmDirectValueAnnotationsManager $directValueAnnotationsManager = null,
+        public ?Microsoft_OData_Edm_IEdmEntityContainer $entityContainer = null,
     ) {}
 }

@@ -12,7 +12,7 @@ final readonly class Microsoft_OData_Edm_IEdmSchemaElement
 {
     public function __construct(
         public ?string $name = null,
-        public ?Microsoft.OData.Edm.EdmSchemaElementKind $schemaElementKind = null,
+        public ?Microsoft_OData_Edm_EdmSchemaElementKind $schemaElementKind = null,
         public ?string $namespace = null,
     ) {}
 }

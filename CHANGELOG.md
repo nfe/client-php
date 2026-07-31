@@ -7,6 +7,39 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.4.1] — 2026-07-31
+
+### Corrigido
+
+- **PHP inválido removido do pacote** (`harden-openapi-generator`): 79 arquivos de
+  `src/Generated/` em 4 namespaces (`ContribuintesV2`, `ConsultaNfConsumidorV3`,
+  `ConsumerInvoiceV3`, `ConsultaCteV2`) carregavam type-hints com ponto
+  (ex.: `?DFeTech.TaxPayers.Resources.MunicipalTaxResourceItem`) — erro de parse
+  fatal se qualquer autoload classmap-authoritative, `opcache.preload` ou análise
+  estática do consumidor tocasse as classes. Causa: `TypeMapper::resolveRef()`
+  devolvia o nome cru do schema; agora todo hint derivado de `$ref` (direto, em
+  union e em items de array) passa pela mesma sanitização de identificador do nome
+  da classe (`NameMapper::phpIdentifier()`), então classe e referência nunca
+  divergem. Nada em runtime usa `Nfe\Generated\*` — por isso patch.
+
+### Adicionado
+
+- **Lint sintático do código gerado**: `scripts/generate.php` valida cada arquivo
+  emitido (`token_get_all` com `TOKEN_PARSE`) e falha listando os ofensores —
+  tanto no generate quanto no `--check` do CI. A classe inteira do bug ("PHP
+  inválido embarcado no dist") agora é falha de build.
+- **Fim do skip silencioso**: o generate imprime um sumário por spec com a
+  contagem de arquivos emitidos — specs Swagger 2.0 (fora do alcance do gerador,
+  que só lê `components.schemas`) são informativas; uma spec OpenAPI 3.x que
+  regredir a 0 schemas ganha aviso destacado.
+
+### Removido
+
+- `openapi/consumer-invoice-v3.yaml` — duplicata byte-idêntica de
+  `consulta-nf-consumidor-v3.yaml` (só 1 linha `x-displayName` diferia); com ela
+  saem os 49 arquivos duplicados de `src/Generated/ConsumerInvoiceV3/` (metade
+  era PHP inválido). Nenhum código referenciava o namespace.
+
 ## [3.4.0] — 2026-07-30
 
 ### Depreciado

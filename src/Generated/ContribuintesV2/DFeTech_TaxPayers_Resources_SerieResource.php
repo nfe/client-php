@@ -11,6 +11,6 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_SerieResource
 {
     public function __construct(
-        public ?DFeTech.TaxPayers.Resources.SerieResourceItem $serie = null,
+        public ?DFeTech_TaxPayers_Resources_SerieResourceItem $serie = null,
     ) {}
 }

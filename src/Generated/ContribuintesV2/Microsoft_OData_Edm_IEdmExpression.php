@@ -11,6 +11,6 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class Microsoft_OData_Edm_IEdmExpression
 {
     public function __construct(
-        public ?Microsoft.OData.Edm.EdmExpressionKind $expressionKind = null,
+        public ?Microsoft_OData_Edm_EdmExpressionKind $expressionKind = null,
     ) {}
 }

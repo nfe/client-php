@@ -15,11 +15,11 @@ final readonly class DataTech_Services_Domain_Models_Cfe_xml_Imposto
 {
     public function __construct(
         public ?float $vItem12741 = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeICMS $icms = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFePIS $pis = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeCOFINS $cofins = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeCOFINSST $cofinsst = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFePISST $pisst = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeISSQN $issqn = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeICMS $icms = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFePIS $pis = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeCOFINS $cofins = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeCOFINSST $cofinsst = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFePISST $pisst = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeISSQN $issqn = null,
     ) {}
 }

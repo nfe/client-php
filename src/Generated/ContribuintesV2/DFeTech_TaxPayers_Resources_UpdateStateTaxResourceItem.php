@@ -11,14 +11,14 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_UpdateStateTaxResourceItem
 {
     public function __construct(
-        public DFeTech.TaxPayers.Domain.Entities.StateCode $code,
+        public DFeTech_TaxPayers_Domain_Entities_StateCode $code,
         public string $taxNumber,
-        public DFeTech.TaxPayers.Domain.Entities.StateTaxType $type,
-        public ?DFeTech.TaxPayers.Domain.Entities.EnvironmentType $environmentType = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.SpecialTaxRegime $specialTaxRegime = null,
+        public DFeTech_TaxPayers_Domain_Entities_StateTaxType $type,
+        public ?DFeTech_TaxPayers_Domain_Entities_EnvironmentType $environmentType = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_SpecialTaxRegime $specialTaxRegime = null,
         public ?int $serie = null,
         public ?int $number = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.SecurityCredential $securityCredential = null,
-        public ?DFeTech.TaxPayers.Resources.CreateStateTaxProcessingDetailsResource $processingDetails = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_SecurityCredential $securityCredential = null,
+        public ?DFeTech_TaxPayers_Resources_CreateStateTaxProcessingDetailsResource $processingDetails = null,
     ) {}
 }

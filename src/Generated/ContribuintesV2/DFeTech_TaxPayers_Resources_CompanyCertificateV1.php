@@ -14,6 +14,6 @@ final readonly class DFeTech_TaxPayers_Resources_CompanyCertificateV1
         public ?string $thumbprint = null,
         public ?string $modifiedOn = null,
         public ?string $expiresOn = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.CertificateStatus $status = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_CertificateStatus $status = null,
     ) {}
 }

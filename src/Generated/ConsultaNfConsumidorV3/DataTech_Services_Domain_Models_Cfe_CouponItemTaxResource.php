@@ -15,9 +15,9 @@ final readonly class DataTech_Services_Domain_Models_Cfe_CouponItemTaxResource
 {
     public function __construct(
         public ?float $totalTax = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponIcmsTaxResource $icms = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponPisTaxResource $pis = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponCofinsTaxResource $cofins = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponISSQNResource $issqn = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponIcmsTaxResource $icms = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponPisTaxResource $pis = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponCofinsTaxResource $cofins = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponISSQNResource $issqn = null,
     ) {}
 }

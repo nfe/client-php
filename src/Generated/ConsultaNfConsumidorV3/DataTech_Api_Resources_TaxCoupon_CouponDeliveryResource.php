@@ -11,6 +11,6 @@ namespace Nfe\Generated\ConsultaNfConsumidorV3;
 final readonly class DataTech_Api_Resources_TaxCoupon_CouponDeliveryResource
 {
     public function __construct(
-        public ?DataTech.Api.Resources.AddressResourceItem $address = null,
+        public ?DataTech_Api_Resources_AddressResourceItem $address = null,
     ) {}
 }

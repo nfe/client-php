@@ -14,6 +14,6 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_CertificateMetadataResource
 {
     public function __construct(
-        public ?DFeTech.TaxPayers.Resources.CertificateMetadataResourceItem $certificate = null,
+        public ?DFeTech_TaxPayers_Resources_CertificateMetadataResourceItem $certificate = null,
     ) {}
 }

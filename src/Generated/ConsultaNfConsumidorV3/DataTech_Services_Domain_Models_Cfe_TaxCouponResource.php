@@ -24,12 +24,12 @@ final readonly class DataTech_Services_Domain_Models_Cfe_TaxCouponResource
         public ?string $issuedOn = null,
         public ?string $createdOn = null,
         public ?string $xmlVersion = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponIssuerResource $issuer = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponBuyerResource $buyer = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponTotalResource $totals = null,
-        public ?DataTech.Api.Resources.TaxCoupon.CouponDeliveryResource $delivery = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponAdditionalInformationResource $additionalInformation = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponIssuerResource $issuer = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponBuyerResource $buyer = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponTotalResource $totals = null,
+        public ?DataTech_Api_Resources_TaxCoupon_CouponDeliveryResource $delivery = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponAdditionalInformationResource $additionalInformation = null,
         public ?array $items = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponPaymentResource $payment = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponPaymentResource $payment = null,
     ) {}
 }

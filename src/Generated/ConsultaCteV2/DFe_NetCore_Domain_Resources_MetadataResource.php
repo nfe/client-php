@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace Nfe\Generated\ConsultaCteV2;
 
 /**
- * @param list<DFe.NetCore.Domain.Resources.ProductInvoiceResource>|null $productInvoices
+ * @param list<DFe_NetCore_Domain_Resources_ProductInvoiceResource>|null $productInvoices
  */
 final readonly class DFe_NetCore_Domain_Resources_MetadataResource
 {
@@ -19,8 +19,8 @@ final readonly class DFe_NetCore_Domain_Resources_MetadataResource
         public ?string $accessKey = null,
         public ?string $parentAccessKey = null,
         public ?array $productInvoices = null,
-        public ?DFe.NetCore.Domain.Resources.CompanyResource $company = null,
-        public ?DFe.NetCore.Domain.Enums.MetadataResourceType $type = null,
+        public ?DFe_NetCore_Domain_Resources_CompanyResource $company = null,
+        public ?DFe_NetCore_Domain_Enums_MetadataResourceType $type = null,
         public ?int $nsu = null,
         public ?string $issuedOn = null,
         public ?string $description = null,

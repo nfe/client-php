@@ -9,19 +9,19 @@ declare(strict_types=1);
 namespace Nfe\Generated\ConsultaNfConsumidorV3;
 
 /**
- * @param list<DataTech.Services.Domain.Models.Cfe.xml.Det>|null $det
+ * @param list<DataTech_Services_Domain_Models_Cfe_xml_Det>|null $det
  */
 final readonly class DataTech_Services_Domain_Models_Cfe_xml_InfCFe
 {
     public function __construct(
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Ide $ide = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Emit $emit = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Dest $dest = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Ide $ide = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Emit $emit = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Dest $dest = null,
         public ?array $det = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeTotal $total = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Pgto $pgto = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.InfAdic $infAdic = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Entrega $entrega = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeTotal $total = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Pgto $pgto = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_InfAdic $infAdic = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Entrega $entrega = null,
         public ?string $versaoSB = null,
         public ?string $versaoDadosEnt = null,
         public ?string $versao = null,

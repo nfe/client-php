@@ -18,7 +18,7 @@ final readonly class DataTech_Services_Domain_Models_Cfe_CouponIssuerResource
         public ?string $type = null,
         public ?string $name = null,
         public ?string $tradeName = null,
-        public ?DataTech.Api.Resources.AddressResourceItem $address = null,
+        public ?DataTech_Api_Resources_AddressResourceItem $address = null,
         public ?string $stateTaxNumber = null,
         public ?string $taxRegime = null,
         public ?string $municipalTaxNumber = null,

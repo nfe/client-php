@@ -33,6 +33,6 @@ final readonly class DataTech_Services_Domain_Models_Cfe_CouponItemResource
         public ?float $apportionmentDiscountAmount = null,
         public ?float $apportionmentAmount = null,
         public ?array $fisco = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponItemTaxResource $tax = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponItemTaxResource $tax = null,
     ) {}
 }

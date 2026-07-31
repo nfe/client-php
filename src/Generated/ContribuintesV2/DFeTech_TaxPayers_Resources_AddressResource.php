@@ -12,7 +12,7 @@ final readonly class DFeTech_TaxPayers_Resources_AddressResource
 {
     public function __construct(
         public string $state,
-        public DFeTech.TaxPayers.Resources.CityBaseResource $city,
+        public DFeTech_TaxPayers_Resources_CityBaseResource $city,
         public string $district,
         public string $street,
         public string $number,

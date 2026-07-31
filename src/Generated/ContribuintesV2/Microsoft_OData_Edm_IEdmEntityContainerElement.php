@@ -12,7 +12,7 @@ final readonly class Microsoft_OData_Edm_IEdmEntityContainerElement
 {
     public function __construct(
         public ?string $name = null,
-        public ?Microsoft.OData.Edm.EdmContainerElementKind $containerElementKind = null,
-        public ?Microsoft.OData.Edm.IEdmEntityContainer $container = null,
+        public ?Microsoft_OData_Edm_EdmContainerElementKind $containerElementKind = null,
+        public ?Microsoft_OData_Edm_IEdmEntityContainer $container = null,
     ) {}
 }

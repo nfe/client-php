@@ -13,6 +13,6 @@ final readonly class DFe_NetCore_Domain_Resources_EnableInboundProductInvoiceRes
     public function __construct(
         public ?int $startFromNsu = null,
         public ?string $startFromDate = null,
-        public ?DFe.NetCore.Domain.Resources.ManifestAutomaticRulesResource $automaticManifesting = null,
+        public ?DFe_NetCore_Domain_Resources_ManifestAutomaticRulesResource $automaticManifesting = null,
     ) {}
 }

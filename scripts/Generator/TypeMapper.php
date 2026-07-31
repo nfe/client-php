@@ -116,10 +116,15 @@ final class TypeMapper
 
     /**
      * "#/components/schemas/Borrower" -> "Borrower"
+     *
+     * The resolved name goes through the same identifier sanitisation as the
+     * emitted class name, so dotted schema names ("DFeTech.TaxPayers.X")
+     * produce valid PHP type-hints that match the class actually generated.
      */
     private static function resolveRef(string $ref): string
     {
         $pos = strrpos($ref, '/');
-        return $pos === false ? $ref : substr($ref, $pos + 1);
+        $name = $pos === false ? $ref : substr($ref, $pos + 1);
+        return NameMapper::phpIdentifier($name);
     }
 }

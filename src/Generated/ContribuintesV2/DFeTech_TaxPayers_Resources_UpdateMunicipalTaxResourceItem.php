@@ -11,22 +11,22 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_UpdateMunicipalTaxResourceItem
 {
     public function __construct(
-        public ?DFeTech.TaxPayers.Domain.Entities.CityExtended $city = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_CityExtended $city = null,
         public ?string $taxNumber = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.SpecialTaxRegime $specialTaxRegime = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_SpecialTaxRegime $specialTaxRegime = null,
         public ?string $email = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.LegalNature $legalNature = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_LegalNature $legalNature = null,
         public ?int $companyRegistryNumber = null,
         public ?int $regionalTaxNumber = null,
         public ?int $rpsNumber = null,
         public ?int $lastRpsSent = null,
         public ?float $issRate = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.FederalTaxDeterminationBy $federalTaxDetermination = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.MunicipalTaxDeterminationBy $municipalTaxDetermination = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_FederalTaxDeterminationBy $federalTaxDetermination = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_MunicipalTaxDeterminationBy $municipalTaxDetermination = null,
         public ?string $loginName = null,
         public ?string $loginPassword = null,
         public ?string $authIssueValue = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.ApiEnvironment $environment = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_ApiEnvironment $environment = null,
         public ?string $rpsSerialNumber = null,
     ) {}
 }

@@ -11,8 +11,8 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_StateTaxSwitchAuthorizerResponse
 {
     public function __construct(
-        public ?DFeTech.TaxPayers.Domain.Entities.StateTaxProcessingAuthorizer $fromAuthorizer = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.StateTaxProcessingAuthorizer $toAuthorizer = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_StateTaxProcessingAuthorizer $fromAuthorizer = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_StateTaxProcessingAuthorizer $toAuthorizer = null,
         public ?string $reason = null,
         public ?string $modifiedOn = null,
     ) {}

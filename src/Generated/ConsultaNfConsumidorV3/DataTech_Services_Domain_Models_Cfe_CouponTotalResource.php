@@ -14,8 +14,8 @@ namespace Nfe\Generated\ConsultaNfConsumidorV3;
 final readonly class DataTech_Services_Domain_Models_Cfe_CouponTotalResource
 {
     public function __construct(
-        public ?DataTech.Services.Domain.Models.Cfe.CouponICMSTotalResource $icms = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponISSQNTotalResource $issqn = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponICMSTotalResource $icms = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponISSQNTotalResource $issqn = null,
         public ?float $totalAmount = null,
         public ?float $couponAmount = null,
     ) {}

@@ -14,8 +14,8 @@ namespace Nfe\Generated\ConsultaNfConsumidorV3;
 final readonly class DataTech_Services_Domain_Models_Cfe_xml_Det
 {
     public function __construct(
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Prod $prod = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.Imposto $imposto = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Prod $prod = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_Imposto $imposto = null,
         public ?int $nItem = null,
     ) {}
 }

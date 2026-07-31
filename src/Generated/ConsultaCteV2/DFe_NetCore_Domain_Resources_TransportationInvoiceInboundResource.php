@@ -14,7 +14,7 @@ final readonly class DFe_NetCore_Domain_Resources_TransportationInvoiceInboundRe
         public ?int $startFromNsu = null,
         public ?string $startFromDate = null,
         public ?string $companyId = null,
-        public ?DFe.NetCore.Domain.Enums.EntityStatus $status = null,
+        public ?DFe_NetCore_Domain_Enums_EntityStatus $status = null,
         public ?string $createdOn = null,
         public ?string $modifiedOn = null,
     ) {}

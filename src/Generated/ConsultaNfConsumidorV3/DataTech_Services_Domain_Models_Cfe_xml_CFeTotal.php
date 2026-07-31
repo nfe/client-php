@@ -14,9 +14,9 @@ namespace Nfe\Generated\ConsultaNfConsumidorV3;
 final readonly class DataTech_Services_Domain_Models_Cfe_xml_CFeTotal
 {
     public function __construct(
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeICMSTot $icmsTot = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeISSQNTot $issqNtot = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.DescAcrEntr $descAcrEntr = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeICMSTot $icmsTot = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeISSQNTot $issqNtot = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_DescAcrEntr $descAcrEntr = null,
         public ?float $vCFe = null,
         public ?float $vCFeLei12741 = null,
     ) {}

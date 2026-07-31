@@ -15,7 +15,7 @@ final readonly class DataTech_Services_Domain_Models_Cfe_CouponCofinsTaxResource
 {
     public function __construct(
         public ?string $cst = null,
-        public ?DataTech.Services.Domain.Models.Cfe.CouponTaxBaseResource $st = null,
+        public ?DataTech_Services_Domain_Models_Cfe_CouponTaxBaseResource $st = null,
         public ?float $baseTax = null,
         public ?float $rate = null,
         public ?float $amount = null,

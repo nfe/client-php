@@ -12,9 +12,9 @@ final readonly class Microsoft_OData_Edm_Vocabularies_IEdmVocabularyAnnotation
 {
     public function __construct(
         public ?string $qualifier = null,
-        public ?Microsoft.OData.Edm.Vocabularies.IEdmTerm $term = null,
-        public ?Microsoft.OData.Edm.Vocabularies.IEdmVocabularyAnnotatable $target = null,
-        public ?Microsoft.OData.Edm.IEdmExpression $value = null,
+        public ?Microsoft_OData_Edm_Vocabularies_IEdmTerm $term = null,
+        public ?Microsoft_OData_Edm_Vocabularies_IEdmVocabularyAnnotatable $target = null,
+        public ?Microsoft_OData_Edm_IEdmExpression $value = null,
         public ?bool $usesDefault = null,
     ) {}
 }
