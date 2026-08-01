@@ -6345,7 +6345,7 @@ paths:
                     description: Data da última modificação
                     type: string
         "400":
-          description: Algum parametro informado não é válido
+          description: Algum parâmetro informado não é válido — verifique a resposta. Também ocorre quando o prestador (a empresa do company_id) possui CNPJ alfanumérico, não suportado nas rotas v1/v2 — a resposta é o texto "Prestador com CNPJ alfanumérico requer a API v3; as rotas v1/v2 não suportam CNPJ alfanumérico". Migre a chamada para a V3.
           content:
             application/json:
               schema:
@@ -7675,7 +7675,7 @@ paths:
                     description: Data da última modificação
                     type: string
         "400":
-          description: Algum parametro informado não é válido
+          description: Algum parâmetro informado não é válido — verifique a resposta. Também ocorre quando a nota contém CNPJ alfanumérico (prestador, tomador, destinatário ou intermediário) — as rotas v1/v2 não a entregam e a resposta é o texto "Esta nota fiscal contém CNPJ alfanumérico e requer a API v3; as rotas v1/v2 não suportam CNPJ alfanumérico".
           content:
             application/json:
               schema:

@@ -4,7 +4,7 @@ info:
   description: "# Introducão\nSeja bem-vindo a documentação da API de Nota Fiscal de Consumidor!\nNossa API foi criada utilizando o padrão REST que possibilita a integração de seu sistema ao nosso, sendo assim você também pode extender ou recriar as funcionalidades existentes na nossa plataforma, tudo isso consumindo a API que está documentada abaixo.\n\n\n# Como usar a API?\nLogo a seguir você encontrará todos os recursos e metódos suportados pela API, sendo que essa página possibilita que você teste os recursos e métodos diretamente através dela.\n\n\n# Autenticação\nVocê precisa de uma chave de API (API Key) para identificar a conta que está realizando solicitações para a API. \nPara isso você deve colocar sua chave de API no campo que se encontra topo desta página para que os métodos funcionem corretamente.\nNo seu código e integração temos suporte para autenticação de diversas formas sendo eles: \nHTTP Header (Authorization) ou HTTP Query String (api_key) nos dois modos passando o valor da sua chave de api (API Key).\n<!-- ReDoc-Inject: <security-definitions> -->\n"
   version: v2
 servers:
-  - url: https://api.nfse.io/
+  - url: https://api.nfse.io
 tags:
   - name: Companies
     description: |
@@ -5531,12 +5531,6 @@ components:
           $ref: '#/components/schemas/ConsumptionCityCode'
         ibsConsumptionCityCode:
           $ref: '#/components/schemas/IbsConsumptionCityCode'
-        debitType:
-          description: "⚠️ Não se aplica à NFC-e (modelo 65) — campo/grupo exclusivo da NF-e (modelo 55)."
-          $ref: '#/components/schemas/DebitType'
-        creditType:
-          description: "⚠️ Não se aplica à NFC-e (modelo 65) — campo/grupo exclusivo da NF-e (modelo 55)."
-          $ref: '#/components/schemas/CreditType'
         governmentPurchase:
           $ref: '#/components/schemas/GovernmentPurchaseResource'
         buyer:
@@ -7836,46 +7830,6 @@ components:
           description: "Valor de CBS a transferir (vCBS)."
           format: "double"
       additionalProperties: false
-    CreditType:
-      type: "string"
-      nullable: true
-      description: |
-        Tipo de Nota de Crédito (tpNFCredito).
-        Valores possíveis:
-        - `FinesAndInterest`: Multa e juros
-        - `IbsPresumedCreditAppropriationZfm`: Apropriação de crédito presumido de IBS sobre o saldo devedor na ZFM
-        - `ReturnDeliveryRefusedOrNotFound`: Retorno por recusa na entrega ou não localização do destinatário
-        - `ValueReduction`: Redução de valores
-        - `TransferCreditSuccession`: Transferência de crédito na sucessão
-      enum:
-        - "FinesAndInterest"
-        - "IbsPresumedCreditAppropriationZfm"
-        - "ReturnDeliveryRefusedOrNotFound"
-        - "ValueReduction"
-        - "TransferCreditSuccession"
-    DebitType:
-      type: "string"
-      nullable: true
-      description: |
-        Tipo de Nota de Débito (tpNFDebito).
-        Valores possíveis:
-        - `TransferCreditsToCooperatives`: Transferência de créditos para cooperativas
-        - `CancelCreditsExemptImmuneSales`: Cancelamento de créditos por vendas isentas/imunes
-        - `UnprocessedInvoicesDebits`: Débitos de faturas não processadas no cálculo
-        - `FinesAndInterest`: Multas e juros
-        - `TransferInheritanceCredit`: Transferência de crédito de herança
-        - `AdvancePayment`: Pagamento antecipado
-        - `InventoryLoss`: Perda de estoque
-        - `SnDisqualification`: Desenquadramento do Simples Nacional
-      enum:
-        - "TransferCreditsToCooperatives"
-        - "CancelCreditsExemptImmuneSales"
-        - "UnprocessedInvoicesDebits"
-        - "FinesAndInterest"
-        - "TransferInheritanceCredit"
-        - "AdvancePayment"
-        - "InventoryLoss"
-        - "SnDisqualification"
     DefermentTaxResource:
       type: "object"
       description: "Grupo de Informações do Diferimento"
