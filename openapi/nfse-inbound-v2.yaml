@@ -1,0 +1,2056 @@
+openapi: 3.0.3
+info:
+  title: DFeDistribution - Inbound API
+  description: "API de Consulta de NF-e, CT-e e NFS-e (Distribuição) da plataforma nfe.io.\nPermite habilitar/desabilitar a busca automatica de documentos fiscais,\nconsultar metadados, XMLs, PDFs, eventos e listar documentos via OData.\n\n**Subsistemas cobertos:**\n\n- **NF-e Recebidas** (Product Invoices) — captura via SEFAZ Distribuição DFe.\n- **CT-e Recebidas** (Transportation Invoices) — captura via SEFAZ Distribuição DFe.\n- **NFS-e Recebidas** — captura via ADN (Ambiente de Dados Nacional).\n\n**Complementos:**\n\n- Documentação técnica detalhada para devs cliente:\n  02-doc-tecnica-clientes-nfe-cte-dev-pt.md (NFe + CTe),\n  02-doc-tecnica-clientes-dev-nfse-inbound-api.md (NFSe API),\n  02-doc-tecnica-clientes-dev-nfse-inbound-webhook.md (NFSe webhook).\n- Postman collection completa (55 endpoints, inclui o NFe Inbound\n  exporter-friendly e a folder Bulk Export que dispara jobs no\n  shared-usage-api), em duas linguagens:\n  PT ·\n  EN.\n\n**Novidades v2.3 (2026-05-07):**\n\n- **Schemas de resposta enriquecidos** — todos os schemas em\n  `components.schemas` ganharam um `example` próprio renderizavel\n  pelo Swagger UI; respostas 4xx/5xx (BadRequest, Unauthorized,\n  Forbidden, NotFound, Conflict, UnprocessableEntity, InternalError)\n  passaram a expor exemplo de payload de erro.\n- Novos schemas: `AsyncAcceptedResource` (corpo padrao de respostas\n  202 com `documentId`/`companyId` para correlacao), `NFeMetadataListResource`,\n  `ListInboundNfeResponse`, `CTeBatchConsolidationRequest`,\n  `AutomaticManifestingResource`, `NFeEventMetadataResource`.\n- `EnableInboundProductInvoiceResource` agora documenta os campos\n  `webhookEvents`, `webhookVersion` e o sub-objeto\n  `automaticManifesting.minutesToOperationConfirmation`/`minutesToUnknownOperation`.\n- `ProductInvoiceInboundResource` e `TransportationInvoiceInboundResource`\n  passaram a refletir os campos reais de retorno (`companyId`, `status`,\n  `createdOn`, `modifiedOn`).\n\n**Novidades v2.2 (2026-05-06):**\n\n- Adicionados 4 endpoints sob `/v2/companies/{companyId}/inbound/nfe/...`\n  (NFe Inbound exporter-friendly), incluindo o novo `GET /{accessKey}`\n  consumido pelo exporter analitico CSV.\n- Documentado suporte a **bulk export CSV** via shared-usage-api:\n  novos resources `company-nfse-inbound-analytical-csv` e\n  `company-nfe-inbound-analytical-csv` que produzem uma planilha\n  achatando cada nota + evento relacionado primario na mesma linha.\n  Veja 04-guia-uso-console.md e\n  05-guia-onboarding.md para uso pelo\n  console e 02-doc-tecnica-clientes-nfe-cte-dev-pt.md\n  para integracao via API.\n"
+  version: '2.3'
+  contact:
+    name: nfe.io
+    url: https://nfe.io
+servers:
+- url: https://api.nfse.io
+  description: Producao
+- url: https://api.nfse.io
+  description: Homologacao
+security:
+- ApiKey: []
+tags:
+- name: NFSe Inbound
+  description: 'Endpoints para captura e manifestacao de NFS-e (Nota Fiscal de Servicos
+
+    eletronica) via DFeTech.Api.Inbound. Cobre documentos, eventos de
+
+    manifestacao do tomador (ciencia / rejeicao), empresas, manutencao e
+
+    reprocessamento. Todas as rotas compartilham o prefixo
+
+    `v2/companies/{companyId}/inbound/nfse/...`.
+
+    '
+paths:
+  /v2/companies/inbound/nfse:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Listar empresas configuradas para captura inbound NFS-e
+      operationId: listNFSeCompanies
+      parameters:
+      - name: pageIndex
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: pageCount
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: 0 usa DefaultPageSize; limite MaxPageSize aplicado.
+      - name: isActive
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeCompanyCollectionResource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Cadastrar empresa inbound NFS-e (companyId vem no body)
+      operationId: createNFSeCompany
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NFSeCreateInboundCompanyRequest'
+      responses:
+        '201':
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeCompanyResource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v2/companies/{companyId}/inbound/nfse:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Listar documentos fiscais NFS-e capturados
+      operationId: listNFSeDocuments
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - name: environment
+        in: query
+        schema:
+          type: string
+          enum:
+          - Production
+          - Development
+      - name: pageIndex
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: pageCount
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: type
+        in: query
+        schema:
+          type: string
+          enum:
+          - None
+          - Dps
+          - EventRegistrationRequest
+          - Nfse
+          - Event
+          - Cnc
+        description: 'Filtro por tipo de documento (input). Aceita o nome do enum `NFSeDocumentType` —
+
+          **nota**: o response renomeia o valor `Nfse` para `serviceInvoice` (ver schema
+
+          `NFSeDocumentDetailResource.type`), mas o query param continua aceitando `Nfse`
+
+          como entrada (model binding default).
+
+          '
+      - name: eventType
+        in: query
+        schema:
+          type: string
+        description: Subtipo de evento (quando type=Event).
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - Pending
+          - Processed
+          - Failed
+          - PdfPending
+          - PdfFailed
+      - name: webhookStatus
+        in: query
+        schema:
+          type: string
+          enum:
+          - Pending
+          - Delivered
+          - Failed
+          - DefinitivelyFailed
+      - name: nsuBegin
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: nsuEnd
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: createdBegin
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: createdEnd
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: issuedBegin
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: issuedEnd
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: federalTaxNumber
+        in: query
+        schema:
+          type: string
+        description: Filtra por CNPJ/CPF (provider ou borrower).
+      - name: hasTotals
+        in: query
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeDocumentCollectionResource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /v2/companies/{companyId}/inbound/nfse/details:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Obter detalhes de uma empresa inbound NFS-e
+      operationId: getNFSeCompanyDetails
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeCompanyResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+      - NFSe Inbound
+      summary: Atualizar configuracao de empresa inbound NFS-e
+      operationId: updateNFSeCompany
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NFSeUpdateInboundCompanyRequest'
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeCompanyResource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - NFSe Inbound
+      summary: Desativar empresa inbound NFS-e (soft delete)
+      description: 'Soft delete — `isActive` passa a `false` e a empresa para de ser polled.
+
+        Pode ser reativada via `/maintenance/reactivate`. Resposta de sucesso
+
+        é **`200 OK` com corpo vazio** (`ReturnResult(Result)` no
+
+        `ApiBaseController`).
+
+        '
+      operationId: deactivateNFSeCompany
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      responses:
+        '200':
+          description: Desativada (sem corpo).
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/reset-nsu:
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Redefinir o NSU atual de uma empresa para reprocessar documentos
+      description: 'Atribui um novo `currentNsu` à empresa, fazendo com que a próxima
+
+        captura inicie a partir dele. Use com cautela — documentos entre o
+
+        novo NSU e o anterior serão re-emitidos no webhook. Resposta de
+
+        sucesso é **`200 OK` com corpo vazio**.
+
+        '
+      operationId: resetNFSeNsu
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NFSeResetNsuRequest'
+      responses:
+        '200':
+          description: NSU redefinido (sem corpo).
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/{id}:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Obter detalhes de um documento NFS-e (por ID ou por chave de acesso)
+      description: 'O parâmetro `{id}` aceita tanto o ID interno do documento quanto a chave
+
+        de acesso NFS-e (50 dígitos). Detecção automática via regex `^\d{50}$`.
+
+        Quando é chave de acesso, retorna o documento primário (NFS-e preferida
+
+        sobre eventos).
+
+        '
+      operationId: getNFSeDocument
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseDocumentIdOrAccessKey'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeDocumentDetailResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/{id}/xml:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Redirecionar para download do XML (aceita ID ou chave de acesso)
+      operationId: downloadNFSeXml
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseDocumentIdOrAccessKey'
+      responses:
+        '302':
+          description: Redirect para URL assinada
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/{id}/pdf:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Redirecionar para download do PDF (aceita ID ou chave de acesso) ou 202 se pendente
+      description: 'Retorna `302` quando o PDF esta disponivel (redirect para URL assinada
+
+        S3 de curta expiracao) ou `202` com `{ "message": "PDF is being
+
+        generated..." }` quando o PDF ainda esta sendo gerado (async).
+
+        '
+      operationId: downloadNFSePdf
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseDocumentIdOrAccessKey'
+      responses:
+        '302':
+          description: PDF pronto, redirect para URL assinada
+        '202':
+          description: PDF ainda sendo gerado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/{id}/json:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Devolve o XML capturado convertido em JSON (aceita ID ou chave de acesso)
+      description: 'Retorna o XML capturado do documento fiscal convertido em JSON literal,
+
+        inline (`200 application/json`). Diferente de `/xml` e `/pdf`, NÃO há
+
+        redirect — o payload é devolvido no body da resposta. A conversão
+
+        espelha 1:1 a estrutura do XML: atributos viram propriedades prefixadas
+
+        com `@` (ex.: `@versao`), texto inline em elementos com atributos vira
+
+        `#text`, namespaces como `@xmlns` / `@xmlns:prefix`. Aceita qualquer
+
+        tipo de documento com XML armazenado (Nfse, Event, Dps, Cnc,
+
+        EventRegistrationRequest).
+
+        '
+      operationId: downloadNFSeJson
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseDocumentIdOrAccessKey'
+      responses:
+        '200':
+          description: JSON resultante da conversão literal do XML
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 'Espelha 1:1 a árvore XML do documento. Estrutura depende do
+
+                  tipo de documento — sem schema fixo (campos dinâmicos).
+
+                  '
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          description: 'Throttling temporário do S3 após retries internos do SDK. O cliente
+
+            deve aguardar e refazer a requisição (o retorno inclui o header
+
+            `Retry-After` em segundos).
+
+            '
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                example: 30
+              description: Segundos sugeridos antes de tentar novamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResource'
+              example:
+                errors:
+                - code: 503
+                  message: S3 temporarily throttled. Please retry shortly.
+  /v2/companies/{companyId}/inbound/nfse/{id}/reprocess:
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Reenfileirar um documento para reprocessamento (aceita ID ou chave de acesso)
+      description: 'Reenfileira o documento para reprocessamento (parsing + persistência +
+
+        webhook). O processamento é assíncrono — acompanhe via `GET /{id}` ou
+
+        webhook. Conta no contador `reprocessCount` do detalhamento.
+
+        '
+      operationId: reprocessNFSeDocument
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseDocumentIdOrAccessKey'
+      responses:
+        '202':
+          description: Reenfileirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/{id}/resend-webhook:
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Reenfileirar entrega do webhook de um documento (aceita ID ou chave de acesso)
+      description: 'Reenfileira somente a entrega do webhook (não reprocessa o documento).
+
+        Útil quando o consumidor estava indisponível e quer disparar retry
+
+        manual. Retorna 202; acompanhe via `webhookStatus` no detalhamento.
+
+        '
+      operationId: resendNFSeWebhook
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseDocumentIdOrAccessKey'
+      responses:
+        '202':
+          description: Reenfileirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/by-access-key/{accessKey}/manifestations:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Listar eventos de manifestacao submetidos para uma NFS-e
+      operationId: listNFSeManifestationsByAccessKey
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseAccessKey'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeManifestationEventCollectionResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Submeter evento de manifestacao do tomador (ciencia / rejeicao)
+      description: 'Aceita somente eventos do tomador: `203202` (Confirmacao) e
+
+        `203206` (Rejeicao). Para `203206`, `reasonCode` e obrigatorio
+
+        (valores validos: 1, 2, 3, 4, 5, 9). Processamento e assincrono
+
+        via fila `inbound-submit-manifestation`. O corpo da resposta e o
+
+        resource inicial com `status: "Pending"`; o cliente deve acompanhar
+
+        a transicao via `GET /manifestations/{id}` ou webhook.
+
+        '
+      operationId: submitNFSeManifestation
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/nfseAccessKey'
+      - name: eventCode
+        in: query
+        required: true
+        schema:
+          type: integer
+          enum:
+          - 203202
+          - 203206
+        description: 203202 = Confirmacao; 203206 = Rejeicao (requer reasonCode).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NFSeSubmitManifestationEventRequest'
+      responses:
+        '202':
+          description: Aceito para processamento assincrono
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL do endpoint GET /manifestations/{id} para acompanhar.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeManifestationEventResource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+  /v2/companies/{companyId}/inbound/nfse/manifestations/{id}:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Obter detalhes de um evento de manifestacao (inclui request/response XML)
+      operationId: getNFSeManifestation
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: ID do evento de manifestacao (ObjectId).
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeManifestationEventDetailResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/maintenance/fetch-now:
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Disparar captura imediata de documentos (fetch sob demanda) — requer role Management
+      description: 'Dispara um ciclo imediato de captura ADN para a empresa, fora da
+
+        janela de polling normal. Útil para validar configuração após cadastro
+
+        ou após reset de NSU. O processamento é assíncrono.
+
+        '
+      operationId: fetchNFSeNow
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NFSeFetchNowRequest'
+      responses:
+        '202':
+          description: Fetch enfileirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncAcceptedResource'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/maintenance/notifications:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Listar notificacoes de manutencao (requer role Management)
+      operationId: listNFSeNotifications
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      - name: severity
+        in: query
+        schema:
+          type: string
+          enum:
+          - Info
+          - Warning
+          - Critical
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: pageIndex
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: pageCount
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeNotificationCollectionResource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /v2/companies/{companyId}/inbound/nfse/maintenance/statistics:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Visao operacional de uma empresa (campos internos + estatisticas)
+      operationId: getNFSeStatistics
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFSeCompanyOpsViewResource'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/{companyId}/inbound/nfse/maintenance/reactivate:
+    post:
+      tags:
+      - NFSe Inbound
+      summary: Reativar uma empresa inbound previamente desativada
+      description: 'Força reativação manual — útil após resolução do motivo registrado em
+
+        `deactivationReason`. Resposta de sucesso é **`200 OK` com corpo vazio**.
+
+        '
+      operationId: reactivateNFSeCompany
+      parameters:
+      - $ref: '#/components/parameters/companyId'
+      responses:
+        '200':
+          description: Reativada (sem corpo).
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v2/companies/inbound/nfse/blob/download:
+    get:
+      tags:
+      - NFSe Inbound
+      summary: Download de blob XML/PDF via URL assinada HMAC (sem autenticacao)
+      description: 'Endpoint publico protegido unicamente pela assinatura HMAC. Os
+
+        parametros `b` (blob path), `e` (expiration ticks) e `s`
+
+        (signature) sao gerados por `NFSeUrlSigner` e embutidos nas URLs
+
+        retornadas nos 302 dos endpoints `/xml` e `/pdf`. Nao e chamado
+
+        diretamente pelo cliente — o redirect 302 leva o browser/HttpClient
+
+        ate aqui automaticamente.
+
+        '
+      operationId: downloadNFSeBlob
+      security: []
+      parameters:
+      - name: b
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Caminho do blob no storage.
+      - name: e
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Expiration em DateTime.Ticks (UTC).
+      - name: s
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Assinatura HMAC-SHA256 URL-safe base64.
+      responses:
+        '200':
+          description: Stream binario do XML ou do PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/xml:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: 'Parametros `b`/`e`/`s` ausentes ou malformados, **ou** link expirado
+
+            (timestamp `e` no passado). O corpo é texto puro com a mensagem
+
+            literal retornada pelo controller.
+
+            '
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                missingParams:
+                  summary: Parâmetros ausentes/malformados
+                  value: Invalid parameters.
+                expiredLink:
+                  summary: Link expirado
+                  value: Link expired.
+        '401':
+          description: Assinatura HMAC inválida.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Invalid signature.
+        '404':
+          description: Arquivo nao encontrado no storage.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: File not found.
+        '503':
+          description: 'Throttling temporário do S3. Aguarde e refaça a requisição (o
+
+            retorno inclui o header `Retry-After` em segundos).
+
+            '
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                example: 30
+              description: Segundos sugeridos antes de tentar novamente.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: S3 temporarily throttled. Please retry shortly.
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'API Key da conta nfe.io enviada no header `Authorization` (sem prefixo
+
+        `Bearer`). A mesma chave usada nas demais APIs da plataforma. As roles
+
+        relevantes são `NFeDist`, `CTeDist` e `NFSeDist` — somente endpoints
+
+        cujas policies o token cobre são acessíveis.
+
+        '
+  parameters:
+    company_id:
+      name: company_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 5f4d4cee0a8b8e2c3a1bcd11
+      description: ID da empresa na plataforma nfe.io (snake_case, usado pelas rotas NF-e/CT-e legadas).
+    access_key:
+      name: access_key
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 44
+        maxLength: 44
+        example: '35240612345678000195550010000012341123456789'
+      description: Chave de acesso do documento NF-e/CT-e (44 dígitos numéricos).
+    event_key:
+      name: event_key
+      in: path
+      required: true
+      schema:
+        type: string
+        example: '35240612345678000195550010000012341123456789110111'
+      description: Chave do evento (50 dígitos = 44 da NF-e/CT-e + tpEvento + sequência).
+    companyId:
+      name: companyId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 5f4d4cee0a8b8e2c3a1bcd11
+      description: ID da empresa (camelCase, usado pelas rotas NFS-e e exporter NFe).
+    nfseAccessKey:
+      name: accessKey
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[0-9]{50}$
+        example: '12345678901234567890123456789012345678901234567890'
+      description: Chave de acesso NFS-e (50 dígitos numéricos).
+    nfseDocumentId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 65fa2c11abc1234567890def
+      description: ID do documento NFS-e (ObjectId Mongo, 24 hex).
+    nfseDocumentIdOrAccessKey:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: 65fa2c11abc1234567890def
+      description: 'ID do documento NFS-e (ObjectId Mongo) OU chave de acesso (50 dígitos).
+
+        Detecção automática pelo servidor via regex `^\d{50}$`. Quando é chave
+
+        de acesso, retorna o documento primário (NFS-e preferida sobre eventos).
+
+        '
+  responses:
+    BadRequest:
+      description: 'Parâmetro inválido ou regra de negócio violada. Os controllers que
+
+        herdam de `ApiBaseController` retornam **`ErrorsResource`** (`{ errors:
+
+        [...] }`) via `ReturnResult`. O endpoint público `/blob/download` é
+
+        exceção — retorna `text/plain` (ver a operação correspondente).
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 400
+              message: 'EnvironmentSEFAZ inválido. Valores permitidos: 1=Produção, 2=Homologação.'
+    Unauthorized:
+      description: 'API Key ausente, malformada ou desconhecida. O header `Authorization`
+
+        não foi enviado, está vazio, ou não bate com nenhuma chave ativa.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 401
+              message: Invalid or missing API key.
+    Forbidden:
+      description: 'API Key válida porém sem a *policy* exigida pelo endpoint
+
+        (`NFeDist`, `CTeDist`, `NFSeDist` ou role `Management`). Reveja as
+
+        permissões da chave no painel.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 403
+              message: Acesso restrito a role Management.
+    NotFound:
+      description: 'Recurso não encontrado para a empresa atual. Pode ser empresa, chave
+
+        de acesso, NSU, ID de documento ou ID de evento.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 404
+              message: Documento não encontrado.
+    Conflict:
+      description: 'Conflito de estado — recurso já existe ou há outra operação em
+
+        andamento para a mesma chave.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 409
+              message: Empresa já cadastrada para captura inbound NFS-e.
+    UnprocessableEntity:
+      description: 'Payload sintaticamente válido porém semanticamente inválido (ex.
+
+        `eventCode=203206` sem `reasonCode`, NSU menor que o atual, etc).
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 422
+              message: ReasonCode é obrigatório quando eventCode=203206 (Rejeição).
+    InternalError:
+      description: 'Erro interno não tratado. A request foi recebida porém uma exceção
+
+        inesperada ocorreu no servidor. Tente novamente após alguns segundos
+
+        ou contate o suporte com o `correlation-id` (header `X-Correlation-ID`).
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorsResource'
+          example:
+            errors:
+            - code: 500
+              message: Erro interno ao processar a requisição.
+  schemas:
+    ErrorsResource:
+      type: object
+      description: 'Wrapper retornado pelos controllers que herdam de `ApiBaseController`
+
+        em respostas 4xx/5xx (via `ReturnResult`). É o shape canônico para
+
+        todos os endpoints documentados nesta spec — exceto o endpoint
+
+        público `/blob/download`, que devolve `text/plain` por design.
+
+        '
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorResource'
+      example:
+        errors:
+        - code: 404
+          message: Documento não encontrado.
+    ErrorResource:
+      type: object
+      description: Item individual dentro de `ErrorsResource.errors[]`.
+      properties:
+        code:
+          type: integer
+          description: Código numérico do erro (em geral o status HTTP, mas pode ser um código de domínio).
+        message:
+          type: string
+          description: Mensagem em português, pronta para exibição ao usuário final.
+      example:
+        code: 404
+        message: Documento não encontrado.
+    InboundCompanyResource:
+      type: object
+      description: Identificação mínima da empresa dentro do escopo do documento.
+      properties:
+        id:
+          type: string
+          description: ID interno da empresa na plataforma nfe.io.
+        federalTaxNumber:
+          type: string
+          description: CNPJ da empresa (apenas dígitos).
+      example:
+        id: 5f4d4cee0a8b8e2c3a1bcd11
+        federalTaxNumber: '12345678000195'
+    IssuerResource:
+      type: object
+      description: Emissor da nota (campo `emit` no XML SEFAZ).
+      properties:
+        federalTaxNumber:
+          type: string
+          description: CNPJ do emissor.
+        name:
+          type: string
+          description: Razão social do emissor.
+      example:
+        federalTaxNumber: '98765432000180'
+        name: Fornecedor Exemplo Ltda
+    BuyerResource:
+      type: object
+      description: Destinatário/comprador da nota (campo `dest` no XML SEFAZ).
+      properties:
+        federalTaxNumber:
+          type: string
+          description: CNPJ ou CPF do destinatário (apenas dígitos).
+        name:
+          type: string
+          description: Razão social ou nome do destinatário.
+      example:
+        federalTaxNumber: '12345678000195'
+        name: Empresa Compradora SA
+    TransportationResource:
+      type: object
+      description: Transportador (presente em CT-e e NF-e com transporte vinculado).
+      properties:
+        federalTaxNumber:
+          type: string
+          description: CNPJ do transportador.
+        name:
+          type: string
+          description: Razão social do transportador.
+      example:
+        federalTaxNumber: '11222333000144'
+        name: Transportadora Exemplo Ltda
+    MessageResource:
+      type: object
+      description: Resposta genérica de operação assíncrona ou de mensagens informativas.
+      properties:
+        message:
+          type: string
+          description: Mensagem em português pronta para exibição.
+        code:
+          type: string
+          description: Código interno (opcional) para correlação.
+      example:
+        message: Documento reenfileirado para reprocessamento.
+        code: REPROCESS_QUEUED
+    NFeMetadataResource:
+      type: object
+      description: 'Detalhamento completo de uma NF-e ou evento NF-e (retornado por
+
+        `/productinvoices/{accessKey}`, `/inbound/{accessKey}` e exporter
+
+        NFe `/inbound/nfe/{accessKey}`).
+
+        '
+      properties:
+        accessKey:
+          type: string
+          description: Chave de acesso (44 dígitos).
+        createdOn:
+          type: string
+          format: date-time
+          nullable: true
+        parentAccessKey:
+          type: string
+          nullable: true
+          description: Para eventos
+          chave da NF-e referenciada.: null
+        company:
+          $ref: '#/components/schemas/InboundCompanyResource'
+        issuer:
+          $ref: '#/components/schemas/IssuerResource'
+        buyer:
+          $ref: '#/components/schemas/BuyerResource'
+        transportation:
+          $ref: '#/components/schemas/TransportationResource'
+        links:
+          type: object
+          nullable: true
+          properties:
+            xml:
+              type: string
+              format: uri
+              nullable: true
+            pdf:
+              type: string
+              format: uri
+              nullable: true
+        xmlUrl:
+          type: string
+          format: uri
+          nullable: true
+        federalTaxNumberSender:
+          type: string
+          nullable: true
+        nameSender:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum:
+          - productInvoice
+          - productInvoiceEvent
+          - transportationInvoice
+          - transportationInvoiceEvent
+          - productInvoiceSummary
+          - productInvoiceEventSummary
+        nsu:
+          type: string
+          nullable: true
+        nsuParent:
+          type: string
+          nullable: true
+        nfeNumber:
+          type: string
+          nullable: true
+        nfeSerialNumber:
+          type: string
+          nullable: true
+        issuedOn:
+          type: string
+          format: date-time
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        totalInvoiceAmount:
+          type: string
+          nullable: true
+        operationType:
+          type: string
+          enum:
+          - Outgoing
+          - Incoming
+          - None
+        environmentType:
+          type: integer
+          enum:
+          - 1
+          - 2
+          description: 1 = Produção
+          2 = Homologação.: null
+      example:
+        accessKey: '35240612345678000195550010000012341123456789'
+        createdOn: '2026-05-06T13:20:00Z'
+        parentAccessKey: null
+        company:
+          id: 5f4d4cee0a8b8e2c3a1bcd11
+          federalTaxNumber: '12345678000195'
+        issuer:
+          federalTaxNumber: '98765432000180'
+          name: Fornecedor Exemplo Ltda
+        buyer:
+          federalTaxNumber: '12345678000195'
+          name: Empresa Compradora SA
+        transportation:
+          federalTaxNumber: '11222333000144'
+          name: Transportadora Exemplo Ltda
+        links:
+          xml: https://api.nfse.io/v2/companies/.../inbound/nfe/35240612345678000195550010000012341123456789/xml
+          pdf: https://api.nfse.io/v2/companies/.../inbound/nfe/35240612345678000195550010000012341123456789/pdf
+        xmlUrl: https://nfe-prod.blob.core.windows.net/inbound/35240612345678000195550010000012341123456789.xml?sig=...
+        federalTaxNumberSender: '98765432000180'
+        nameSender: Fornecedor Exemplo Ltda
+        type: productInvoice
+        nsu: '12345'
+        nsuParent: null
+        nfeNumber: '1234'
+        nfeSerialNumber: '1'
+        issuedOn: '2026-05-06T12:30:00Z'
+        description: Venda de mercadoria adquirida ou recebida de terceiros
+        totalInvoiceAmount: '1234.56'
+        operationType: Incoming
+        environmentType: 1
+    NFSeParticipantResource:
+      type: object
+      description: Participante de NFS-e (provider, borrower ou intermediary).
+      properties:
+        federalTaxNumber:
+          type: string
+          description: CNPJ ou CPF (apenas dígitos).
+        name:
+          type: string
+          description: Razão social ou nome do participante.
+        cityCode:
+          type: string
+          description: Código IBGE do município (7 dígitos).
+        state:
+          type: string
+          description: UF do participante (2 letras).
+      example:
+        federalTaxNumber: '12345678000195'
+        name: Empresa Prestadora SA
+        cityCode: '3550308'
+        state: SP
+    NFSeCompanyResource:
+      type: object
+      description: Empresa configurada para captura inbound de NFS-e (ADN).
+      properties:
+        id:
+          type: string
+          description: ID da empresa (mesmo do TaxPayers).
+        name:
+          type: string
+        environment:
+          type: string
+          enum:
+          - Production
+          - Development
+          description: Ambiente ADN considerado.
+        isActive:
+          type: boolean
+          description: false após desativação manual ou desligamento por falhas consecutivas.
+        initialNsu:
+          type: integer
+          format: int64
+          description: NSU inicial configurado.
+        currentNsu:
+          type: integer
+          format: int64
+          description: Próximo NSU a ser consumido pela próxima execução.
+        maxAvailableNsu:
+          type: integer
+          format: int64
+          description: Maior NSU atualmente exposto pelo ADN.
+        lastExecutedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Última execução de poll.
+        rateLimitedUntil:
+          type: string
+          format: date-time
+          nullable: true
+          description: Bloqueio aplicado quando o ADN retornou rate limit.
+        webhookUrl:
+          type: string
+          format: uri
+          nullable: true
+        isAutomaticManifestationEnabled:
+          type: boolean
+        automaticManifestationDelaySeconds:
+          type: integer
+          description: Delay (s) antes de manifestar automaticamente (0–604800 = 7 dias).
+        deactivationReason:
+          type: string
+          nullable: true
+          description: Razão da última desativação automática.
+        deactivatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      example:
+        id: 5f4d4cee0a8b8e2c3a1bcd11
+        name: Empresa Prestadora SA
+        environment: Production
+        isActive: true
+        initialNsu: 0
+        currentNsu: 1234
+        maxAvailableNsu: 1280
+        lastExecutedAt: '2026-05-07T11:30:00Z'
+        rateLimitedUntil: null
+        webhookUrl: https://meusistema.com/webhooks/nfse-inbound
+        isAutomaticManifestationEnabled: false
+        automaticManifestationDelaySeconds: 0
+        deactivationReason: null
+        deactivatedAt: null
+        createdAt: '2026-04-10T12:34:56Z'
+        updatedAt: '2026-05-07T11:30:00Z'
+    NFSeCompanyCollectionResource:
+      type: object
+      description: Listagem paginada de empresas inbound NFS-e.
+      properties:
+        totalResults:
+          type: integer
+          format: int64
+          nullable: true
+          description: Total geral (apenas quando hasTotals=true).
+        totalPages:
+          type: integer
+          nullable: true
+        page:
+          type: integer
+          nullable: true
+          description: Página atual (1-based).
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/NFSeCompanyResource'
+      example:
+        totalResults: 2
+        totalPages: 1
+        page: 1
+        companies:
+        - id: 5f4d4cee0a8b8e2c3a1bcd11
+          name: Empresa Prestadora SA
+          environment: Production
+          isActive: true
+          initialNsu: 0
+          currentNsu: 1234
+          maxAvailableNsu: 1280
+          lastExecutedAt: '2026-05-07T11:30:00Z'
+          rateLimitedUntil: null
+          webhookUrl: https://meusistema.com/webhooks/nfse-inbound
+          isAutomaticManifestationEnabled: false
+          automaticManifestationDelaySeconds: 0
+          deactivationReason: null
+          deactivatedAt: null
+          createdAt: '2026-04-10T12:34:56Z'
+          updatedAt: '2026-05-07T11:30:00Z'
+    NFSeCreateInboundCompanyRequest:
+      type: object
+      description: Cadastro de uma nova empresa para captura inbound NFS-e.
+      required:
+      - companyId
+      - initialNsu
+      properties:
+        companyId:
+          type: string
+          description: CompanyId do TaxPayers.
+        initialNsu:
+          type: integer
+          format: int64
+          minimum: 0
+          description: NSU inicial (0 para começar do início).
+        webhookUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL HTTPS válida quando informada (rejeitada se HTTP).
+        isAutomaticManifestationEnabled:
+          type: boolean
+          default: false
+        automaticManifestationDelaySeconds:
+          type: integer
+          minimum: 0
+          maximum: 604800
+          default: 0
+          description: Delay em segundos antes da manifestação automática. Máximo 604800 (7 dias).
+      example:
+        companyId: 5f4d4cee0a8b8e2c3a1bcd11
+        initialNsu: 0
+        webhookUrl: https://meusistema.com/webhooks/nfse-inbound
+        isAutomaticManifestationEnabled: false
+        automaticManifestationDelaySeconds: 0
+    NFSeUpdateInboundCompanyRequest:
+      type: object
+      description: Atualização parcial — somente os campos enviados são alterados.
+      properties:
+        webhookUrl:
+          type: string
+          format: uri
+          nullable: true
+        isAutomaticManifestationEnabled:
+          type: boolean
+        automaticManifestationDelaySeconds:
+          type: integer
+          minimum: 0
+          maximum: 604800
+        isActive:
+          type: boolean
+          description: Reativação manual quando true.
+      example:
+        webhookUrl: https://meusistema.com/webhooks/nfse-inbound-v2
+        isAutomaticManifestationEnabled: true
+        automaticManifestationDelaySeconds: 86400
+        isActive: true
+    NFSeResetNsuRequest:
+      type: object
+      description: Redefine o NSU corrente da empresa para reprocessamento.
+      required:
+      - nsu
+      properties:
+        nsu:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Novo `currentNsu`. Use com cautela — documentos entre o novo NSU e o anterior serão re-emitidos.
+      example:
+        nsu: 1000
+    NFSeDocumentResource:
+      type: object
+      description: Documento NFS-e capturado do ADN (NFS-e, DPS, Evento ou PRE).
+      properties:
+        id:
+          type: string
+        companyId:
+          type: string
+        nsu:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum:
+          - None
+          - Dps
+          - EventRegistrationRequest
+          - serviceInvoice
+          - Event
+          - Cnc
+          description: 'Tipo do documento emitido no payload (output). **Breaking change 2026-05-08**:
+
+            o valor para NFS-e principal foi renomeado de `Nfse` para `serviceInvoice`
+
+            (alinhamento com o SKU `ServiceInvoiceInbound` de billing e com o webhook).
+
+            Demais valores preservam o nome do enum `NFSeDocumentType`. Para o query param
+
+            de filtragem (input), continue usando `Nfse` — o renaming aplica-se apenas ao
+
+            valor emitido no response.
+
+            '
+        eventType:
+          type: string
+          nullable: true
+          description: Sub-tipo legível (ex. Cancelamento).
+        eventCode:
+          type: string
+          nullable: true
+          description: tpEvento do XML (ex. 101101). Null para NFS-e principal.
+        substituteAccessKey:
+          type: string
+          nullable: true
+          description: Quando o documento substitui outro (carta de correção
+          etc).: null
+        accessKey:
+          type: string
+          description: Chave de acesso (50 dígitos).
+        generatedOn:
+          type: string
+          format: date-time
+          description: Geração do documento na origem.
+        issuedOn:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data de competência ou emissão.
+        provider:
+          $ref: '#/components/schemas/NFSeParticipantResource'
+        borrower:
+          $ref: '#/components/schemas/NFSeParticipantResource'
+        servicesAmount:
+          type: number
+          format: decimal
+          nullable: true
+          description: Valor total dos serviços.
+        issueCityCode:
+          type: string
+          nullable: true
+          description: Município emissor (IBGE 7 dígitos).
+        serviceCode:
+          type: string
+          nullable: true
+          description: Item da lista de serviços (LC 116/03).
+        description:
+          type: string
+          nullable: true
+          description: Descrição livre do serviço.
+        accrualOn:
+          type: string
+          nullable: true
+          description: Competência YYYY-MM (ex. 2026-04).
+        environment:
+          type: string
+          enum:
+          - Production
+          - Development
+        status:
+          type: string
+          enum:
+          - Pending
+          - Processed
+          - Failed
+          - PdfPending
+          - PdfFailed
+          description: 'Estado de processamento — `Processed`/`PdfPending`/`PdfFailed` indicam que
+
+            os metadados foram processados (PDF é gerado em segundo plano).
+
+            '
+        webhookStatus:
+          type: string
+          enum:
+          - Pending
+          - Delivered
+          - Failed
+          - DefinitivelyFailed
+          description: 'Estado da entrega do webhook — `DefinitivelyFailed` após esgotar as tentativas.
+
+            '
+        xmlSizeBytes:
+          type: integer
+          format: int64
+        hasPdf:
+          type: boolean
+          description: Se o DANFSe está disponível para download.
+        relatedEventIds:
+          type: array
+          items:
+            type: string
+          description: IDs de eventos vinculados (cancelamento, manifestação, etc).
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: 65fa2c11abc1234567890def
+        companyId: 5f4d4cee0a8b8e2c3a1bcd11
+        nsu: 1234
+        type: serviceInvoice
+        eventType: null
+        eventCode: null
+        substituteAccessKey: null
+        accessKey: '12345678901234567890123456789012345678901234567890'
+        generatedOn: '2026-05-06T13:30:00Z'
+        issuedOn: '2026-05-06T13:25:00Z'
+        provider:
+          federalTaxNumber: '98765432000180'
+          name: Empresa Prestadora SA
+          cityCode: '3550308'
+          state: SP
+        borrower:
+          federalTaxNumber: '12345678000195'
+          name: Tomador Exemplo SA
+          cityCode: '3304557'
+          state: RJ
+        servicesAmount: 1500.0
+        issueCityCode: '3550308'
+        serviceCode: '1.05'
+        description: Licenciamento ou cessao de direito de uso de software.
+        accrualOn: 2026-05
+        environment: Production
+        status: Processed
+        webhookStatus: Delivered
+        xmlSizeBytes: 8542
+        hasPdf: true
+        relatedEventIds: []
+        createdAt: '2026-05-06T13:30:05Z'
+    NFSeDocumentDetailResource:
+      description: 'Detalhamento de um documento NFS-e — `NFSeDocumentResource` + telemetria
+
+        de webhook, manifestação e atualização.
+
+        '
+      allOf:
+      - $ref: '#/components/schemas/NFSeDocumentResource'
+      - type: object
+        properties:
+          intermediary:
+            $ref: '#/components/schemas/NFSeParticipantResource'
+          failureReason:
+            type: string
+            nullable: true
+            description: Razão da última falha quando status=Failed.
+          webhookAttempts:
+            type: integer
+            description: Número total de tentativas de entrega.
+          webhookDeliveredAt:
+            type: string
+            format: date-time
+            nullable: true
+          webhookFirstAttemptAt:
+            type: string
+            format: date-time
+            nullable: true
+          reprocessCount:
+            type: integer
+            description: Quantas vezes o documento foi reenfileirado manualmente.
+          manifestationScheduledAt:
+            type: string
+            format: date-time
+            nullable: true
+            description: Quando a manifestação automática está agendada.
+          manifestedAt:
+            type: string
+            format: date-time
+            nullable: true
+          updatedAt:
+            type: string
+            format: date-time
+      example:
+        id: 65fa2c11abc1234567890def
+        companyId: 5f4d4cee0a8b8e2c3a1bcd11
+        nsu: 1234
+        type: serviceInvoice
+        eventType: null
+        eventCode: null
+        substituteAccessKey: null
+        accessKey: '12345678901234567890123456789012345678901234567890'
+        generatedOn: '2026-05-06T13:30:00Z'
+        issuedOn: '2026-05-06T13:25:00Z'
+        provider:
+          federalTaxNumber: '98765432000180'
+          name: Empresa Prestadora SA
+          cityCode: '3550308'
+          state: SP
+        borrower:
+          federalTaxNumber: '12345678000195'
+          name: Tomador Exemplo SA
+          cityCode: '3304557'
+          state: RJ
+        intermediary: null
+        servicesAmount: 1500.0
+        issueCityCode: '3550308'
+        serviceCode: '1.05'
+        description: Licenciamento ou cessao de direito de uso de software.
+        accrualOn: 2026-05
+        environment: Production
+        status: Processed
+        webhookStatus: Delivered
+        xmlSizeBytes: 8542
+        hasPdf: true
+        relatedEventIds: []
+        createdAt: '2026-05-06T13:30:05Z'
+        failureReason: null
+        webhookAttempts: 1
+        webhookDeliveredAt: '2026-05-06T13:30:08Z'
+        webhookFirstAttemptAt: '2026-05-06T13:30:07Z'
+        reprocessCount: 0
+        manifestationScheduledAt: null
+        manifestedAt: null
+        updatedAt: '2026-05-06T13:30:08Z'
+    NFSeDocumentCollectionResource:
+      type: object
+      description: Listagem paginada de documentos NFS-e capturados.
+      properties:
+        totalResults:
+          type: integer
+          format: int64
+          nullable: true
+          description: Total geral (apenas quando hasTotals=true).
+        totalPages:
+          type: integer
+          nullable: true
+        page:
+          type: integer
+          nullable: true
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/NFSeDocumentResource'
+      example:
+        totalResults: 1
+        totalPages: 1
+        page: 1
+        documents:
+        - id: 65fa2c11abc1234567890def
+          companyId: 5f4d4cee0a8b8e2c3a1bcd11
+          nsu: 1234
+          type: serviceInvoice
+          eventType: null
+          eventCode: null
+          substituteAccessKey: null
+          accessKey: '12345678901234567890123456789012345678901234567890'
+          generatedOn: '2026-05-06T13:30:00Z'
+          issuedOn: '2026-05-06T13:25:00Z'
+          provider:
+            federalTaxNumber: '98765432000180'
+            name: Empresa Prestadora SA
+            cityCode: '3550308'
+            state: SP
+          borrower:
+            federalTaxNumber: '12345678000195'
+            name: Tomador Exemplo SA
+            cityCode: '3304557'
+            state: RJ
+          servicesAmount: 1500.0
+          issueCityCode: '3550308'
+          serviceCode: '1.05'
+          description: Licenciamento ou cessao de direito de uso de software.
+          accrualOn: 2026-05
+          environment: Production
+          status: Processed
+          webhookStatus: Delivered
+          xmlSizeBytes: 8542
+          hasPdf: true
+          relatedEventIds: []
+          createdAt: '2026-05-06T13:30:05Z'
+    NFSeSubmitManifestationEventRequest:
+      type: object
+      description: Dados opcionais da manifestação do tomador (ciência ou rejeição).
+      properties:
+        reasonCode:
+          type: integer
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 9
+          description: 'Obrigatório para `eventCode=203206` (Rejeição); ignorado para `203202`
+
+            (Confirmação). Valores: 1=Duplicata, 2=Já emitida pelo tomador,
+
+            3=Sem fato gerador, 4=Erro de responsabilidade tributária,
+
+            5=Erro de valor/serviço/data, 9=Outros.
+
+            '
+        justification:
+          type: string
+          maxLength: 255
+          description: xMotivo opcional. Limite 255 chars (XSD SEFIN Nacional).
+      example:
+        reasonCode: 2
+        justification: NFS-e foi emitida em duplicidade pelo prestador.
+    NFSeManifestationEventResource:
+      type: object
+      description: Evento de manifestação do tomador submetido à SEFIN Nacional.
+      properties:
+        id:
+          type: string
+        companyId:
+          type: string
+        accessKey:
+          type: string
+          description: Chave da NFS-e relacionada (50 dígitos).
+        eventCode:
+          type: integer
+          enum:
+          - 203202
+          - 203206
+          description: 203202 = Confirmação
+          203206 = Rejeição.: null
+        reasonCode:
+          type: integer
+          nullable: true
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 9
+        justification:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - Pending
+          - Accepted
+          - Rejected
+          - Failed
+          description: Estado do evento — começa em `Pending`, transita para `Accepted`/`Rejected` após retorno da SEFIN, ou `Failed` em caso de erro irrecuperável (`NFSeManifestationEventStatus`).
+        environment:
+          type: string
+          enum:
+          - Production
+          - Development
+        createdAt:
+          type: string
+          format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        acceptedAt:
+          type: string
+          format: date-time
+          nullable: true
+        errorCode:
+          type: string
+          nullable: true
+          description: cStat retornado pela SEFIN quando status=Rejected/Failed.
+        errorMessage:
+          type: string
+          nullable: true
+          description: xMotivo retornado pela SEFIN.
+      example:
+        id: 65fa3a44abc1234567890aaa
+        companyId: 5f4d4cee0a8b8e2c3a1bcd11
+        accessKey: '12345678901234567890123456789012345678901234567890'
+        eventCode: 203202
+        reasonCode: null
+        justification: null
+        status: Pending
+        environment: Production
+        createdAt: '2026-05-06T14:00:00Z'
+        submittedAt: null
+        acceptedAt: null
+        errorCode: null
+        errorMessage: null
+    NFSeManifestationEventDetailResource:
+      description: '`NFSeManifestationEventResource` + payload XML do request (`pedidoRegistroEvento`)
+
+        e response da SEFIN, ambos comprimidos em GZip + Base64 para inspeção.
+
+        '
+      allOf:
+      - $ref: '#/components/schemas/NFSeManifestationEventResource'
+      - type: object
+        properties:
+          requestXmlGZipB64:
+            type: string
+            description: pedidoRegistroEvento assinado, GZip + Base64.
+          responseXmlGZipB64:
+            type: string
+            nullable: true
+            description: Resposta da SEFIN Nacional, GZip + Base64.
+      example:
+        id: 65fa3a44abc1234567890aaa
+        companyId: 5f4d4cee0a8b8e2c3a1bcd11
+        accessKey: '12345678901234567890123456789012345678901234567890'
+        eventCode: 203202
+        reasonCode: null
+        justification: null
+        status: Accepted
+        environment: Production
+        createdAt: '2026-05-06T14:00:00Z'
+        submittedAt: '2026-05-06T14:00:02Z'
+        acceptedAt: '2026-05-06T14:00:03Z'
+        errorCode: null
+        errorMessage: null
+        requestXmlGZipB64: H4sIAAAAAAAA...
+        responseXmlGZipB64: H4sIAAAAAAAB...
+    NFSeManifestationEventCollectionResource:
+      type: object
+      description: Lista de eventos de manifestação para uma chave de acesso.
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NFSeManifestationEventResource'
+      example:
+        items:
+        - id: 65fa3a44abc1234567890aaa
+          companyId: 5f4d4cee0a8b8e2c3a1bcd11
+          accessKey: '12345678901234567890123456789012345678901234567890'
+          eventCode: 203202
+          reasonCode: null
+          justification: null
+          status: Accepted
+          environment: Production
+          createdAt: '2026-05-06T14:00:00Z'
+          submittedAt: '2026-05-06T14:00:02Z'
+          acceptedAt: '2026-05-06T14:00:03Z'
+          errorCode: null
+          errorMessage: null
+    NFSeNotificationResource:
+      type: object
+      description: Notificação operacional (manutenção/severidade) para uma empresa inbound.
+      properties:
+        id:
+          type: string
+        companyId:
+          type: string
+          nullable: true
+          description: Null para notificações globais.
+        type:
+          type: string
+          description: Tipo da notificação (ex. RateLimited, Deactivated, AdnDown).
+        severity:
+          type: string
+          enum:
+          - Info
+          - Warning
+          - Critical
+        title:
+          type: string
+        description:
+          type: string
+        documentId:
+          type: string
+          nullable: true
+        nsu:
+          type: integer
+          format: int64
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: 65fa4b55abc1234567890bbb
+        companyId: 5f4d4cee0a8b8e2c3a1bcd11
+        type: RateLimited
+        severity: Warning
+        title: ADN aplicou rate limit
+        description: Captura pausada por 30 minutos por excesso de requisições.
+        documentId: null
+        nsu: null
+        createdAt: '2026-05-07T11:00:00Z'
+    NFSeNotificationCollectionResource:
+      type: object
+      description: Listagem paginada de notificações de manutenção.
+      properties:
+        totalResults:
+          type: integer
+          format: int64
+          nullable: true
+        totalPages:
+          type: integer
+          nullable: true
+        page:
+          type: integer
+          nullable: true
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/NFSeNotificationResource'
+      example:
+        totalResults: 1
+        totalPages: 1
+        page: 1
+        notifications:
+        - id: 65fa4b55abc1234567890bbb
+          companyId: 5f4d4cee0a8b8e2c3a1bcd11
+          type: RateLimited
+          severity: Warning
+          title: ADN aplicou rate limit
+          description: Captura pausada por 30 minutos por excesso de requisições.
+          documentId: null
+          nsu: null
+          createdAt: '2026-05-07T11:00:00Z'
+    NFSeFetchNowRequest:
+      type: object
+      description: Solicita disparo imediato da captura para uma empresa (admin).
+      properties:
+        forcedStartNsu:
+          type: integer
+          format: int64
+          minimum: 0
+          nullable: true
+          description: 'Se informado, a captura inicia a partir deste NSU em vez do
+
+            `currentNsu` da empresa. Uso típico: reprocessar uma janela
+
+            específica de documentos.
+
+            '
+      example:
+        forcedStartNsu: 1000
+    NFSeCompanyOpsViewResource:
+      type: object
+      description: Visão operacional retornada por `/maintenance/statistics` (role Management).
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        name:
+          type: string
+        isActive:
+          type: boolean
+        currentNsu:
+          type: integer
+          format: int64
+        maxAvailableNsu:
+          type: integer
+          format: int64
+        consecutiveFailures:
+          type: integer
+        deactivationReason:
+          type: string
+          nullable: true
+        lastExecutedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rateLimitedUntil:
+          type: string
+          format: date-time
+          nullable: true
+        documentsTotal:
+          type: integer
+          format: int64
+        documentsProcessed:
+          type: integer
+          format: int64
+        documentsFailed:
+          type: integer
+          format: int64
+        documentsPdfPending:
+          type: integer
+          format: int64
+        webhooksDelivered:
+          type: integer
+          format: int64
+        webhooksFailed:
+          type: integer
+          format: int64
+      example:
+        id: 5f4d4cee0a8b8e2c3a1bcd11
+        accountId: acc_5f4d4cee0a8b
+        name: Empresa Prestadora SA
+        isActive: true
+        currentNsu: 1234
+        maxAvailableNsu: 1280
+        consecutiveFailures: 0
+        deactivationReason: null
+        lastExecutedAt: '2026-05-07T11:30:00Z'
+        rateLimitedUntil: null
+        documentsTotal: 1234
+        documentsProcessed: 1230
+        documentsFailed: 4
+        documentsPdfPending: 2
+        webhooksDelivered: 1228
+        webhooksFailed: 6
+    AsyncAcceptedResource:
+      type: object
+      description: 'Resposta padrão de operações assíncronas (HTTP 202). Contém uma
+
+        mensagem informativa e identificadores de correlação para o cliente
+
+        acompanhar o processamento (via `GET` correspondente ou webhook).
+
+        '
+      properties:
+        message:
+          type: string
+        documentId:
+          type: string
+          description: ID do documento (presente em /reprocess e /resend-webhook).
+        companyId:
+          type: string
+          description: ID da empresa (presente em /fetch-now).
+      example:
+        message: Documento reenfileirado para reprocessamento.
+        documentId: 65fa2c11abc1234567890def

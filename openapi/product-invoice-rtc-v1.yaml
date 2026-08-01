@@ -13,10 +13,17 @@ info:
     
     Esta adequação de leiaute contempla até a Nota Técnica **NT_2025.002_v1.30_RTC_NF-e_IBS_CBS_IS**. 
     
-    > **Atenção** 
+    > **Atenção**
     > _Sujeito a alterações mediante notas técnicas e processos de homologação._
+
+    ### Nota de Crédito por recusa — consulta (read-model)
+
+    Esta especificação cobre a **emissão** (finNFe=5/6, `creditType`/`debitType`). Para **consultar** as
+    Notas de Crédito por recusa emitidas contra uma NF-e (campo `creditInvoicesIssuedAgainst` e os
+    endpoints `GET .../credit-invoices` e `POST .../credit-invoice-links`), consulte a referência
+    **Nota Fiscal de Produto (V3)**.
 servers:
-  - url: https://api.nfse.io/
+  - url: https://api.nfse.io
     description: Nota Fiscal de Produto/Consumidor (RTC).
 tags:
   - name: Nota Fiscal de Produto/Consumidor (RTC)
@@ -244,7 +251,7 @@ paths:
                   printType: "NFeNormalPortrait"
                   purposeType: "Normal" # Finalidade da emissão
                   debitType: "FinesAndInterest"
-                  creditType: "IbsPresumedCreditAppropriationZfm"
+                  creditType: "RefusedDeliveryTotalOrNotFound"
                   consumerType: "Normal"
                   presenceType: "Internet"
                   contingencyOn: "2025-10-28T09:00:00-03:00"
@@ -1378,33 +1385,27 @@ components:
       type: "string"
       nullable: true
       description: |
-        Tipo de Nota de Crédito (tpNFCredito).
+        Tipo de Nota de Crédito (tpNFCredito). Obrigatório quando `purposeType=CreditInvoice`.
         Valores possíveis:
-        - `FinesAndInterest`: Multa e juros
-        - `IbsPresumedCreditAppropriationZfm`: Apropriação de crédito presumido de IBS sobre o saldo devedor na ZFM
-        - `ReturnDeliveryRefusedOrNotFound`: Retorno por recusa na entrega ou não localização do destinatário
-        - `ValueReduction`: Redução de valores
-        - `TransferCreditSuccession`: Transferência de crédito na sucessão
+        - `RefusedDeliveryTotalOrNotFound`: Retorno por Recusa TOTAL na Entrega ou por Não Localização do Destinatário (tpNFCredito=03)
+        - `RefusedDeliveryPartial`: Retorno por Recusa PARCIAL na Entrega (tpNFCredito=06 — Ajuste SINIEF 8/26; exige referência por item em `items[].referencedDFe`)
       enum:
-        - "FinesAndInterest"
-        - "IbsPresumedCreditAppropriationZfm"
-        - "ReturnDeliveryRefusedOrNotFound"
-        - "ValueReduction"
-        - "TransferCreditSuccession"
+        - "RefusedDeliveryTotalOrNotFound"
+        - "RefusedDeliveryPartial"
     DebitType:
       type: "string"
       nullable: true
       description: |
-        Tipo de Nota de Débito (tpNFDebito).
+        Tipo de Nota de Débito (tpNFDebito). Obrigatório quando `purposeType=DebitInvoice`.
         Valores possíveis:
-        - `TransferCreditsToCooperatives`: Transferência de créditos para cooperativas
-        - `CancelCreditsExemptImmuneSales`: Cancelamento de créditos por vendas isentas/imunes
-        - `UnprocessedInvoicesDebits`: Débitos de faturas não processadas no cálculo
-        - `FinesAndInterest`: Multas e juros
-        - `TransferInheritanceCredit`: Transferência de crédito de herança
-        - `AdvancePayment`: Pagamento antecipado
-        - `InventoryLoss`: Perda de estoque
-        - `SnDisqualification`: Desenquadramento do Simples Nacional
+        - `TransferCreditsToCooperatives` (01): Transferência de créditos para cooperativas
+        - `CancelCreditsExemptImmuneSales` (02): Cancelamento de créditos por vendas isentas/imunes
+        - `UnprocessedInvoicesDebits` (03): Débitos de faturas não processadas
+        - `FinesAndInterest` (04): Multas e juros
+        - `TransferInheritanceCredit` (05): Transferência de crédito na sucessão
+        - `AdvancePayment` (06): Pagamento antecipado
+        - `InventoryLoss` (07): Perda de estoque
+        - `SnDisqualification` (08): Desenquadramento do Simples Nacional
       enum:
         - "TransferCreditsToCooperatives"
         - "CancelCreditsExemptImmuneSales"
@@ -4270,6 +4271,8 @@ components:
         - "Complement"
         - "Adjustment"
         - "Devolution" # Devolução
+        - "CreditInvoice" # Nota de Crédito (finNFe=5)
+        - "DebitInvoice" # Nota de Débito (finNFe=6)
       default: "Normal"
       description: |
         Finalidade da emissão da NF-e (finNFe).
@@ -4279,6 +4282,8 @@ components:
         - `Complement`: NF-e complementar
         - `Adjustment`: NF-e de ajuste
         - `Devolution`: Devolução de mercadoria
+        - `CreditInvoice`: Nota de Crédito (finNFe=5, Ajuste SINIEF 49/25) — requer `creditType`
+        - `DebitInvoice`: Nota de Débito (finNFe=6, Ajuste SINIEF 49/25) — requer `debitType`
     QueueEventResource:
       type: "object"
       properties:

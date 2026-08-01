@@ -4,7 +4,7 @@ info:
   description: "# Introducão\nSeja bem-vindo a documentação da API de Nota Fiscal de Produto!\nNossa API foi criada utilizando o padrão REST que possibilita a integração de seu sistema ao nosso, sendo assim você também pode extender ou recriar as funcionalidades existentes na nossa plataforma, tudo isso consumindo a API que está documentada abaixo.\n\n\n# Como usar a API?\nLogo a seguir você encontrará todos os recursos e metódos suportados pela API, sendo que essa página possibilita que você teste os recursos e métodos diretamente através dela.\n\n\n# Autenticação\nVocê precisa de uma chave de API (API Key) para identificar a conta que está realizando solicitações para a API. \nPara isso você deve colocar sua chave de API no campo que se encontra no topo desta página para que os métodos funcionem corretamente.\nNo seu código de integração temos suporte para autenticação de diversas formas sendo eles: \nHTTP Header (Authorization) ou HTTP Query String (api_key) nos dois modos passando o valor da sua chave de api (API Key).\n<!-- ReDoc-Inject: <security-definitions> -->\n"
   version: v2
 servers:
-  - url: https://api.nfse.io/
+  - url: https://api.nfse.io
 tags:
   - name: Companies
     description: |
@@ -7490,6 +7490,10 @@ components:
           $ref: '#/components/schemas/EnvironmentType'
         purposeType:
           $ref: '#/components/schemas/PurposeType'
+        creditType:
+          $ref: '#/components/schemas/CreditType'
+        debitType:
+          $ref: '#/components/schemas/DebitType'
         issuer:
           $ref: '#/components/schemas/IssuerResource'
         buyer:
@@ -7591,6 +7595,10 @@ components:
           $ref: '#/components/schemas/EnvironmentType'
         purposeType:
           $ref: '#/components/schemas/PurposeType'
+        creditType:
+          $ref: '#/components/schemas/CreditType'
+        debitType:
+          $ref: '#/components/schemas/DebitType'
         issuer:
           $ref: '#/components/schemas/IssuerResource'
         buyer:
@@ -8029,6 +8037,10 @@ components:
           $ref: '#/components/schemas/PrintType'
         purposeType:
           $ref: '#/components/schemas/PurposeType'
+        creditType:
+          $ref: '#/components/schemas/CreditType'
+        debitType:
+          $ref: '#/components/schemas/DebitType'
         consumerType:
           $ref: '#/components/schemas/ConsumerType'
         presenceType:
@@ -8125,6 +8137,8 @@ components:
         - Complement
         - Adjustment
         - Devolution
+        - CreditInvoice
+        - DebitInvoice
       type: string
       description: |
         Finalidade da emissão da NF-e (finNFe).
@@ -8134,6 +8148,43 @@ components:
         - `Complement` (2): NF-e Complementar (complementa valores de uma nota anterior)
         - `Adjustment` (3): NF-e de Ajuste (regulariza divergências fiscais)
         - `Devolution` (4): Devolução de mercadoria
+        - `CreditInvoice` (5): Nota de Crédito (Reforma Tributária, Ajuste SINIEF 49/25) — requer `creditType`
+        - `DebitInvoice` (6): Nota de Débito (Reforma Tributária, Ajuste SINIEF 49/25) — requer `debitType`
+    CreditType:
+      enum:
+        - RefusedDeliveryTotalOrNotFound
+        - RefusedDeliveryPartial
+      type: string
+      nullable: true
+      description: |
+        Tipo de Nota de Crédito (tpNFCredito). Obrigatório quando `purposeType=CreditInvoice`.
+        - `RefusedDeliveryTotalOrNotFound` (03): Retorno por Recusa TOTAL na Entrega ou por Não Localização do Destinatário
+        - `RefusedDeliveryPartial` (06): Retorno por Recusa PARCIAL na Entrega (Ajuste SINIEF 8/26; a referência por item — `referencedDFe` — segue o contrato RTC, ver a API "Nota de Produto/Consumidor RTC")
+    DebitType:
+      enum:
+        - TransferCreditsToCooperatives
+        - CancelCreditsExemptImmuneSales
+        - UnprocessedInvoicesDebits
+        - FinesAndInterest
+        - TransferInheritanceCredit
+        - AdvancePayment
+        - InventoryLoss
+        - SnDisqualification
+      type: string
+      nullable: true
+      description: |
+        Tipo de Nota de Débito (tpNFDebito). Obrigatório quando `purposeType=DebitInvoice`.
+        - `TransferCreditsToCooperatives` (01): Transferência de créditos para cooperativas
+        - `CancelCreditsExemptImmuneSales` (02): Cancelamento de créditos por vendas isentas/imunes
+        - `UnprocessedInvoicesDebits` (03): Débitos de faturas não processadas
+        - `FinesAndInterest` (04): Multas e juros
+        - `TransferInheritanceCredit` (05): Transferência de crédito na sucessão
+        - `AdvancePayment` (06): Pagamento antecipado
+        - `InventoryLoss` (07): Perda de estoque
+        - `SnDisqualification` (08): Desenquadramento do Simples Nacional
+      x-nota: |
+        Os campos de item específicos das hipóteses de débito (grupos IBS/CBS `competenceAdjustment`/`gAjusteCompet`
+        e `creditReversal`/`gEstornoCred`) seguem o contrato RTC — ver a API "Nota de Produto/Consumidor RTC".
     QueueEventResource:
       type: object
       properties:
