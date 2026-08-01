@@ -187,6 +187,30 @@ final class ServiceInvoicesResource extends AbstractResource
     }
 
     /**
+     * Baixa o XML do evento de cancelamento da NFS-e como bytes crus.
+     *
+     * Disponível apenas para notas do ambiente **Nacional** (evento `e110001`,
+     * Reforma Tributária). A API responde `404` — e o SDK lança
+     * `NotFoundException` — quando não há XML de cancelamento, o que é
+     * **resposta esperada** em três situações (sondado ao vivo em 2026-07-30):
+     * provedor legado (ABRASF, Paulistana etc., que não têm evento de
+     * cancelamento em XML), nota fora do ambiente Nacional, ou nota ainda não
+     * cancelada. Trate o 404 como "não há XML de cancelamento", não como id
+     * inválido. Quando existem o XML de envio e o de retorno autorizado, a API
+     * retorna o **autorizado**.
+     */
+    public function downloadCancellationXml(
+        string $companyId,
+        string $invoiceId,
+        ?RequestOptions $options = null,
+    ): string {
+        $companyId = IdValidator::companyId($companyId);
+        $invoiceId = IdValidator::invoiceId($invoiceId);
+
+        return $this->download("/companies/{$companyId}/serviceinvoices/{$invoiceId}/cancellation-xml", options: $options);
+    }
+
+    /**
      * Snapshot de status (flowStatus + flowMessage no mínimo).
      *
      * @return array<string, mixed>

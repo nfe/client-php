@@ -67,6 +67,28 @@ it('pins totalAmount as a phantom field absent from the spec', function (): void
     expect(array_keys(nfServicoRetrieveProps()))->not->toContain('totalAmount');
 });
 
+it('cancellation-xml path+verb exists in nf-servico-v1 (ServiceInvoices_GetCancellationXml)', function (): void {
+    $spec = Yaml::parseFile(__DIR__ . '/../../openapi/nf-servico-v1.yaml');
+    $op = $spec['paths']['/v1/companies/{company_id}/serviceinvoices/{id}/cancellation-xml']['get'] ?? null;
+
+    expect($op)->toBeArray();
+    expect($op['operationId'] ?? null)->toBe('ServiceInvoices_GetCancellationXml');
+});
+
+it('cancellation-xml path+verb exists in service-invoice-rtc-v1 (declared with :param style)', function (): void {
+    $spec = Yaml::parseFile(__DIR__ . '/../../openapi/service-invoice-rtc-v1.yaml');
+
+    // A spec RTC declara parâmetros no estilo `:param`; normalizamos para
+    // `{param}` antes de comparar com a rota que o SDK emite.
+    $normalized = [];
+    foreach (array_keys($spec['paths'] ?? []) as $path) {
+        $normalized[] = preg_replace('/:([A-Za-z_]+)/', '{$1}', (string) $path);
+    }
+
+    expect($normalized)->toContain('/v1/companies/{company_id}/serviceinvoices/{id}/cancellation-xml');
+    expect($spec['paths']['/v1/companies/:company_id/serviceinvoices/:id/cancellation-xml']['get'] ?? null)->toBeArray();
+});
+
 it('the retrieve path exists and its operationId collides (why we anchor by path)', function (): void {
     $spec = Yaml::parseFile(__DIR__ . '/../../openapi/nf-servico-v1.yaml');
     $retrieveId = $spec['paths']['/v1/companies/{company_id}/serviceinvoices/{id}']['get']['operationId'] ?? null;

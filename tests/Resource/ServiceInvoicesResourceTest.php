@@ -96,6 +96,45 @@ it('downloadPdf returns raw bytes', function (): void {
     expect($bytes)->toBe($pdfBytes);
 });
 
+it('downloadCancellationXml issues GET on /cancellation-xml and returns raw bytes', function (): void {
+    $xmlBytes = "<?xml version=\"1.0\"?><evento>e110001</evento>";
+    $mock = (new MockTransport())->push(new Response(200, [], $xmlBytes));
+    $client = buildSvcClient($mock);
+
+    $bytes = $client->serviceInvoices->downloadCancellationXml('abc', 'inv-001');
+
+    expect($bytes)->toBe($xmlBytes);
+    $sent = $mock->lastRequest();
+    expect($sent?->method)->toBe('GET');
+    expect($sent?->path)->toBe('/v1/companies/abc/serviceinvoices/inv-001/cancellation-xml');
+});
+
+it('downloadCancellationXml surfaces the semantic 404 as NotFoundException', function (): void {
+    // 404 is the documented answer for legacy providers, non-National
+    // environment, or an invoice not yet cancelled — it must reach the
+    // caller as NotFoundException, never be swallowed.
+    $mock = (new MockTransport())->push(new Response(
+        404,
+        [],
+        '{"message":"Cancellation event XML not available for this service invoice"}',
+    ));
+    $client = buildSvcClient($mock);
+
+    expect(fn() => $client->serviceInvoices->downloadCancellationXml('abc', 'inv-001'))
+        ->toThrow(NotFoundException::class);
+});
+
+it('downloadCancellationXml rejects empty IDs synchronously', function (): void {
+    $mock = new MockTransport();
+    $client = buildSvcClient($mock);
+
+    expect(fn() => $client->serviceInvoices->downloadCancellationXml('', 'inv'))
+        ->toThrow(InvalidRequestException::class);
+    expect(fn() => $client->serviceInvoices->downloadCancellationXml('abc', ''))
+        ->toThrow(InvalidRequestException::class);
+    expect($mock->sent())->toHaveCount(0);
+});
+
 it('cancel issues DELETE and returns updated DTO', function (): void {
     $mock = (new MockTransport())->push(new Response(
         200,

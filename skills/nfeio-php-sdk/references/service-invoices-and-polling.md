@@ -12,6 +12,7 @@ cancel(string $companyId, string $invoiceId, ?RequestOptions $options = null): S
 sendEmail(string $companyId, string $invoiceId, ?RequestOptions $options = null): array
 downloadPdf(string $companyId, string $invoiceId, ?RequestOptions $options = null): string       // raw bytes
 downloadXml(string $companyId, string $invoiceId, ?RequestOptions $options = null): string
+downloadCancellationXml(string $companyId, string $invoiceId, ?RequestOptions $options = null): string   // cancellation-event XML (v3.5.0)
 getStatus(string $companyId, string $invoiceId, ?RequestOptions $options = null): array           // {flowStatus, flowMessage, ...}
 findByExternalId(string $companyId, string $externalId, ?RequestOptions $options = null): ?ServiceInvoice   // dedicated /external route (v3.2.0)
 static isDuplicateExternalId(ApiErrorException $e): bool   // matches the 400 duplicate-externalId rejection (v3.2.0)
@@ -21,6 +22,7 @@ static isDuplicateExternalId(ApiErrorException $e): bool   // matches the 400 du
 - `list()` is **page-style**, `pageIndex` **1-based**: `['pageIndex' => 1, 'pageCount' => 50, 'issuedBegin' => ..., 'issuedEnd' => ...]`. Returns `ListResponse` (`->data` = `ServiceInvoice[]`, `->page`).
 - `cancel()` is synchronous and returns the updated `ServiceInvoice` DTO.
 - `getStatus()` is unique to service invoices (lightweight status endpoint). Product/consumer have none.
+- `downloadCancellationXml()` (v3.5.0) returns the cancellation-event XML (`e110001`, **National environment only**). A `NotFoundException` is the **expected** answer when no cancellation XML exists: legacy providers (ABRASF, Paulistana…), non-National environment, or invoice not yet cancelled — treat it as "no cancellation XML", not as a bad ID. When both submitted and authorised event XML exist, the API returns the authorised one.
 - **No `createAndWait`, no `createBatch`** (deferred post-v3.0).
 
 ### ServiceInvoice DTO (v3.3.0)

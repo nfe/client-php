@@ -7,6 +7,23 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.5.0] — 2026-08-01
+
+### Adicionado
+
+- **`ServiceInvoicesResource::downloadCancellationXml()`**
+  (`add-service-invoice-cancellation-xml`): baixa o XML do evento de
+  cancelamento da NFS-e (`GET …/serviceinvoices/{id}/cancellation-xml`) —
+  único gap funcional exigido por **duas specs** (`nf-servico-v1` e
+  `service-invoice-rtc-v1`). Disponível para notas do ambiente **Nacional**
+  (evento `e110001`, Reforma Tributária); mesmo padrão dos downloads
+  existentes (bytes crus, redirect ao CDN sem vazar `Authorization`).
+  O `404` é **resposta esperada** quando não há XML de cancelamento
+  (provedor legado, ambiente não Nacional ou nota não cancelada — sondado
+  ao vivo em 2026-07-30) e chega como `NotFoundException`; quando existem o
+  XML de envio e o autorizado, a API retorna o autorizado. Paridade-plus:
+  o SDK Node não expõe este download.
+
 ## [3.4.1] — 2026-07-31
 
 ### Corrigido
