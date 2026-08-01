@@ -35,6 +35,7 @@ recurso de nota que usa o host `api.nfe.io`; os demais usam `api.nfse.io`.
 | `sendEmail($companyId, $invoiceId)` | Reenvia a nota por e-mail ao tomador. | `array` (típico: `{sent, message}`) |
 | `downloadPdf($companyId, $invoiceId)` | PDF da nota. | `string` (bytes crus) |
 | `downloadXml($companyId, $invoiceId)` | XML da nota. | `string` (bytes crus) |
+| `downloadCancellationXml($companyId, $invoiceId)` | XML do evento de cancelamento (`e110001`, ambiente Nacional). | `string` (bytes crus) |
 | `getStatus($companyId, $invoiceId)` | Snapshot leve de status. | `array` (`flowStatus`, `flowMessage`, …) |
 
 As opções de `list()` incluem `pageIndex` (**1-based**), `pageCount`,
@@ -199,7 +200,19 @@ Os downloads retornam uma `string` com os bytes do arquivo — grave com
 ```php
 file_put_contents('nfse.pdf', $nfe->serviceInvoices->downloadPdf($companyId, $invoiceId));
 file_put_contents('nfse.xml', $nfe->serviceInvoices->downloadXml($companyId, $invoiceId));
+
+// XML do evento de cancelamento (só para notas canceladas do ambiente Nacional):
+file_put_contents('nfse-cancelamento.xml', $nfe->serviceInvoices->downloadCancellationXml($companyId, $invoiceId));
 ```
+
+::: warning Quando o 404 do cancellation-xml é esperado
+`downloadCancellationXml()` lança `NotFoundException` quando **não existe** XML de
+evento de cancelamento — o que é resposta normal em três casos: a nota é de um
+provedor legado (ABRASF, Paulistana etc.), não é do ambiente Nacional (evento
+`e110001` da Reforma Tributária), ou ainda não foi cancelada. Trate esse 404 como
+"não há XML de cancelamento", não como id inválido. Quando existem o XML de envio
+e o autorizado, a API retorna o **autorizado**.
+:::
 
 ## Cancelar e reenviar por e-mail
 
