@@ -16,8 +16,8 @@ final readonly class DFeTech_TaxPayers_Resources_CreateCompanyResourceItem
     public function __construct(
         public string $name,
         public int $federalTaxNumber,
-        public DFeTech.TaxPayers.Domain.Entities.TaxRegime $taxRegime,
-        public DFeTech.TaxPayers.Resources.AddressResource $address,
+        public DFeTech_TaxPayers_Domain_Entities_TaxRegime $taxRegime,
+        public DFeTech_TaxPayers_Resources_AddressResource $address,
         public ?string $accountId = null,
         public ?string $tradeName = null,
         public ?string $municipalTaxNumber = null,

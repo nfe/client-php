@@ -15,7 +15,7 @@ final readonly class DataTech_Api_Resources_AddressResourceItem
 {
     public function __construct(
         public ?string $state = null,
-        public ?DataTech.Services.Domain.Models.CityBase $city = null,
+        public ?DataTech_Services_Domain_Models_CityBase $city = null,
         public ?string $district = null,
         public ?string $additionalInformation = null,
         public ?string $streetSuffix = null,

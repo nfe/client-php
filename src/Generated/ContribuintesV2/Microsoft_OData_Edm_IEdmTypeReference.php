@@ -12,6 +12,6 @@ final readonly class Microsoft_OData_Edm_IEdmTypeReference
 {
     public function __construct(
         public ?bool $isNullable = null,
-        public ?Microsoft.OData.Edm.IEdmType $definition = null,
+        public ?Microsoft_OData_Edm_IEdmType $definition = null,
     ) {}
 }

@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace Nfe\Generated\ContribuintesV2;
 
 /**
- * @param list<DFeTech.TaxPayers.Resources.CompanyResourceV1>|null $companies
+ * @param list<DFeTech_TaxPayers_Resources_CompanyResourceV1>|null $companies
  */
 final readonly class DFeTech_TaxPayers_Resources_CompanyCollectionResourceV1
 {

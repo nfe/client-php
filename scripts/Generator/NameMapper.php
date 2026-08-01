@@ -41,7 +41,19 @@ final class NameMapper
      */
     public static function className(string $schemaName): string
     {
-        $clean = preg_replace('/[^A-Za-z0-9_]/', '_', $schemaName) ?? $schemaName;
+        return self::phpIdentifier($schemaName);
+    }
+
+    /**
+     * Turn an arbitrary schema name into a valid PHP identifier.
+     *
+     * Single source of truth for both emitted class names and $ref-derived
+     * type-hints, so a schema name and every reference to it always agree
+     * (e.g., "DFeTech.TaxPayers.Resources.X" -> "DFeTech_TaxPayers_Resources_X").
+     */
+    public static function phpIdentifier(string $name): string
+    {
+        $clean = preg_replace('/[^A-Za-z0-9_]/', '_', $name) ?? $name;
 
         // If it starts with a digit, prefix with underscore (PHP requirement).
         if ($clean !== '' && ctype_digit($clean[0])) {

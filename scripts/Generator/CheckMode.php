@@ -13,11 +13,12 @@ namespace Nfe\Build;
 final class CheckMode
 {
     /**
+     * @param array<string, string>|null $expected Precomputed {@see Generator::generate()} output, to avoid regenerating.
      * @return array{ok: bool, added: list<string>, removed: list<string>, changed: list<string>}
      */
-    public static function diff(Generator $generator, string $outputRoot): array
+    public static function diff(Generator $generator, string $outputRoot, ?array $expected = null): array
     {
-        $expected = $generator->generate();
+        $expected ??= $generator->generate();
         $actual   = self::scanDir($outputRoot);
 
         $added   = array_values(array_diff(array_keys($expected), array_keys($actual)));

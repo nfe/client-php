@@ -14,6 +14,6 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_UpdateCompanyResource
 {
     public function __construct(
-        public ?DFeTech.TaxPayers.Resources.UpdateCompanyResourceItem $company = null,
+        public ?DFeTech_TaxPayers_Resources_UpdateCompanyResourceItem $company = null,
     ) {}
 }

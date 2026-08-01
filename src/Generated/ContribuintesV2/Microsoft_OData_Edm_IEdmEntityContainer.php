@@ -9,13 +9,13 @@ declare(strict_types=1);
 namespace Nfe\Generated\ContribuintesV2;
 
 /**
- * @param list<Microsoft.OData.Edm.IEdmEntityContainerElement>|null $elements
+ * @param list<Microsoft_OData_Edm_IEdmEntityContainerElement>|null $elements
  */
 final readonly class Microsoft_OData_Edm_IEdmEntityContainer
 {
     public function __construct(
         public ?string $name = null,
-        public ?Microsoft.OData.Edm.EdmSchemaElementKind $schemaElementKind = null,
+        public ?Microsoft_OData_Edm_EdmSchemaElementKind $schemaElementKind = null,
         public ?string $namespace = null,
         public ?array $elements = null,
     ) {}

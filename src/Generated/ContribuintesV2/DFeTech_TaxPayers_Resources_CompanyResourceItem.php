@@ -16,15 +16,15 @@ final readonly class DFeTech_TaxPayers_Resources_CompanyResourceItem
     public function __construct(
         public string $name,
         public int $federalTaxNumber,
-        public DFeTech.TaxPayers.Domain.Entities.TaxRegime $taxRegime,
-        public DFeTech.TaxPayers.Resources.AddressResource $address,
+        public DFeTech_TaxPayers_Domain_Entities_TaxRegime $taxRegime,
+        public DFeTech_TaxPayers_Resources_AddressResource $address,
         public ?string $accountId = null,
         public ?string $tradeName = null,
         public ?string $municipalTaxNumber = null,
         public ?string $id = null,
         public ?array $stateTaxes = null,
         public ?array $municipalTaxes = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.Status $status = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_Status $status = null,
         public ?string $createdOn = null,
         public ?string $modifiedOn = null,
     ) {}

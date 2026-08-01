@@ -11,6 +11,6 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class DFeTech_TaxPayers_Resources_UpdateStateTaxResource
 {
     public function __construct(
-        public ?DFeTech.TaxPayers.Resources.UpdateStateTaxResourceItem $stateTax = null,
+        public ?DFeTech_TaxPayers_Resources_UpdateStateTaxResourceItem $stateTax = null,
     ) {}
 }

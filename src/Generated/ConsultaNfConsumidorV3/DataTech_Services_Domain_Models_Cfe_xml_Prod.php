@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace Nfe\Generated\ConsultaNfConsumidorV3;
 
 /**
- * @param list<DataTech.Services.Domain.Models.Cfe.xml.ObsFiscoDet>|null $obsFiscoDet
+ * @param list<DataTech_Services_Domain_Models_Cfe_xml_ObsFiscoDet>|null $obsFiscoDet
  */
 final readonly class DataTech_Services_Domain_Models_Cfe_xml_Prod
 {

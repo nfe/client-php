@@ -11,7 +11,7 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class Microsoft_OData_ODataEntitySetInfo
 {
     public function __construct(
-        public ?Microsoft.OData.ODataTypeAnnotation $typeAnnotation = null,
+        public ?Microsoft_OData_ODataTypeAnnotation $typeAnnotation = null,
         public ?string $url = null,
         public ?string $name = null,
         public ?string $title = null,

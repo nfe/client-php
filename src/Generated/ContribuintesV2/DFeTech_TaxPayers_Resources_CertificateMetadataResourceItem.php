@@ -20,6 +20,6 @@ final readonly class DFeTech_TaxPayers_Resources_CertificateMetadataResourceItem
         public ?string $subject = null,
         public ?string $validUntil = null,
         public ?string $modifiedOn = null,
-        public ?DFeTech.TaxPayers.Domain.Entities.CertificateStatus $status = null,
+        public ?DFeTech_TaxPayers_Domain_Entities_CertificateStatus $status = null,
     ) {}
 }

@@ -12,9 +12,9 @@ final readonly class Microsoft_OData_Edm_Vocabularies_IEdmTerm
 {
     public function __construct(
         public ?string $name = null,
-        public ?Microsoft.OData.Edm.EdmSchemaElementKind $schemaElementKind = null,
+        public ?Microsoft_OData_Edm_EdmSchemaElementKind $schemaElementKind = null,
         public ?string $namespace = null,
-        public ?Microsoft.OData.Edm.IEdmTypeReference $type = null,
+        public ?Microsoft_OData_Edm_IEdmTypeReference $type = null,
         public ?string $appliesTo = null,
         public ?string $defaultValue = null,
     ) {}

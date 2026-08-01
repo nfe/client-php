@@ -17,7 +17,7 @@ final readonly class DataTech_Services_Domain_Models_Cfe_xml_Emit
         public ?string $cnpj = null,
         public ?string $xNome = null,
         public ?string $xFant = null,
-        public ?DataTech.Services.Domain.Models.Cfe.xml.EnderEmit $enderEmit = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_EnderEmit $enderEmit = null,
         public ?string $ie = null,
         public ?string $im = null,
         public ?string $cRegTrib = null,

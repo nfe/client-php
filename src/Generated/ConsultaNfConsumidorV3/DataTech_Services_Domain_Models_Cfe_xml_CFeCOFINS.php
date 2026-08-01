@@ -14,6 +14,6 @@ namespace Nfe\Generated\ConsultaNfConsumidorV3;
 final readonly class DataTech_Services_Domain_Models_Cfe_xml_CFeCOFINS
 {
     public function __construct(
-        public ?DataTech.Services.Domain.Models.Cfe.xml.CFeCOFINSBase $tipo = null,
+        public ?DataTech_Services_Domain_Models_Cfe_xml_CFeCOFINSBase $tipo = null,
     ) {}
 }

@@ -9,14 +9,14 @@ declare(strict_types=1);
 namespace Nfe\Generated\ContribuintesV2;
 
 /**
- * @param list<Microsoft.OData.ODataEntitySetInfo>|null $entitySets
- * @param list<Microsoft.OData.ODataSingletonInfo>|null $singletons
- * @param list<Microsoft.OData.ODataFunctionImportInfo>|null $functionImports
+ * @param list<Microsoft_OData_ODataEntitySetInfo>|null $entitySets
+ * @param list<Microsoft_OData_ODataSingletonInfo>|null $singletons
+ * @param list<Microsoft_OData_ODataFunctionImportInfo>|null $functionImports
  */
 final readonly class Microsoft_OData_ODataServiceDocument
 {
     public function __construct(
-        public ?Microsoft.OData.ODataTypeAnnotation $typeAnnotation = null,
+        public ?Microsoft_OData_ODataTypeAnnotation $typeAnnotation = null,
         public ?array $entitySets = null,
         public ?array $singletons = null,
         public ?array $functionImports = null,

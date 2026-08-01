@@ -11,6 +11,6 @@ namespace Nfe\Generated\ContribuintesV2;
 final readonly class Microsoft_OData_Edm_IEdmType
 {
     public function __construct(
-        public ?Microsoft.OData.Edm.EdmTypeKind $typeKind = null,
+        public ?Microsoft_OData_Edm_EdmTypeKind $typeKind = null,
     ) {}
 }

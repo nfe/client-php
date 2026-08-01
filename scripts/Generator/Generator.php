@@ -64,11 +64,12 @@ final class Generator
      *
      * Returns the list of relative paths written.
      *
+     * @param array<string, string>|null $files Precomputed {@see self::generate()} output, to avoid regenerating.
      * @return list<string>
      */
-    public function writeTo(string $outputRoot): array
+    public function writeTo(string $outputRoot, ?array $files = null): array
     {
-        $files = $this->generate();
+        $files ??= $this->generate();
         $written = [];
 
         // Clean the output root (we own the directory completely).
@@ -89,6 +90,42 @@ final class Generator
         }
 
         return $written;
+    }
+
+    /**
+     * Per-spec emission report: how many files each spec yields, and whether
+     * the spec is Swagger 2.0 (out of the generator's reach by design — it
+     * only reads `components.schemas`). Zero emissions from an OpenAPI 3.x
+     * spec is a possible sync regression and deserves a warning upstream.
+     *
+     * @param array<string, string>|null $files Precomputed {@see self::generate()} output, to avoid regenerating.
+     * @return list<array{spec: string, emitted: int, swagger2: bool}>
+     */
+    public function specSummary(?array $files = null): array
+    {
+        $files ??= $this->generate();
+
+        $emittedByNs = [];
+        foreach (array_keys($files) as $rel) {
+            $ns = strstr($rel, '/', true);
+            if ($ns !== false) {
+                $emittedByNs[$ns] = ($emittedByNs[$ns] ?? 0) + 1;
+            }
+        }
+
+        $summary = [];
+        foreach ($this->discoverSpecs() as $specPath) {
+            $loader = SpecLoader::fromFile($specPath);
+            $ns     = NameMapper::namespaceFromSpec($specPath);
+
+            $summary[] = [
+                'spec'     => basename($specPath),
+                'emitted'  => $emittedByNs[$ns] ?? 0,
+                'swagger2' => isset($loader->raw['swagger']),
+            ];
+        }
+
+        return $summary;
     }
 
     /**
