@@ -98,8 +98,12 @@ final class Generator
      * only reads `components.schemas`). Zero emissions from an OpenAPI 3.x
      * spec is a possible sync regression and deserves a warning upstream.
      *
+     * `reindented` counts the quoted-scalar continuation lines the loader had
+     * to re-indent before symfony/yaml would parse the spec (see
+     * {@see YamlNormalizer}); non-zero means the upstream YAML should be fixed.
+     *
      * @param array<string, string>|null $files Precomputed {@see self::generate()} output, to avoid regenerating.
-     * @return list<array{spec: string, emitted: int, swagger2: bool}>
+     * @return list<array{spec: string, emitted: int, swagger2: bool, reindented: int}>
      */
     public function specSummary(?array $files = null): array
     {
@@ -119,9 +123,10 @@ final class Generator
             $ns     = NameMapper::namespaceFromSpec($specPath);
 
             $summary[] = [
-                'spec'     => basename($specPath),
-                'emitted'  => $emittedByNs[$ns] ?? 0,
-                'swagger2' => isset($loader->raw['swagger']),
+                'spec'       => basename($specPath),
+                'emitted'    => $emittedByNs[$ns] ?? 0,
+                'swagger2'   => isset($loader->raw['swagger']),
+                'reindented' => $loader->reindentedLines,
             ];
         }
 
