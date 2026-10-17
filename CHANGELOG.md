@@ -7,6 +7,8 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.5.1] — 2026-10-17
+
 ### Corrigido
 
 - **Enum de CT-e com case duplicado** (#39):
@@ -37,8 +39,11 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
   `CurlTransportFailurePhaseTest` supunha que o TLD `.invalid` nunca resolve e
   falhava em rede com DNS curinga. Agora ele força conexão recusada numa porta
   livre de `127.0.0.1`.
-- Arquivo `VERSION` alinhado com `src/Version.php` (dizia `3.4.1`). Nada no
-  repositório lê esse arquivo.
+
+### Removido
+
+- Arquivo `VERSION` da raiz. Era resto da linha v2, dizia `3.4.1` e nada no
+  repositório o lia; a versão do SDK vem só de `Nfe\Version::CURRENT`.
 
 ### Adicionado
 
