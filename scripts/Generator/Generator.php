@@ -42,8 +42,12 @@ final class Generator
             $relSpecPath = $this->relativeSpecPath($specPath);
 
             foreach ($loader->schemas() as $schemaName => $schema) {
-                $body = EnumCompiler::compile($schemaName, $schema)
-                    ?? SchemaCompiler::compile($schemaName, $schema, $namespace);
+                try {
+                    $body = EnumCompiler::compile($schemaName, $schema)
+                        ?? SchemaCompiler::compile($schemaName, $schema, $namespace);
+                } catch (RuntimeException $e) {
+                    throw new RuntimeException("{$relSpecPath}: {$e->getMessage()}", 0, $e);
+                }
 
                 if ($body === null) {
                     continue;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nfe\Build;
 
+use RuntimeException;
+
 /**
  * Compiles an OpenAPI schema fragment carrying `enum: [...]` into a native
  * PHP 8.1+ enum source string.
@@ -29,6 +31,8 @@ final class EnumCompiler
         $className = NameMapper::className($schemaName);
         $backing   = self::backingType($schema['type'] ?? 'string');
         $cases     = [];
+        $byName    = [];
+        $byLiteral = [];
 
         foreach ($schema['enum'] as $value) {
             if (!is_scalar($value)) {
@@ -38,7 +42,31 @@ final class EnumCompiler
             $literal  = $backing === 'int'
                 ? (string) (int) $value
                 : "'" . str_replace("'", "\\'", (string) $value) . "'";
-            $cases[]  = "    case {$caseName} = {$literal};";
+
+            // Two cases with the same name or the same backing value are a
+            // fatal error in PHP: refuse to emit the enum instead of shipping it.
+            if (isset($byName[$caseName])) {
+                throw new RuntimeException(sprintf(
+                    'Enum %s: values %s and %s both map to case name %s.',
+                    $schemaName,
+                    var_export($byName[$caseName], true),
+                    var_export($value, true),
+                    $caseName,
+                ));
+            }
+            if (isset($byLiteral[$literal])) {
+                throw new RuntimeException(sprintf(
+                    'Enum %s: values %s and %s both map to backing value %s.',
+                    $schemaName,
+                    var_export($byLiteral[$literal], true),
+                    var_export($value, true),
+                    $literal,
+                ));
+            }
+            $byName[$caseName]   = $value;
+            $byLiteral[$literal] = $value;
+
+            $cases[] = "    case {$caseName} = {$literal};";
         }
 
         $description = self::cleanDescription($schema['description'] ?? null);
@@ -63,7 +91,8 @@ final class EnumCompiler
      *
      * "WaitingDefineRpsNumber" -> "WaitingDefineRpsNumber"
      * "in-progress"            -> "InProgress"
-     * "01.02"                  -> "Value_01_02"
+     * "1"                      -> "Value_1"
+     * "-1"                     -> "Value_Minus1"
      */
     private static function caseName(string $value): string
     {
@@ -71,6 +100,10 @@ final class EnumCompiler
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $value)) {
             return ucfirst($value);
         }
+
+        // A leading minus sign on a number is meaning, not punctuation: without
+        // it "1" and "-1" would both become Value_1 (#39).
+        $negative = preg_match('/^-[0-9]/', $value) === 1;
 
         // Convert kebab/snake to PascalCase.
         $parts = preg_split('/[^A-Za-z0-9]+/', $value) ?: [];
@@ -80,6 +113,10 @@ final class EnumCompiler
                 continue;
             }
             $studly .= strtoupper($part[0]) . substr($part, 1);
+        }
+
+        if ($negative) {
+            return 'Value_Minus' . $studly;
         }
 
         if ($studly === '' || ctype_digit($studly[0])) {
