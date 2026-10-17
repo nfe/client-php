@@ -13,11 +13,11 @@ final readonly class Sucessonarequisio2
     public function __construct(
         public string $startFromNsu,
         public string $startFromDate,
-        public ?string $environmentSEFAZ = null,
+        public ?string $environmentSEFAZ,
         public AutomaticManifesting $automaticManifesting,
         public string $webhookVersion,
         public string $companyId,
-        public ?string $status = null,
+        public ?string $status,
         public string $createdOn,
         public string $modifiedOn,
     ) {}
