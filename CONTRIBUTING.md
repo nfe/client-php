@@ -54,6 +54,7 @@ Requires PHP 8.2, 8.3, or 8.4 and Composer 2 on the host.
 | PHP-CS-Fixer (auto-fix) | Apply style fixes | `composer cs:fix` |
 | OpenAPI codegen | Regenerate `src/Generated/` from `openapi/*.yaml` | `composer generate` |
 | OpenAPI sync check | Fail if `src/Generated/` is out of sync with specs | `composer generate:check` |
+| Lint gate | `php -l` (E_ALL) over every file in `src/`; fails on any error or deprecation | `composer lint` |
 
 All four are enforced by CI (`.github/workflows/ci.yml`) on every push and PR to `v3`.
 

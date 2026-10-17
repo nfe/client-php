@@ -88,6 +88,25 @@ jobs:
       - name: Run PHP-CS-Fixer
         run: composer cs
 
+  lint:
+    name: php -l em src/ (PHP 8.2)
+    runs-on: ubuntu-latest
+    # `php -l` compila cada arquivo: pega o que o lint do gerador
+    # (token_get_all) não vê, como case de enum duplicado (#39) e
+    # deprecations de assinatura (#36). Falha em qualquer diagnóstico.
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, json, mbstring
+          coverage: none
+
+      - name: php -l em src/
+        run: bash scripts/lint.sh
+
   openapi-sync:
     name: OpenAPI generated code in sync
     runs-on: ubuntu-latest

@@ -12,5 +12,5 @@ enum DFe_NetCore_Domain_Enums_EntityStatus: int
 {
     case Value_0 = 0;
     case Value_1 = 1;
-    case Value_1 = -1;
+    case Value_Minus1 = -1;
 }

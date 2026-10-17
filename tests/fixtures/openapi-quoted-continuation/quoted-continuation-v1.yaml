@@ -1,0 +1,37 @@
+openapi: 3.0.1
+info:
+  title: Quoted continuation fixture
+  version: "1.0"
+paths:
+  /v2/companies/{companyId}/productinvoices/{id}/authority-events:
+    post:
+      tags:
+        - "Nota Fiscal
+de Produto"
+      summary: Registrar um evento de autoridade
+      description: "### Informações adicionais\r\n⛔ **Indisponível no momento.** Recurso protegido
+por feature flag.
+
+| `type` | tpEvento |
+|---|---|
+- item: com dois-pontos e \"aspas\" escapadas"
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    AuthorityEvent:
+      type: object
+      description: "Evento de autoridade.
+Indisponível no momento."
+      required: [type]
+      properties:
+        type:
+          type: string
+          description: 'Tipo do evento; ''aspas'' simples
+continuam aqui'
+        note:
+          type: string
+          description: |
+            Bloco literal com "aspas que não fecham
+            fica intacto

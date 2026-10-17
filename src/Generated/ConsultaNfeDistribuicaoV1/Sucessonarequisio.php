@@ -23,7 +23,7 @@ final readonly class Sucessonarequisio
         public string $xmlUrl,
         public string $federalTaxNumberSender,
         public string $nameSender,
-        public ?string $type = null,
+        public ?string $type,
         public string $nsu,
         public string $nsuParent,
         public string $nfeNumber,

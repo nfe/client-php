@@ -23,7 +23,7 @@ final readonly class Sucessonarequisio6
         public Issuer $issuer,
         public Buyer $buyer,
         public Transportation $transportation,
-        public ?string $type = null,
+        public ?string $type,
         public string $nsu,
         public string $nfeNumber,
         public string $issuedOn,
