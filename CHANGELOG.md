@@ -7,7 +7,7 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
-## [3.5.1] — 2026-10-17
+## [3.5.1] — 2026-10-28
 
 ### Corrigido
 
