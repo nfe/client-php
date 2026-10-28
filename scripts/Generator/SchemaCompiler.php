@@ -64,6 +64,8 @@ final class SchemaCompiler
             }
         }
 
+        $paramLines = self::dropUnreachableDefaults($paramLines);
+
         $body  = '';
         if ($description !== null) {
             $body .= "/**\n * {$description}\n */\n";
@@ -130,6 +132,37 @@ final class SchemaCompiler
         }
 
         return [$line, $docLine];
+    }
+
+    /**
+     * Strip `= null` from any parameter declared before a parameter without a
+     * default (#36).
+     *
+     * A required-but-nullable property is emitted as `?T $x = null` among the
+     * required ones; when a required non-nullable property follows, PHP 8.1+
+     * deprecates the declaration ("Optional parameter declared before required
+     * parameter is implicitly treated as a required parameter"). The default is
+     * already unreachable there — omitting the argument, even by name, throws
+     * ArgumentCountError and Reflection reports it as not optional — so
+     * dropping it changes nothing for callers. The `?T` type stays, and the
+     * parameter order is never touched (positional callers rely on it).
+     *
+     * @param list<string> $paramLines
+     * @return list<string>
+     */
+    private static function dropUnreachableDefaults(array $paramLines): array
+    {
+        $requiredFollows = false;
+        for ($i = count($paramLines) - 1; $i >= 0; $i--) {
+            $hasDefault = str_ends_with($paramLines[$i], ' = null');
+            if ($hasDefault && $requiredFollows) {
+                $paramLines[$i] = substr($paramLines[$i], 0, -strlen(' = null'));
+            } elseif (!$hasDefault) {
+                $requiredFollows = true;
+            }
+        }
+
+        return $paramLines;
     }
 
     /**

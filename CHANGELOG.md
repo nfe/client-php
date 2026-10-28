@@ -7,6 +7,51 @@ e este projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/sp
 
 ## [Unreleased]
 
+## [3.5.1] — 2026-10-28
+
+### Corrigido
+
+- **Enum de CT-e com case duplicado** (#39):
+  `Nfe\Generated\ConsultaCteV2\DFe_NetCore_Domain_Enums_EntityStatus` declarava
+  `Value_1` duas vezes (para `1` e `-1`) e dava erro fatal ao carregar a classe,
+  em `php -l` e com `--classmap-authoritative`. O gerador descartava o sinal ao
+  nomear o case. Agora valores negativos recebem o prefixo `Value_Minus`
+  (`-1` vira `Value_Minus1`), seguindo o padrão `Value_<n>` dos positivos. O
+  enum nunca carregou, então nenhum código podia depender do nome antigo. O
+  gerador também passa a falhar, citando spec, schema e valores, quando dois
+  valores geram o mesmo nome de case ou o mesmo valor de backing.
+- **Deprecations em 3 DTOs de `ConsultaNfeDistribuicaoV1`** (#36):
+  `Sucessonarequisio`, `Sucessonarequisio2` e `Sucessonarequisio6` declaravam
+  parâmetro opcional (`?string $x = null`) antes de obrigatório, e o PHP 8.1+
+  emitia `Deprecated` ao compilar. O gerador não emite mais esse default, que já
+  era inalcançável (omitir o argumento, inclusive por nome, já lançava
+  `ArgumentCountError`). A ordem dos parâmetros e o tipo `?string` não mudam.
+- **Gerador aceita string entre aspas com continuação na coluna 0**: as specs
+  atuais de NF-e v2, v3 e RTC de produto (aviso "Indisponível no momento" dos
+  eventos de autoridade) têm descriptions entre aspas com linhas de continuação
+  na coluna 0. PyYAML e js-yaml aceitam esse formato, mas o `symfony/yaml` recusa
+  com `Malformed inline YAML string`, e o `composer generate` não rodava. Quando
+  o `symfony/yaml` recusa uma spec, o gerador agora reindenta essas linhas e
+  tenta de novo. O valor lido não muda: nas 3 specs, o documento é idêntico ao
+  do PyYAML. Spec que já era lida não passa por esse caminho, e o resumo do
+  `composer generate` informa quantas linhas foram reindentadas.
+- **Teste de `FailurePhase` independente de DNS**:
+  `CurlTransportFailurePhaseTest` supunha que o TLD `.invalid` nunca resolve e
+  falhava em rede com DNS curinga. Agora ele força conexão recusada numa porta
+  livre de `127.0.0.1`.
+
+### Removido
+
+- Arquivo `VERSION` da raiz. Era resto da linha v2, dizia `3.4.1` e nada no
+  repositório o lia; a versão do SDK vem só de `Nfe\Version::CURRENT`.
+
+### Adicionado
+
+- **Gate de `php -l` no CI** (`scripts/lint.sh`, `composer lint`): compila cada
+  arquivo de `src/` com `E_ALL` e falha em qualquer erro ou deprecation. Roda
+  como job próprio do CI (PHP 8.2) e no verify da release. O lint do gerador
+  (`token_get_all`) só verifica sintaxe e deixou passar o #39 e o #36.
+
 ## [3.5.0] — 2026-08-01
 
 ### Adicionado

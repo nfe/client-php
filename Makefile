@@ -8,7 +8,7 @@ DC := docker compose
 RUN := $(DC) run --rm
 PHP ?= php
 
-.PHONY: help build install update test test-matrix stan cs cs-fix generate generate-check shell clean
+.PHONY: help build install update test test-matrix stan cs cs-fix lint generate generate-check shell clean
 
 help:
 	@echo "NFE.io PHP SDK — dev shortcuts (all run via docker compose)"
@@ -21,6 +21,7 @@ help:
 	@echo "  make stan            PHPStan analyse"
 	@echo "  make cs              php-cs-fixer dry-run"
 	@echo "  make cs-fix          php-cs-fixer fix (writes changes)"
+	@echo "  make lint            php -l over src/ (fails on errors or deprecations)"
 	@echo "  make generate        Regenerate src/Generated/ from openapi/*.yaml"
 	@echo "  make generate-check  Fail if src/Generated/ is out of sync with specs"
 	@echo "  make shell           Drop into a bash shell inside the PHP 8.2 container"
@@ -53,6 +54,9 @@ cs:
 
 cs-fix:
 	$(RUN) $(PHP) composer cs:fix
+
+lint:
+	$(RUN) $(PHP) composer lint
 
 generate:
 	$(RUN) $(PHP) composer generate

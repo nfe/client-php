@@ -49,6 +49,10 @@ jobs:
         if: matrix.php == '8.2'
         run: composer generate:check
 
+      - name: php -l em src/
+        if: matrix.php == '8.2'
+        run: bash scripts/lint.sh
+
       - name: Version.php matches tag
         if: matrix.php == '8.2'
         run: |

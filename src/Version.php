@@ -12,5 +12,5 @@ namespace Nfe;
  */
 final class Version
 {
-    public const CURRENT = '3.5.0';
+    public const CURRENT = '3.5.1';
 }

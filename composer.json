@@ -63,6 +63,7 @@
         "stan": "phpstan analyse --memory-limit=512M",
         "cs": "php-cs-fixer fix --dry-run --diff",
         "cs:fix": "php-cs-fixer fix",
+        "lint": "bash scripts/lint.sh",
         "generate": "@php scripts/generate.php",
         "generate:check": "@php scripts/generate.php --check"
     },

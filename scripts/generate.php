@@ -47,6 +47,13 @@ foreach ($generator->specSummary($files) as $row) {
     } else {
         fwrite(STDOUT, sprintf("  %-40s %d schema file(s)\n", $row['spec'], $row['emitted']));
     }
+    if ($row['reindented'] > 0) {
+        fwrite(STDOUT, sprintf(
+            "  %-40s ↳ note: re-indented %d under-indented quoted-string continuation line(s) to parse; fix upstream\n",
+            '',
+            $row['reindented'],
+        ));
+    }
 }
 
 // Syntactic lint: every emitted file must parse. This is the hard gate that
